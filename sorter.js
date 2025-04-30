@@ -262,8 +262,8 @@ document.getElementById("btnA").onclick = function() {
     }
     
     recalculateRemainingComparisons();
-    updateProgressDisplay();
     processCurrentState();
+    updateProgressDisplay();
   }
 };
 
@@ -292,8 +292,8 @@ document.getElementById("btnB").onclick = function() {
     }
     
     recalculateRemainingComparisons();
-    updateProgressDisplay();
     processCurrentState();
+    updateProgressDisplay();
   }
 };
 
