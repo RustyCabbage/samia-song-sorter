@@ -18,6 +18,7 @@ let finalSorted = [];
 let completedComparisons = 0;
 let totalComparisons = 0;
 let pendingMerges = [];
+let decisionHistory = [];
 
 // Calculate comparisons needed for an array dynamically
 function calcComparisonsNeeded(arr) {
@@ -53,6 +54,7 @@ function startSorting() {
 
   completedComparisons = 0;
   pendingMerges = [];
+  decisionHistory = []; // Reset decision history
   
   // Initialize with worst-case scenario
   totalComparisons = calculateTotalComparisons(shuffledSongs);
@@ -238,7 +240,17 @@ function recalculateRemainingComparisons() {
 // User chooses option A
 document.getElementById("btnA").onclick = function() {
   if (currentState && currentState.type === 'merge') {
-    currentState.result.push(currentState.left[currentState.leftIndex]);
+    const chosenSong = currentState.left[currentState.leftIndex];
+    const rejectedSong = currentState.right[currentState.rightIndex];
+    
+    // Log this decision
+    decisionHistory.push({
+      comparison: completedComparisons + 1,
+      chosen: chosenSong,
+      rejected: rejectedSong
+    });
+    
+    currentState.result.push(chosenSong);
     currentState.leftIndex++;
     completedComparisons++;
     
@@ -258,7 +270,17 @@ document.getElementById("btnA").onclick = function() {
 // User chooses option B
 document.getElementById("btnB").onclick = function() {
   if (currentState && currentState.type === 'merge') {
-    currentState.result.push(currentState.right[currentState.rightIndex]);
+    const chosenSong = currentState.right[currentState.rightIndex];
+    const rejectedSong = currentState.left[currentState.leftIndex];
+    
+    // Log this decision
+    decisionHistory.push({
+      comparison: completedComparisons + 1,
+      chosen: chosenSong,
+      rejected: rejectedSong
+    });
+    
+    currentState.result.push(chosenSong);
     currentState.rightIndex++;
     completedComparisons++;
     
@@ -277,9 +299,36 @@ document.getElementById("btnB").onclick = function() {
 
 function showResult() {
   const resultDiv = document.getElementById("result");
-  resultDiv.innerHTML = "<h2>Your Song Ranking:</h2><ol>" +
+  
+  // Create the final ranking list
+  let resultHTML = "<h2>Your Song Ranking:</h2><ol>" +
     finalSorted.map(song => `<li>${song}</li>`).join('') +
     "</ol>";
+    
+  // Create the decision history section
+  resultHTML += "<h2>Your Decision History:</h2>";
+  resultHTML += "<div class='decision-table'>";
+  resultHTML += "<table>" +
+    "<thead><tr>" +
+    "<th>Comparison #</th>" +
+    "<th>Chosen</th>" +
+    "<th>Rejected</th>" +
+    "</tr></thead><tbody>";
+    
+  decisionHistory.forEach(decision => {
+    resultHTML += `<tr>
+      <td>${decision.comparison}</td>
+      <td class="chosen">${decision.chosen}</td>
+      <td class="rejected">${decision.rejected}</td>
+    </tr>`;
+  });
+  
+  resultHTML += "</tbody></table></div>";
+  
+  // Update the result div with all content
+  resultDiv.innerHTML = resultHTML;
+  
+  // Hide comparison elements
   document.getElementById("choices").style.display = "none";
   if (document.getElementById("progress")) {
     document.getElementById("progress").style.display = "none";
