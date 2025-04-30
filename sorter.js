@@ -198,7 +198,7 @@ function processMerge() {
   }
   
   document.getElementById("comparison").textContent = 
-    `Comparison #${completedComparisons + 1} of (approx) ${totalComparisons}`;
+    `Comparison #${completedComparisons + 1} of ${totalComparisons} (approx)`;
 }
 
 function recalculateRemainingComparisons() {

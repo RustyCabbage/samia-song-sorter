@@ -45,7 +45,7 @@ button {
   cursor: pointer;
   transition: background-color 0.3s, transform 0.2s;
   width: 200px;
-  height: 75px;
+  height: 60px;
   margin: 0 20px; /* top/bottom and left/right margins */
 }
 
