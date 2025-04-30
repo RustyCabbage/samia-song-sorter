@@ -310,7 +310,7 @@ function showResult() {
   resultHTML += "<div class='decision-table'>";
   resultHTML += "<table>" +
     "<thead><tr>" +
-    "<th>Comparison #</th>" +
+    "<th>#</th>" +
     "<th>Chosen</th>" +
     "<th>Rejected</th>" +
     "</tr></thead><tbody>";

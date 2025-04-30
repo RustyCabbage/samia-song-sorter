@@ -128,7 +128,7 @@ button:hover {
 }
 
 /* Responsive table for smaller screens */
-@media (max-width: 600px) {
+@media {
   .decision-table table {
     font-size: 14px;
   }
