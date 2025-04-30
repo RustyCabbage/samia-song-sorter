@@ -21,27 +21,22 @@ h1 {
 
 #choices {
   display: flex;
-  flex-wrap: wrap;
   justify-content: space-around;
-  gap: 20px;
   margin-bottom: 40px;
 }
 
 button {
-  padding: 20px 40px;
-  font-size: 18px;
+  padding: 15px 30px;
+  font-size: 16px;
   background-color: #888888;
-  color: #e9e9e9;
+  color: e9e9e9;
   border: none;
-  border-radius: 10px;
+  border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s, transform 0.2s;
-  flex: 1;
-  min-width: 45%;
-  max-width: 100%;
-  height: auto;
-  word-wrap: break-word;
-  white-space: normal;
+  width: 200px;
+  height: 100px;
+  margin: 0 20px;
 }
 
 button:hover {
@@ -70,16 +65,4 @@ button:hover {
 #result li {
   margin-bottom: 8px;
   font-size: 18px;
-}
-
-@media (max-width: 600px) {
-  button {
-    font-size: 16px;
-    padding: 15px;
-  }
-
-  #choices {
-    flex-direction: column;
-    align-items: center;
-  }
 }
