@@ -75,15 +75,9 @@ function updateProgressDisplay() {
     0 : Math.round((completedComparisons / totalComparisons) * 100);
   
   const progressDiv = document.getElementById("progress");
-  if (!progressDiv) {
-    // Create progress display if it doesn't exist
-    const newProgressDiv = document.createElement("div");
-    newProgressDiv.id = "progress";
-    newProgressDiv.style.marginBottom = "20px";
-    document.getElementById("choices").insertAdjacentElement('beforebegin', newProgressDiv);
+  if (progressDiv) {
+	progressDiv.textContent = `Progress: ${progressPercentage}% sorted`;
   }
-  
-  document.getElementById("progress").textContent = `Progress: ${progressPercentage}% sorted`;
 }
 
 // Process the current state of our algorithm
@@ -177,11 +171,11 @@ function processMerge() {
   btnA.textContent = left[leftIndex];
   btnB.textContent = right[rightIndex];
   
-  // Ensure consistent button size and positioning
-  btnA.style.width = "200px";
-  btnA.style.height = "50px";
-  btnB.style.width = "200px";
-  btnB.style.height = "50px";
+  // Update the comparison text in the #comparison element
+  const comparisonDiv = document.getElementById("comparison");
+  if (comparisonDiv) {
+    comparisonDiv.textContent = `Comparison #${completedComparisons + 1} of ${totalComparisons}`;
+  }
 }
 
 // When the user chooses option A
@@ -214,6 +208,9 @@ function showResult() {
   document.getElementById("choices").style.display = "none";
   if (document.getElementById("progress")) {
     document.getElementById("progress").style.display = "none";
+  }
+  if (document.getElementById("comparison")) {
+    document.getElementById("comparison").style.display = "none";
   }
 }
 
