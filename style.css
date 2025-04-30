@@ -95,7 +95,7 @@ button:hover {
 
 .decision-table table {
   width: 100%;
-  min-width: 300px; /* Ensure minimum width */
+  min-width: 1px; /* Ensure minimum width */
   border-collapse: collapse;
   background-color: #686868;
   border-radius: 5px;
