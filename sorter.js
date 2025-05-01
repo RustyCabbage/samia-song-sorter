@@ -402,13 +402,10 @@ function showResult() {
   resultDiv.innerHTML = resultHTML;
   
   // Hide comparison elements
+  document.getElementById("sortingInterface").style.display = "none";
   document.getElementById("choices").style.display = "none";
-  if (document.getElementById("progress")) {
-    document.getElementById("progress").style.display = "none";
-  }
-  if (document.getElementById("comparison")) {
-    document.getElementById("comparison").style.display = "none";
-  }
+  document.getElementById("progress").style.display = "none";
+  document.getElementById("comparison").style.display = "none";
   
   // Add event listener to restart button
   document.getElementById("restartButton").addEventListener("click", resetInterface);
