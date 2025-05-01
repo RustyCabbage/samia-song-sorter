@@ -1,6 +1,5 @@
 ﻿# Samia Song Sorter
-*'cause you get your dreams for free*
-
+*'cause you get your dreams for free*\
 *you get your dreams for free*
 
 - inspired by
