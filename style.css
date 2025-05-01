@@ -1,19 +1,30 @@
+:root {
+  /* Default theme variables (Bloodless theme) */
+  --background-color: #282828;
+  --text-color: #e9e9e9;
+  --button-color: #686868;
+  --button-hover-color: #555555;
+  --button-text-color: #e9e9e9;
+  --button-hover-color: #555555;
+}
+
 body {
   font-family: Arial, sans-serif;
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
   text-align: center;
-  background-color: #282828;
-  color: #e9e9e9;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.5s ease, color 0.5s ease;
 }
 
 h1, h2 {
   margin-bottom: 30px;
-  color: #e9e9e9;
+  color: var(--text-color);
+  transition: color 0.5s ease;
 }
 
-/* number signs are IDs, of which there are 1 per html page */
 /* Selection interface styles */
 #selectionInterface {
   margin-bottom: 40px;
@@ -29,19 +40,22 @@ h1, h2 {
 select {
   padding: 10px;
   font-size: 16px;
-  background-color: #686868;
-  color: #e9e9e9;
+  background-color: var(--button-color);
+  color: var(--button-text-color);
   border: none;
   border-radius: 5px;
   cursor: pointer;
   width: 300px;
   margin-bottom: 10px;
+  transition: background-color 0.3s ease;
 }
 
 .song-count {
   font-size: 14px;
   font-style: italic;
-  color: #bbbbbb;
+  color: var(--text-color);
+  opacity: 0.8;
+  transition: color 0.3s ease;
 }
 
 .instructions {
@@ -53,21 +67,22 @@ select {
 .action-button {
   padding: 12px 24px;
   font-size: 16px;
-  background-color: #686868;
-  color: #e9e9e9;
+  background-color: var(--button-color);
+  color: var(--button-text-color);
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
+  transition: background-color 0.3s, transform 0.2s, color 0.3s;
 }
 
 .action-button:hover {
-  background-color: #555555;
+  background-color: var(--button-hover-color);
   transform: scale(1.05);
 }
 
 .action-button:disabled {
-  background-color: #444444;
+  background-color: var(--button-color);
+  opacity: 0.6;
   cursor: not-allowed;
   transform: none;
 }
@@ -76,18 +91,19 @@ select {
 #progress {
   font-size: 18px;
   font-weight: bold;
-  color: #e9e9e9;
+  color: var(--text-color);
   margin-bottom: 20px;
+  transition: color 0.3s ease;
 }
 
 #comparison {
   font-size: 18px;
-  color: #e9e9e9;
+  color: var(--text-color);
   margin-bottom: 20px;
   font-weight: bold;
+  transition: color 0.3s ease;
 }
 
-/* https://www.w3schools.com/css/css3_flexbox_container.asp */
 /* Choice buttons */
 #choices {
   display: flex;
@@ -98,50 +114,49 @@ select {
 }
 
 #btnA, #btnB {
-  padding: 5px 5px;  /* top/bottom and left/right margins */
+  padding: 5px 5px;
   font-size: 14px;
-  background-color: #888888;
-  color: #282828;
+  background-color: var(--button-color);
+  color: var(--button-text-color);
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
+  transition: background-color 0.3s, transform 0.2s, color 0.3s;
   width: 200px;
   height: 60px;
-  margin: 0 20px; /* top/bottom and left/right margins */
+  margin: 0 20px;
   font-weight: bold;
 }
 
-/* on hover - darken and make slightly larger */
 #btnA:hover, #btnB:hover {
-  background-color: #aaaaaa;
+  background-color: var(--button-hover-color);
   transform: scale(1.05);
 }
 
-/* format for text */
 /* Results styles */
 #result {
   text-align: left;
   margin-top: 40px;
-  color: #e9e9e9;
+  color: var(--text-color);
+  transition: color 0.3s ease;
 }
 
-/* Your Song Ranking */
 #result h2 {
   text-align: center;
   margin-bottom: 20px;
-  color: #e9e9e9;
+  color: var(--text-color);
+  transition: color 0.3s ease;
 }
 
-/* box for results */
 #result ol {
-  background-color: #686868;
+  background-color: var(--button-color);
   padding: 10px 40px;
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: background-color 0.3s ease;
+  color: var(--button-text-color);
 }
 
-/* list of results */
 #result li {
   margin-top: 8px;
   margin-bottom: 8px;
@@ -154,39 +169,38 @@ select {
   margin-top: 20px;
   margin-bottom: 40px;
   width: 100%;
-  display: block; /* Force block display */
+  display: block;
 }
 
 .decision-table table {
   width: 100%;
-  min-width: 1px; /* Ensure minimum width */
+  min-width: 1px;
   border-collapse: collapse;
-  background-color: #686868;
+  background-color: var(--button-color);
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  table-layout: fixed; /* For better mobile handling */
+  table-layout: fixed;
+  transition: background-color 0.3s ease;
+  color: var(--button-text-color);
 }
 
-/* table header cell
-https://www.w3schools.com/tags/tag_th.asp
-*/
 .decision-table th {
   padding: 12px 8px;
   text-align: left;
-  background-color: #555555;
-  color: #e9e9e9;
+  background-color: var(--button-hover-color);
+  color: var(--button-text-color);
   font-weight: bold;
   word-wrap: break-word;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* table data cell 
-https://www.w3schools.com/tags/tag_td.asp
-*/
 .decision-table td {
   padding: 10px 8px;
-  border-bottom: 1px solid #555555;
-  word-wrap: break-word; /* Allow text to wrap */
+  border-bottom: 1px solid var(--button-hover-color);
+  word-wrap: break-word;
   overflow-wrap: break-word;
+  transition: border-color 0.3s ease;
+  color: var(--button-text-color);
 }
 
 .decision-table tr:last-child td {
@@ -207,9 +221,9 @@ https://www.w3schools.com/tags/tag_td.asp
   width: 45%;
 }
 
-/* Bold for chosen songs instead of colored highlighting */
+/* Chosen songs styling */
 .decision-table .chosen {
-  font-weight: bold;
+  font-weight: bold; /* Only using bold for chosen items, no color change */
 }
 
 /* Normal weight for rejected songs */
@@ -226,16 +240,16 @@ https://www.w3schools.com/tags/tag_td.asp
 .restart-button {
   padding: 12px 24px;
   font-size: 16px;
-  background-color: #686868;
-  color: #e9e9e9;
+  background-color: var(--button-color);
+  color: var(--button-text-color);
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
+  transition: background-color 0.3s, transform 0.2s, color 0.3s;
 }
 
 .restart-button:hover {
-  background-color: #555555;
+  background-color: var(--button-hover-color);
   transform: scale(1.05);
 }
 
@@ -251,13 +265,11 @@ https://www.w3schools.com/tags/tag_td.asp
     padding: 8px 5px;
   }
   
-  /* Make comparison number column smaller on mobile */
   .decision-table th:first-child,
   .decision-table td:first-child {
     width: 10%;
   }
   
-  /* Give more space to song names on mobile */
   .decision-table th:nth-child(2),
   .decision-table td:nth-child(2),
   .decision-table th:nth-child(3),

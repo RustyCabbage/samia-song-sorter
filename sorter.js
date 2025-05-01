@@ -10,6 +10,9 @@ let decisionHistory = [];
 
 // Initialize the app
 function initializeApp() {
+  // Apply the default theme on load
+  applyTheme(getCurrentTheme());
+  
   // Populate the list selector dropdown
   populateListSelector();
   
