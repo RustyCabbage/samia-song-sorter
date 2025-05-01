@@ -132,11 +132,11 @@ const songLists = {
       "Pants"
     ],
     theme: {
-      backgroundColor: "#fc9c74", // Teal
-      textColor: "#212121", // Light teal
-      buttonColor: "#c97c5c", // Dark teal
-      buttonHoverColor: "#955c44", // Very dark teal
-      buttonTextColor: "#212121" // Light teal
+      backgroundColor: "#ef936d",
+      textColor: "#212121",
+      buttonColor: "#c97c5c",
+      buttonHoverColor: "#955c44",
+      buttonTextColor: "#212121"
     }
   }
 };
