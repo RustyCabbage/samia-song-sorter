@@ -7,14 +7,40 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Which song do you prefer?</h1>
-  <div id="progress"></div>
-  <div id="comparison"></div>
-  <div id="choices">
-    <button id="btnA"></button>
-    <button id="btnB"></button>
+  <h1>Song Sorter</h1>
+  
+  <!-- Selection Interface -->
+  <div id="selectionInterface">
+    <h2>Choose a Song List to Rank</h2>
+    <div class="select-container">
+      <select id="listSelector" name="songList">
+        <!-- Options will be populated by JavaScript -->
+      </select>
+      <div id="songCount" class="song-count"></div>
+    </div>
+    <p class="instructions">
+      This tool will help you rank songs by presenting you with pairs to choose between.
+      Select a list and click "Start Ranking" when you're ready.
+    </p>
+    <button id="startButton" class="action-button">Start Ranking</button>
   </div>
+  
+  <!-- Sorting Interface -->
+  <div id="sortingInterface">
+    <h2>Which song do you prefer?</h2>
+    <div id="progress"></div>
+    <div id="comparison"></div>
+    <div id="choices">
+      <button id="btnA"></button>
+      <button id="btnB"></button>
+    </div>
+  </div>
+  
+  <!-- Results will be displayed here -->
   <div id="result"></div>
+  
+  <!-- Load our scripts -->
+  <script src="songlists.js"></script>
   <script src="sorter.js"></script>
 </body>
 </html>
