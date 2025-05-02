@@ -92,6 +92,10 @@ h1, h2 {
 }
 
 /* Buttons */
+.restart-button {
+  display: none;
+}
+
 .action-button, .restart-button {
   padding: 12px 24px;
   font-size: 16px;

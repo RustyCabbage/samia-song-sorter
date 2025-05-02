@@ -2,6 +2,8 @@
 *'cause you get your dreams for free*\
 *you get your dreams for free*
 
+**[pages link](https://rustycabbage.github.io/samia-song-sorter/)**
+
 - inspired by
   - a not-quite-request from a close friend
   - asking myself ["Someone *should* do that. Why not me?"](https://twitter.com/ChanaMessinger/status/1463160594941554696)
