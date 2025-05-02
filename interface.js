@@ -12,7 +12,7 @@ function initializeApp() {
     document.getElementById("selectionInterface").style.display = "block"; 
     document.getElementById("sortingInterface").style.display = "none"; 
     document.getElementById("resultsInterface").style.display = "none";
-    document.getElementById("restartButton").style.display = "none";
+    //document.getElementById("restartButton").style.display = "none";
   
     // Populate the list selector dropdown
     populateListSelector();
@@ -57,49 +57,58 @@ function startSortingProcess() {
     document.getElementById("selectionInterface").style.display = "none";
     document.getElementById("sortingInterface").style.display = "block";
     document.getElementById("resultsInterface").style.display = "none";
-    document.getElementById("restartButton").style.display = "none";
+    //document.getElementById("restartButton").style.display = "none";
     
     // Start the sorting
     startSorting();
 }
 
 function showResult() {
-    // Create the final ranking list
-    let resultHTML = `<h2>Your <i>${currentSongList.name}</i> Ranking:</h2><ol>` +
-      finalSorted.map(song => `<li>${song}</li>`).join('') +
-      "</ol>";
+    // Set the list name in the results title
+    document.getElementById("listName").textContent = currentSongList.name;
     
-    // Update the result div with the ranking content
-    document.getElementById("result").innerHTML = resultHTML;
-      
-    // Create the decision history section
-    let decisionHistoryHTML = "<h2>Your Decision History:</h2>";
-    decisionHistoryHTML += "<div class='decision-table'>";
-    decisionHistoryHTML += "<table>" +
-      "<thead><tr>" +
-      "<th>#</th>" +
-      "<th>Chosen</th>" +
-      "<th>Rejected</th>" +
-      "</tr></thead><tbody>";
-      
-    decisionHistory.forEach(decision => {
-      decisionHistoryHTML += `<tr>
-        <td>${decision.comparison}</td>
-        <td class="chosen">${decision.chosen}</td>
-        <td class="rejected">${decision.rejected}</td>
-      </tr>`;
+    // Clear previous results
+    const resultList = document.getElementById("resultList");
+    resultList.innerHTML = '';
+    
+    // Add each song to the result list
+    finalSorted.forEach(song => {
+      const li = document.createElement("li");
+      li.textContent = song;
+      resultList.appendChild(li);
     });
     
-    decisionHistoryHTML += "</tbody></table></div>";
- 
-    // Update the decision history div
-    document.getElementById("decisionHistory").innerHTML = decisionHistoryHTML;   
+    // Clear previous decision history
+    const decisionHistoryBody = document.getElementById("decisionHistoryBody");
+    decisionHistoryBody.innerHTML = '';
+    
+    // Add each decision to the history table
+    decisionHistory.forEach(decision => {
+      const row = document.createElement("tr");
+      
+      const comparisonCell = document.createElement("td");
+      comparisonCell.textContent = decision.comparison;
+      
+      const chosenCell = document.createElement("td");
+      chosenCell.textContent = decision.chosen;
+      chosenCell.className = "chosen";
+      
+      const rejectedCell = document.createElement("td");
+      rejectedCell.textContent = decision.rejected;
+      rejectedCell.className = "rejected";
+      
+      row.appendChild(comparisonCell);
+      row.appendChild(chosenCell);
+      row.appendChild(rejectedCell);
+      
+      decisionHistoryBody.appendChild(row);
+    });
     
     // Show results and restart button
     document.getElementById("selectionInterface").style.display = "none";
     document.getElementById("sortingInterface").style.display = "none";
     document.getElementById("resultsInterface").style.display = "block";
-    document.getElementById("restartButton").style.display = "block";
+    //document.getElementById("restartButton").style.display = "block";
 }
 
 // Reset the interface to selection mode
@@ -108,7 +117,7 @@ function resetInterface() {
   document.getElementById("selectionInterface").style.display = "block";
   document.getElementById("sortingInterface").style.display = "none";
   document.getElementById("resultsInterface").style.display = "none";   
-  document.getElementById("restartButton").style.display = "none";
+  //document.getElementById("restartButton").style.display = "none";
 }
 
 // Initialize when the DOM is fully loaded

@@ -7,54 +7,72 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1 class="app-title">Samia Song Sorter</h1>
-    </header>
+  <header>
+    <h1 class="app-title">Samia Song Sorter</h1>
+  </header>
+  
+  <!-- Selection Interface -->
+  <section id="selectionInterface" class="interface-panel">
+    <h2 class="section-title">Choose a Song List to Rank</h2>
+    <div class="select-container">
+      <select id="listSelector" class="song-list-select" name="songList">
+        <!-- Options will be populated by JavaScript -->
+      </select>
+      <div id="songCount" class="song-count"></div>
+    </div>
+    <p class="instructions">
+      This tool will help you rank songs by presenting you with pairs to choose between.
+      Select a list and click "Start Ranking" when you're ready.
+    </p>
+    <button id="startButton" class="action-button">Start Ranking</button>
+  </section>
+  
+  <!-- Sorting Interface -->
+  <section id="sortingInterface" class="interface-panel">
+    <h2 class="section-title">Which song do you prefer?</h2>
+    <div id="progress" class="progress-indicator"></div>
+    <div id="comparison" class="comparison-text"></div>
+    <div id="choices" class="choice-buttons">
+      <button id="btnA" class="choice-button"></button>
+      <button id="btnB" class="choice-button"></button>
+    </div>
+    <p class="warning">
+      Warning: refreshing will erase your progress.
+    </p>
+  </section>
+  
+  <!-- Results -->
+  <section id="resultsInterface" class="interface-panel">
+    <div class="results-container">
+      <h2 id="resultTitle">Your <i id="listName"></i> Ranking:</h2>
+      <ol id="resultList">
+        <!-- Song rankings will be populated here by JavaScript -->
+      </ol>
+    </div>
     
-    <!-- Selection Interface -->
-    <section id="selectionInterface" class="interface-panel">
-      <h2 class="section-title">Choose a Song List to Rank</h2>
-      <div class="select-container">
-        <select id="listSelector" class="song-list-select" name="songList">
-          <!-- Options will be populated by JavaScript -->
-        </select>
-        <div id="songCount" class="song-count"></div>
+    <h2 class="section-title">Your Decision History:</h2>
+    <div class="history-container">
+      <div class="decision-table">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Chosen</th>
+              <th>Rejected</th>
+            </tr>
+          </thead>
+          <tbody id="decisionHistoryBody">
+            <!-- Decision history rows will be populated here by JavaScript -->
+          </tbody>
+        </table>
       </div>
-      <p class="instructions">
-        This tool will help you rank songs by presenting you with pairs to choose between.
-        Select a list and click "Start Ranking" when you're ready.
-      </p>
-      <button id="startButton" class="action-button">Start Ranking</button>
-    </section>
-    
-    <!-- Sorting Interface -->
-    <section id="sortingInterface" class="interface-panel">
-      <h2 class="section-title">Which song do you prefer?</h2>
-      <div id="progress" class="progress-indicator"></div>
-      <div id="comparison" class="comparison-text"></div>
-      <div id="choices" class="choice-buttons">
-        <button id="btnA" class="choice-button"></button>
-        <button id="btnB" class="choice-button"></button>
-      </div>
-      <p class="warning">
-        Warning: refreshing will erase your progress.
-      </p>
-    </section>
-    
-    <!-- Results -->
-    <section id="resultsInterface" class="interface-panel">
-      <div id="result" class="results-container"></div>
-      <div id="decisionHistory" class="history-container"></div>
-      <div class="restart-container">
-        <button id="restartButton" class="restart-button">Rank Another List</button>
-      </div>
-    </section>
-    
-    <footer class="page-footer">
-      <p class="source"><a href="https://github.com/RustyCabbage/samia-song-sorter">source</a></p>
-    </footer>
-  </div>
+    </div>
+    <button id="restartButton" class="restart-button">Rank Another List</button>
+  </section>
+  
+  <footer class="page-footer">
+    <p class="source"><a href="https://github.com/RustyCabbage/samia-song-sorter">source</a></p>
+  </footer>
   
   <!-- Load our scripts -->
   <script src="songlists.js"></script>
