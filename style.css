@@ -5,30 +5,49 @@
   --button-color: #686868;
   --button-hover-color: #555555;
   --button-text-color: #e9e9e9;
+  --accent-color: #555555;
+  --border-radius: 0.5em;
+  --transition-speed: 0.3s;
 }
 
+/* Base styles */
 body {
   font-family: Arial, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+  transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+}
+
+.container {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
   text-align: center;
-  background-color: var(--background-color);
-  color: var(--text-color);
-  transition: background-color 0.5s ease, color 0.5s ease;
 }
 
+/* Typography */
 h1, h2 {
-  margin-bottom: 30px;
+  margin-bottom: 1em;
   color: var(--text-color);
-  transition: color 0.5s ease;
+  transition: color var(--transition-speed) ease;
 }
 
-/* Selection interface styles */
-#selectionInterface {
-  margin-bottom: 40px;
+.app-title {
+  font-size: 2em;
 }
 
+.section-title {
+  font-size: 1.5em;
+}
+
+/* Interface panels */
+.interface-panel {
+  margin-bottom: 0em;
+}
+
+/* Selection interface */
 .select-container {
   display: flex;
   flex-direction: column;
@@ -36,17 +55,21 @@ h1, h2 {
   margin-bottom: 20px;
 }
 
-select {
+.song-list-select {
   padding: 10px;
   font-size: 1em;
   background-color: var(--button-color);
   color: var(--button-text-color);
   border: none;
-  border-radius: 5px;
+  border-radius: var(--border-radius);
   cursor: pointer;
   width: 300px;
   margin-bottom: 10px;
-  transition: background-color 0.3s ease;
+  transition: background-color var(--transition-speed) ease;
+}
+
+.song-list-select:hover {
+  background-color: var(--button-hover-color);
 }
 
 .song-count {
@@ -54,7 +77,7 @@ select {
   font-style: italic;
   color: var(--text-color);
   opacity: 0.8;
-  transition: color 0.3s ease;
+  transition: color var(--transition-speed) ease;
 }
 
 .instructions {
@@ -68,45 +91,19 @@ select {
   font-style: italic;
 }
 
-.source {
-  font-size: 0.75em;
-  font-style: italic;
-  position: fixed;
-  bottom: 0;
-  right: 2.25em;
-  text-decoration: underline;
-  background-color: transparent;
-}
-
-.source a:link {
-  color: var(--button-text-color);
-  border-bottom: 1px var(--button-text-color);
-}
-.source a:visited {
-  color: var(--text-color);
-  border-bottom: 1px var(--text-color);
-}
-.source a:hover {
-  color: var(--button-hover-color);
-  border-bottom: 1px var(--button-hover-color);
-}
-.source a:active {
-  color: var(--button-color);
-  border-bottom: 1px var(--button-color);
-}
-
-.action-button {
+/* Buttons */
+.action-button, .restart-button {
   padding: 12px 24px;
   font-size: 16px;
   background-color: var(--button-color);
   color: var(--button-text-color);
   border: none;
-  border-radius: 5px;
+  border-radius: var(--border-radius);
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s, color 0.3s;
+  transition: background-color var(--transition-speed), transform 0.2s, color var(--transition-speed);
 }
 
-.action-button:hover {
+.action-button:hover, .restart-button:hover {
   background-color: var(--button-hover-color);
   transform: scale(1.05);
 }
@@ -118,25 +115,25 @@ select {
   transform: none;
 }
 
-/* Progress display */
-#progress {
+/* Sorting interface */
+.progress-indicator {
   font-size: 1.125em;
   font-weight: bold;
   color: var(--text-color);
   margin-bottom: 20px;
-  transition: color 0.3s ease;
+  transition: color var(--transition-speed) ease;
 }
 
-#comparison {
+.comparison-text {
   font-size: 1.125em;
   color: var(--text-color);
   margin-bottom: 20px;
   font-weight: bold;
-  transition: color 0.3s ease;
+  transition: color var(--transition-speed) ease;
 }
 
 /* Choice buttons */
-#choices {
+.choice-buttons {
   display: flex;
   justify-content: space-evenly;
   align-items: center;
@@ -144,93 +141,96 @@ select {
   margin-bottom: 40px;
 }
 
-#btnA, #btnB {
+.choice-button {
   padding: 5px 5px;
   font-size: 0.875em;
   background-color: var(--button-color);
   color: var(--button-text-color);
   border: none;
-  border-radius: 5px;
+  border-radius: var(--border-radius);
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s, color 0.3s;
+  transition: background-color var(--transition-speed), transform 0.2s, color var(--transition-speed);
   width: 200px;
   height: 60px;
   margin: 0 20px;
   font-weight: bold;
 }
 
-#btnA:hover, #btnB:hover {
+.choice-button:hover {
   background-color: var(--button-hover-color);
   transform: scale(1.05);
 }
 
 /* Results styles */
-#result {
+.results-container {
   text-align: left;
   margin-top: 40px;
   color: var(--text-color);
-  transition: color 0.3s ease;
+  transition: color var(--transition-speed) ease;
 }
 
-#result h2 {
+.results-container h2 {
   text-align: center;
   margin-bottom: 20px;
   color: var(--text-color);
-  transition: color 0.3s ease;
+  transition: color var(--transition-speed) ease;
 }
 
-#result ol {
+.results-container ol {
   background-color: var(--button-color);
   padding: 10px 40px;
-  border-radius: 5px;
+  border-radius: var(--border-radius);
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  transition: background-color 0.3s ease;
+  transition: background-color var(--transition-speed) ease;
   color: var(--button-text-color);
 }
 
-#result li {
+.results-container li {
   margin-top: 8px;
   margin-bottom: 8px;
   font-size: 1.125em;
 }
 
 /* Decision history styling */
+.history-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
 .decision-table {
   overflow-x: auto;
-  margin-top: 20px;
-  margin-bottom: 40px;
+  margin: 1.5em 0;
   width: 100%;
   display: block;
 }
 
 .decision-table table {
   width: 100%;
-  min-width: 1px;
   border-collapse: collapse;
   background-color: var(--button-color);
-  border-radius: 5px;
+  border-radius: var(--border-radius);
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   table-layout: fixed;
-  transition: background-color 0.3s ease;
+  transition: background-color var(--transition-speed) ease;
   color: var(--button-text-color);
 }
 
 .decision-table th {
-  padding: 12px 8px;
+  padding: 0.75em 0.5em;
   text-align: left;
   background-color: var(--button-hover-color);
   color: var(--button-text-color);
   font-weight: bold;
   word-wrap: break-word;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
 }
 
 .decision-table td {
-  padding: 10px 8px;
+  padding: 0.625em 0.5em;
   border-bottom: 1px solid var(--button-hover-color);
   word-wrap: break-word;
   overflow-wrap: break-word;
-  transition: border-color 0.3s ease;
+  transition: border-color var(--transition-speed) ease;
   color: var(--button-text-color);
 }
 
@@ -246,69 +246,99 @@ select {
 }
 
 .decision-table th:nth-child(2),
-.decision-table td:nth-child(2),
+.decision-table td:nth-child(2) {
+  width: 45%;
+  text-align: left;
+  padding-left: 0.8em;
+}
+
 .decision-table th:nth-child(3),
 .decision-table td:nth-child(3) {
   width: 45%;
+  text-align: left;
 }
 
-/* Chosen songs styling */
-.decision-table .chosen {
-  font-weight: bold; /* Only using bold for chosen items, no color change */
+/* Choice styling */
+.chosen {
+  font-weight: bold;
 }
 
-/* Normal weight for rejected songs */
-.decision-table .rejected {
+.rejected {
   font-weight: normal;
 }
 
-/* Restart button container */
+/* Restart container */
 .restart-container {
   text-align: center;
-  margin: 30px 0;
+  margin: 0px 0;
+  display: flex;
+  justify-content: center;
 }
 
-.restart-button {
-  padding: 12px 24px;
-  font-size: 1em;
-  background-color: var(--button-color);
+/* Footer */
+footer {
+  margin-top: 0px;
+}
+
+/* Absolute position for start and sorting page */
+.source {
+  font-size: 0.75em;
+  font-style: italic;
+  background-color: transparent;
+  position: fixed;
+  bottom: 0.5em;
+  right: 2em;
+  text-align: right;
+}
+
+/* When results are showing, make the footer position relative */
+#resultsInterface:not([style*="display: none"]) ~ footer .source {
+  position: relative;
+  bottom: auto;
+  right: auto;
+  text-align: right;
+  margin-bottom: 0px;
+}
+
+.source a {
   color: var(--button-text-color);
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s, color 0.3s;
+  text-decoration: none;
+  border-bottom: 1px solid var(--button-text-color);
+  transition: color var(--transition-speed) ease, border-color var(--transition-speed) ease;
 }
 
-.restart-button:hover {
-  background-color: var(--button-hover-color);
-  transform: scale(1.05);
+.source a:visited {
+  color: var(--text-color);
+  border-bottom: 1px solid var(--text-color);
 }
 
-/* Responsive table for smaller screens */
+.source a:hover {
+  color: var(--button-hover-color);
+  border-bottom: 1px solid var(--button-hover-color);
+}
+
+.source a:active {
+  color: var(--button-color);
+  border-bottom: 1px solid var(--button-color);
+}
+
+/* Responsive styles */
 @media (max-width: 600px) {
   .decision-table table {
     font-size: 0.875em;
-    width: 100%;
   }
   
   .decision-table th, 
   .decision-table td {
-    padding: 8px 5px;
+    padding: 0.5em 0.3125em;
   }
   
-  .decision-table th:first-child,
-  .decision-table td:first-child {
-    width: 10%;
-  }
-  
-  .decision-table th:nth-child(2),
-  .decision-table td:nth-child(2),
-  .decision-table th:nth-child(3),
-  .decision-table td:nth-child(3) {
-    width: 45%;
-  }
-  
-  select {
+  .song-list-select {
     width: 90%;
+  }
+  
+  .choice-button {
+    width: 10em;
+    margin: 0 0.5em;
   }
 }
