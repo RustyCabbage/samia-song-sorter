@@ -1,91 +1,9 @@
-// We'll use the external song lists
-let songs = []; // Will be populated from songlists.js
-
 let currentState = null;
 let finalSorted = [];
 let completedComparisons = 0;
 let totalComparisons = 0;
 let pendingMerges = [];
 let decisionHistory = [];
-
-// Initialize the app
-function initializeApp() {
-  // Apply the default theme on load
-  applyTheme(getCurrentTheme());
-  
-  // Populate the list selector dropdown
-  populateListSelector();
-  
-  // Set up event listener for list selection change
-  document.getElementById("listSelector").addEventListener("change", function() {
-    const selectedListId = this.value;
-    setCurrentSongList(selectedListId);
-    document.getElementById("startButton").disabled = false;
-    
-    // Update the song count display
-    const songCount = songLists[selectedListId].songs.length;
-    document.getElementById("songCount").textContent = `${songCount} songs`;
-  });
-  
-  // Hide the sorting UI initially, show only the selection UI
-  document.getElementById("sortingInterface").style.display = "none";
-  document.getElementById("selectionInterface").style.display = "block";
-  
-  // Set up the start button
-  document.getElementById("startButton").addEventListener("click", function() {
-    // Get the current song list
-    songs = getCurrentSongList();
-    
-    // Hide the selection interface and show sorting interface
-    document.getElementById("selectionInterface").style.display = "none";
-    document.getElementById("sortingInterface").style.display = "block";
-    
-    // Start the sorting
-    startSorting();
-  });
-  
-  // Set up buttons for comparison
-  document.getElementById("btnA").addEventListener("click", handleOptionA);
-  document.getElementById("btnB").addEventListener("click", handleOptionB);
-}
-
-// Populate the list selector dropdown
-function populateListSelector() {
-  const selector = document.getElementById("listSelector");
-  const lists = getAvailableSongLists();
-  
-  lists.forEach(list => {
-    const option = document.createElement("option");
-    option.value = list.id;
-    option.textContent = list.name;
-    selector.appendChild(option);
-  });
-  
-  // Set initial song count
-  const initialList = songLists[currentListId];
-  document.getElementById("songCount").textContent = `${initialList.songs.length} songs`;
-}
-
-// Reset the interface to selection mode
-function resetInterface() {
-  // Hide result and show selection interface
-  document.getElementById("result").innerHTML = '';
-  document.getElementById("sortingInterface").style.display = "none";
-  document.getElementById("selectionInterface").style.display = "block";
-  
-  // Show buttons again if they were hidden
-  document.getElementById("choices").style.display = "flex";
-  
-  // Reset progress displays if they exist
-  if (document.getElementById("progress")) {
-    document.getElementById("progress").style.display = "block";
-    document.getElementById("progress").textContent = '';
-  }
-  if (document.getElementById("comparison")) {
-    document.getElementById("comparison").style.display = "block";
-    document.getElementById("comparison").textContent = '';
-  }
-}
 
 // Calculate comparisons needed for an array dynamically
 function calcComparisonsNeeded(arr) {
@@ -113,6 +31,18 @@ function calculateTotalComparisons(arr) {
 }
 
 function startSorting() {
+  // Make sure we have a song list to sort
+  if (!currentSongList) {
+    console.error("No song list selected");
+    return;
+  }
+  
+  const songs = currentSongList.songs;
+  if (songs.length === 0) {
+    console.error("Selected song list is empty");
+    return;
+  }
+  
   const shuffledSongs = [...songs];
   for (let i = shuffledSongs.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -135,7 +65,6 @@ function startSorting() {
       showResult();
     }
   };
-
   processCurrentState();
 }
 
@@ -215,7 +144,6 @@ function processMergeSort() {
       processCurrentState();
     }
   };
-
   processCurrentState();
 }
 
@@ -252,11 +180,8 @@ function processMerge() {
   }
 
   // Set the button content
-  const btnA = document.getElementById("btnA");
-  const btnB = document.getElementById("btnB");
-
-  btnA.textContent = left[leftIndex];
-  btnB.textContent = right[rightIndex];
+  document.getElementById("btnA").textContent = left[leftIndex];
+  document.getElementById("btnB").textContent = right[rightIndex];
 
   // Update comparison display
   const comparisonDiv = document.getElementById("comparison");
@@ -364,52 +289,3 @@ function handleOptionB() {
   }
 }
 
-function showResult() {
-  const resultDiv = document.getElementById("result");
-  
-  // Add the list name to the results
-  const listName = songLists[currentListId].name;
-  
-  // Create the final ranking list
-  let resultHTML = `<h2>Your ${listName} Ranking:</h2><ol>` +
-    finalSorted.map(song => `<li>${song}</li>`).join('') +
-    "</ol>";
-    
-  // Create the decision history section
-  resultHTML += "<h2>Your Decision History:</h2>";
-  resultHTML += "<div class='decision-table'>";
-  resultHTML += "<table>" +
-    "<thead><tr>" +
-    "<th>#</th>" +
-    "<th>Chosen</th>" +
-    "<th>Rejected</th>" +
-    "</tr></thead><tbody>";
-    
-  decisionHistory.forEach(decision => {
-    resultHTML += `<tr>
-      <td>${decision.comparison}</td>
-      <td class="chosen">${decision.chosen}</td>
-      <td class="rejected">${decision.rejected}</td>
-    </tr>`;
-  });
-  
-  resultHTML += "</tbody></table></div>";
-  
-  // Add a restart button
-  resultHTML += '<div class="restart-container"><button id="restartButton" class="restart-button">Rank Another List</button></div>';
-  
-  // Update the result div with all content
-  resultDiv.innerHTML = resultHTML;
-  
-  // Hide comparison elements
-  document.getElementById("sortingInterface").style.display = "none";
-  document.getElementById("choices").style.display = "none";
-  document.getElementById("progress").style.display = "none";
-  document.getElementById("comparison").style.display = "none";
-  
-  // Add event listener to restart button
-  document.getElementById("restartButton").addEventListener("click", resetInterface);
-}
-
-// Initialize when the DOM is fully loaded
-document.addEventListener("DOMContentLoaded", initializeApp);
