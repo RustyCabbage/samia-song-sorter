@@ -1,21 +1,73 @@
 // Collection of song lists that can be used with the Song Sorter
+const bloodlessSongs = [
+  "Biscuits Intro",
+  "Bovine Excision",
+  "Hole in a Frame",
+  "Lizard",
+  "Dare",
+  "Fair Game",
+  "Spine Oil",
+  "Craziest Person",
+  "Sacred",
+  "Carousel",
+  "Proof",
+  "North Poles",
+  "Pants"
+];
+
+const honeySongs = [
+  "Kill Her Freak Out",
+  "Charm You",
+  "Pink Balloon",
+  "Mad at Me",
+  "Sea Lions",
+  "To Me It Was",
+  "Breathing Song",
+  "Honey",
+  "Nanana",
+  "Amelia",
+  "Dream Song"
+];
+
+const scoutSongs = [
+  "As You Are",
+  "Show Up",
+  "Elephant",
+  "The Promise",
+];
+
+const theBabySongs = [
+  "Pool",
+  "Fit N Full",
+  "Big Wheel",
+  "Limbo Bitch",
+  "Stellate",
+  "Triptych",
+  "Does Not Heal",
+  "Waverly",
+  "Winnebago",
+  "Minnesota",
+  "Is There Something In The Movies?"
+];
+
+const preBabySongs = [
+  "Welcome to Eden",
+  "The Night Josh Tillman Listened To My Song",
+  "Someone Tell the Boys",
+  "Django",
+  "21",
+  "Milk",
+  "Lasting Friend",
+  "Paris",
+  "Ode to Artifice",
+  "Never Said",
+  "Gotta Have You"
+]
+
 const songLists = {
   "bloodless": {
     name: "Bloodless",
-    songs: [
-      "Bovine Excision",
-      "Hole in a Frame",
-      "Lizard",
-      "Dare",
-      "Fair Game",
-      "Spine Oil",
-      "Craziest Person",
-      "Sacred",
-      "Carousel",
-      "Proof",
-      "North Poles",
-      "Pants"
-    ],
+    songs: bloodlessSongs,
     theme: {
       backgroundColor: "#282828", // Dark gray
       textColor: "#e9e9e9", // Light gray
@@ -27,19 +79,7 @@ const songLists = {
   
   "honey": {
     name: "Honey",
-    songs: [
-      "Kill Her Freak Out",
-      "Charm You",
-      "Pink Balloon",
-      "Mad at Me",
-      "Sea Lions",
-      "To Me It Was",
-      "Breathing Song",
-      "Honey",
-      "Nanana",
-      "Amelia",
-      "Dream Song"
-    ],
+    songs: honeySongs,
     theme: {
       backgroundColor: "#095a8a", // Light blue
       textColor: "#b1d3f1", // Light blue
@@ -51,19 +91,7 @@ const songLists = {
   
   "theBaby": {
     name: "The Baby",
-    songs: [
-      "Pool",
-      "Fit N Full",
-      "Big Wheel",
-      "Limbo Bitch",
-      "Stellate",
-      "Triptych",
-      "Does Not Heal",
-      "Waverly",
-      "Winnebago",
-      "Minnesota",
-      "Is There Something In The Movies?"
-    ],
+    songs: theBabySongs,
     theme: {
       backgroundColor: "#567c7e", // Teal
       textColor: "#8ac7ca", // Light teal
@@ -76,60 +104,16 @@ const songLists = {
   "discography": {
     name: "Full Discography",
     songs: [
-      "Welcome to Eden",
-      "The Night Josh Tillman Listened To My Song",
-      "Someone Tell the Boys",
-      "Django",
-      "21",
-      "Milk",
-      "Lasting Friend",
-      "Paris",
-      "Ode to Artifice",
-      "Never Said",
-      "Gotta Have You",
-      "Pool",
-      "Fit N Full",
-      "Big Wheel",
-      "Limbo Bitch",
-      "Stellate",
-      "Triptych",
-      "Does Not Heal",
-      "Waverly",
-      "Winnebago",
-      "Minnesota",
-      "Is There Something In The Movies?",
-      "As You Are",
-      "Show Up",
-      "Elephant",
-      "The Promise",
+      ...preBabySongs,
+      ...theBabySongs,
+	  ...scoutSongs,
       "Desperado",
       "Born on a Train",
-      "Kill Her Freak Out",
-      "Charm You",
-      "Pink Balloon",
-      "Mad at Me",
-      "Sea Lions",
-      "To Me It Was",
-      "Breathing Song",
-      "Honey",
-      "Nanana",
-      "Amelia",
-      "Dream Song",
+      ...honeySongs,
       "Maps",
       "Country",
       "Making Breakfast",
-      "Bovine Excision",
-      "Hole in a Frame",
-      "Lizard",
-      "Dare",
-      "Fair Game",
-      "Spine Oil",
-      "Craziest Person",
-      "Sacred",
-      "Carousel",
-      "Proof",
-      "North Poles",
-      "Pants"
+      ...bloodlessSongs
     ],
     theme: {
       backgroundColor: "#ef936d",
@@ -180,17 +164,4 @@ function getAvailableSongLists() {
     lists.push({ id, name: list.name });
   }
   return lists;
-}
-
-// Function to add a new song list (for future expansion)
-function addSongList(id, name, songs, theme) {
-  if (!songLists[id]) {
-    songLists[id] = {
-      name,
-      songs,
-      theme
-    };
-    return true;
-  }
-  return false;
 }
