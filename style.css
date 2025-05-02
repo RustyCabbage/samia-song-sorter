@@ -15,7 +15,7 @@ body {
   font-family: Arial, sans-serif;
   background-color: var(--background-color);
   color: var(--text-color);
-  margin: 0;
+  margin: 0 auto;
   padding: 1.25em;
   transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
   max-width: 800px;
@@ -40,7 +40,7 @@ h1, h2 {
 
 /* Interface panels */
 .interface-panel {
-  margin-bottom: 0em;
+  margin-bottom: 0;
 }
 
 /* Selection interface */
@@ -51,19 +51,57 @@ h1, h2 {
   margin-bottom: 1em;
 }
 
-.song-list-select {
-  padding: 0.75em;
+/* Common button styles */
+.song-list-select,
+.action-button, 
+.restart-button,
+.choice-button {
   background-color: var(--button-color);
   color: var(--button-text-color);
   border: none;
   border-radius: var(--border-radius);
   cursor: pointer;
-  margin-bottom: 0.5em;
   transition: background-color var(--transition-speed) ease;
 }
 
-.song-list-select:hover {
+.song-list-select:hover,
+.action-button:hover, 
+.restart-button:hover,
+.choice-button:hover {
   background-color: var(--button-hover-color);
+}
+
+/* Specific button styles */
+.song-list-select {
+  padding: 0.75em;
+  margin-bottom: 0.5em;
+}
+
+.action-button, .restart-button {
+  padding: 0.75em 1.5em;
+  transition: transform 0.2s;
+}
+
+.action-button:hover, .restart-button:hover {
+  transform: scale(1.05);
+}
+
+.action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.choice-button {
+  padding: 0.5em;
+  width: 200px;
+  height: 60px;
+  margin: 0 1.5em;
+  transition: transform 0.2s;
+}
+
+.choice-button:hover {
+  transform: scale(1.05);
 }
 
 .song-count {
@@ -71,7 +109,6 @@ h1, h2 {
   font-style: italic;
   color: var(--text-color);
   opacity: 0.8;
-  transition: color var(--transition-speed) ease;
 }
 
 .instructions {
@@ -79,53 +116,26 @@ h1, h2 {
   line-height: 1.5;
 }
 
-.warning {
+.warning, .source {
   font-size: 0.75em;
   font-style: italic;
 }
 
-/* Buttons */
 .restart-button {
-  /*display: none;*/
   margin: 1.25em auto;
   text-align: center;
 }
 
-.action-button, .restart-button {
-  padding: 0.75em 1.5em;
-  background-color: var(--button-color);
-  color: var(--button-text-color);
-  border: none;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  transition: background-color var(--transition-speed), transform 0.2s, color var(--transition-speed);
-}
-
-.action-button:hover, .restart-button:hover {
-  background-color: var(--button-hover-color);
-  transform: scale(1.05);
-}
-
-.action-button:disabled {
-  background-color: var(--button-color);
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
 /* Sorting interface */
-.progress-indicator {
+.progress-indicator,
+.comparison-text {
   font-weight: bold;
   color: var(--text-color);
   margin-bottom: 1em;
-  transition: color var(--transition-speed) ease;
 }
 
 .comparison-text {
-  color: var(--text-color);
   margin-bottom: 2em;
-  font-weight: bold;
-  transition: color var(--transition-speed) ease;
 }
 
 /* Choice buttons */
@@ -133,55 +143,34 @@ h1, h2 {
   display: flex;
   justify-content: space-evenly;
   align-items: center;
-  align-content: center;
   margin-bottom: 2.5em;
-}
-
-.choice-button {
-  padding: 0.5em 0.5em;
-  background-color: var(--button-color);
-  color: var(--button-text-color);
-  border: none;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  transition: background-color var(--transition-speed), transform 0.2s, color var(--transition-speed);
-  width: 200px;
-  height: 60px;
-  margin: 0 1.5em;
-  font-weight: normal;
-}
-
-.choice-button:hover {
-  background-color: var(--button-hover-color);
-  transform: scale(1.05);
 }
 
 /* Results styles */
 .results-container {
   text-align: left;
   margin-top: 2.5em;
-  color: var(--text-color);
-  transition: color var(--transition-speed) ease;
 }
 
 .results-container h2 {
   text-align: center;
   margin-bottom: 1.5em;
-  color: var(--text-color);
-  transition: color var(--transition-speed) ease;
+}
+
+.results-container ol,
+.decision-table table {
+  background-color: var(--button-color);
+  color: var(--button-text-color);
+  border-radius: var(--border-radius);
+  transition: background-color var(--transition-speed) ease;
 }
 
 .results-container ol {
-  background-color: var(--button-color);
   padding: 0.5em 2.5em;
-  border-radius: var(--border-radius);
-  transition: background-color var(--transition-speed) ease;
-  color: var(--button-text-color);
 }
 
 .results-container li {
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
+  margin: 0.5em 0;
 }
 
 /* Decision history styling */
@@ -202,21 +191,15 @@ h1, h2 {
 .decision-table table {
   width: 100%;
   border-collapse: collapse;
-  background-color: var(--button-color);
-  border-radius: var(--border-radius);
   table-layout: fixed;
-  transition: background-color var(--transition-speed) ease;
-  color: var(--button-text-color);
 }
 
 .decision-table th {
   padding: 0.75em 0.5em;
   text-align: left;
   background-color: var(--button-hover-color);
-  color: var(--button-text-color);
   font-weight: bold;
   word-wrap: break-word;
-  transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
 }
 
 .decision-table td {
@@ -224,8 +207,6 @@ h1, h2 {
   border-bottom: 1px solid var(--button-hover-color);
   word-wrap: break-word;
   overflow-wrap: break-word;
-  transition: border-color var(--transition-speed) ease;
-  color: var(--button-text-color);
 }
 
 .decision-table tr:last-child td {
@@ -263,13 +244,11 @@ h1, h2 {
 
 /* Footer */
 footer {
-  margin-top: 0px;
+  margin-top: 0;
 }
 
-/* Absolute position for start and sorting page */
+/* Source link positioning */
 .source {
-  font-size: 0.75em;
-  font-style: italic;
   background-color: transparent;
   position: fixed;
   bottom: 0.5em;
@@ -283,9 +262,10 @@ footer {
   bottom: auto;
   right: auto;
   text-align: right;
-  margin-bottom: 0px;
+  margin-bottom: 0;
 }
 
+/* Link styling */
 .source a {
   color: var(--button-text-color);
   text-decoration: none;
