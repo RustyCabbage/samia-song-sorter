@@ -135,6 +135,7 @@ function initializeSongLists() {
   songListRepo.addList(new SongList(
     "bloodless",
     "Bloodless",
+    //[ "Song A", "Song B", "Song C" ], // testing
     bloodlessSongs,
     {
       backgroundColor: "#282828", // Dark gray
