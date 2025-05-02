@@ -5,7 +5,6 @@
   --button-color: #686868;
   --button-hover-color: #555555;
   --button-text-color: #e9e9e9;
-  --accent-color: #555555;
   --border-radius: 0.5em;
   --transition-speed: 0.3s;
 }
@@ -16,16 +15,16 @@ body {
   background-color: var(--background-color);
   color: var(--text-color);
   margin: 0 auto;
-  padding: 1.25em;
+  margin-bottom: 1em;
+  padding: 1em;
   transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
-  max-width: 800px;
+  max-width: 400px;
   text-align: center;
   font-size: 1em;
 }
 
 /* Typography */
 h1, h2 {
-  margin-bottom: 1em;
   color: var(--text-color);
   transition: color var(--transition-speed) ease;
 }
@@ -38,17 +37,23 @@ h1, h2 {
   font-size: 1.5em;
 }
 
-/* Interface panels */
-.interface-panel {
-  margin-bottom: 0;
-}
-
 /* Selection interface */
 .select-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 1em;
+}
+
+.song-count {
+  font-size: 0.875em;
+  font-style: italic;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+.instructions {
+  line-height: 1.5;
+  text-align: justify;
 }
 
 /* Common button styles */
@@ -78,52 +83,23 @@ h1, h2 {
 }
 
 .action-button, .restart-button {
-  padding: 0.75em 1.5em;
-  transition: transform 0.2s;
-}
-
-.action-button:hover, .restart-button:hover {
-  transform: scale(1.05);
-}
-
-.action-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
+  padding: 1em 2em;
 }
 
 .choice-button {
   padding: 0.5em;
-  width: 200px;
-  height: 60px;
+  width: 50%;
+  height: 4em;
   margin: 0 1.5em;
-  transition: transform 0.2s;
 }
 
-.choice-button:hover {
+.action-button:hover, .restart-button:hover, .choice-button:hover {
   transform: scale(1.05);
-}
-
-.song-count {
-  font-size: 0.875em;
-  font-style: italic;
-  color: var(--text-color);
-  opacity: 0.8;
-}
-
-.instructions {
-  margin: 1.5em 0;
-  line-height: 1.5;
 }
 
 .warning, .source {
   font-size: 0.75em;
   font-style: italic;
-}
-
-.restart-button {
-  margin: 1.25em auto;
-  text-align: center;
 }
 
 /* Sorting interface */
@@ -134,35 +110,21 @@ h1, h2 {
   margin-bottom: 1em;
 }
 
-.comparison-text {
-  margin-bottom: 2em;
-}
-
 /* Choice buttons */
 .choice-buttons {
   display: flex;
   justify-content: space-evenly;
   align-items: center;
-  margin-bottom: 2.5em;
+  margin-bottom: 3em;
 }
 
 /* Results styles */
-.results-container {
-  text-align: left;
-  margin-top: 2.5em;
-}
-
-.results-container h2 {
-  text-align: center;
-  margin-bottom: 1.5em;
-}
-
 .results-container ol,
 .decision-table table {
+  text-align: left;
   background-color: var(--button-color);
   color: var(--button-text-color);
   border-radius: var(--border-radius);
-  transition: background-color var(--transition-speed) ease;
 }
 
 .results-container ol {
@@ -174,15 +136,9 @@ h1, h2 {
 }
 
 /* Decision history styling */
-.history-container h2 {
-  text-align: center;
-  margin-bottom: 1.25em;
-}
-
 .decision-table {
   overflow-x: auto;
   margin: 1.5em 0;
-  width: 100%;
   display: block;
   border: none;
   border-radius: var(--border-radius);
@@ -203,7 +159,7 @@ h1, h2 {
 }
 
 .decision-table td {
-  padding: 0.625em 0.5em;
+  padding: 0.5em 0.5em;
   border-bottom: 1px solid var(--button-hover-color);
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -222,14 +178,14 @@ h1, h2 {
 
 .decision-table th:nth-child(2),
 .decision-table td:nth-child(2) {
-  width: 45%;
+  width: 42.5%;
   text-align: left;
-  padding-left: 0.8em;
+  padding-left: 5%;
 }
 
 .decision-table th:nth-child(3),
 .decision-table td:nth-child(3) {
-  width: 45%;
+  width: 42.5%;
   text-align: left;
 }
 
@@ -296,7 +252,7 @@ footer {
   
   .decision-table th, 
   .decision-table td {
-    padding: 0.5em 0.3125em;
+    padding: 0.5em 0.375em;
   }
   
   .song-list-select {

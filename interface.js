@@ -12,7 +12,6 @@ function initializeApp() {
     document.getElementById("selectionInterface").style.display = "block"; 
     document.getElementById("sortingInterface").style.display = "none"; 
     document.getElementById("resultsInterface").style.display = "none";
-    //document.getElementById("restartButton").style.display = "none";
   
     // Populate the list selector dropdown
     populateListSelector();
@@ -57,7 +56,6 @@ function startSortingProcess() {
     document.getElementById("selectionInterface").style.display = "none";
     document.getElementById("sortingInterface").style.display = "block";
     document.getElementById("resultsInterface").style.display = "none";
-    //document.getElementById("restartButton").style.display = "none";
     
     // Start the sorting
     startSorting();
@@ -108,7 +106,6 @@ function showResult() {
     document.getElementById("selectionInterface").style.display = "none";
     document.getElementById("sortingInterface").style.display = "none";
     document.getElementById("resultsInterface").style.display = "block";
-    //document.getElementById("restartButton").style.display = "block";
 }
 
 // Reset the interface to selection mode
@@ -117,7 +114,6 @@ function resetInterface() {
   document.getElementById("selectionInterface").style.display = "block";
   document.getElementById("sortingInterface").style.display = "none";
   document.getElementById("resultsInterface").style.display = "none";   
-  //document.getElementById("restartButton").style.display = "none";
 }
 
 // Initialize when the DOM is fully loaded
