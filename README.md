@@ -1,8 +1,6 @@
-﻿# Samia Song Sorter
+﻿# [Samia Song Sorter](https://rustycabbage.github.io/samia-song-sorter/)
 *'cause you get your dreams for free*\
 *you get your dreams for free*
-
-**[pages link](https://rustycabbage.github.io/samia-song-sorter/)**
 
 - inspired by
   - a not-quite-request from a close friend
