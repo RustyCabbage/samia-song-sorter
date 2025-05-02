@@ -64,70 +64,112 @@ class SongListRepository {
 }
 
 // Song lists data
-const bloodlessSongs = [
-  "Biscuits Intro",
-  "Bovine Excision",
-  "Hole in a Frame",
-  "Lizard",
-  "Dare",
-  "Fair Game",
-  "Spine Oil",
-  "Craziest Person",
-  "Sacred",
-  "Carousel",
-  "Proof",
-  "North Poles",
-  "Pants"
-];
+const songCollections = {
+  preBaby: [
+    "Welcome to Eden",
+    "The Night Josh Tillman Listened To My Song",
+    "Someone Tell the Boys",
+    "Django",
+    "21",
+    "Milk",
+    "Lasting Friend",
+    "Paris",
+    "Ode to Artifice",
+    "Never Said",
+    "Gotta Have You"
+  ],
+  
+  theBaby: [
+    "Pool",
+    "Fit N Full",
+    "Big Wheel",
+    "Limbo Bitch",
+    "Stellate",
+    "Triptych",
+    "Does Not Heal",
+    "Waverly",
+    "Winnebago",
+    "Minnesota",
+    "Is There Something In The Movies?"
+  ],
+  
+  scout: [
+    "As You Are",
+    "Show Up",
+    "Elephant",
+    "The Promise"
+  ],
+  
+  honey: [
+    "Kill Her Freak Out",
+    "Charm You",
+    "Pink Balloon",
+    "Mad at Me",
+    "Sea Lions",
+    "To Me It Was",
+    "Breathing Song",
+    "Honey",
+    "Nanana",
+    "Amelia",
+    "Dream Song"
+  ],
+  
+  bloodless: [
+    "Biscuits Intro",
+    "Bovine Excision",
+    "Hole in a Frame",
+    "Lizard",
+    "Dare",
+    "Fair Game",
+    "Spine Oil",
+    "Craziest Person",
+    "Sacred",
+    "Carousel",
+    "Proof",
+    "North Poles",
+    "Pants"
+  ],
 
-const honeySongs = [
-  "Kill Her Freak Out",
-  "Charm You",
-  "Pink Balloon",
-  "Mad at Me",
-  "Sea Lions",
-  "To Me It Was",
-  "Breathing Song",
-  "Honey",
-  "Nanana",
-  "Amelia",
-  "Dream Song"
-];
+  nonAlbumSingles: [
+    "Desperado",
+    "Born on a Train",
+    "Maps",
+    "Country",
+    "Making Breakfast"
+  ]
+};
 
-const scoutSongs = [
-  "As You Are",
-  "Show Up",
-  "Elephant",
-  "The Promise",
-];
-
-const theBabySongs = [
-  "Pool",
-  "Fit N Full",
-  "Big Wheel",
-  "Limbo Bitch",
-  "Stellate",
-  "Triptych",
-  "Does Not Heal",
-  "Waverly",
-  "Winnebago",
-  "Minnesota",
-  "Is There Something In The Movies?"
-];
-
-const preBabySongs = [
-  "Welcome to Eden",
-  "The Night Josh Tillman Listened To My Song",
-  "Someone Tell the Boys",
-  "Django",
-  "21",
-  "Milk",
-  "Lasting Friend",
-  "Paris",
-  "Ode to Artifice",
-  "Never Said",
-  "Gotta Have You"
-];
+// Theme definitions
+const themes = {
+  bloodless: {
+    backgroundColor: "#282828", // Dark gray
+    textColor: "#e9e9e9", // Light gray
+    buttonColor: "#686868", // Medium gray
+    buttonHoverColor: "#555555", // Darker gray
+    buttonTextColor: "#e9e9e9" // Light gray
+  },
+  honey: {
+    backgroundColor: "#095a8a", // Light blue
+    textColor: "#b1d3f1", // Light blue
+    buttonColor: "#94c1e8", // Medium blue
+    buttonHoverColor: "#6ba4d6", // Slightly darker blue
+    buttonTextColor: "#2c4c6b" // Dark blue
+  },
+  theBaby: {
+    backgroundColor: "#567c7e", // Teal
+    textColor: "#8ac7ca", // Light teal
+    buttonColor: "#2c4545", // Dark teal
+    buttonHoverColor: "#122227", // Very dark teal
+    buttonTextColor: "#8ac7ca" // Light teal
+  },
+  discography: {
+    backgroundColor: "#ef936d",
+    textColor: "#212121",
+    buttonColor: "#c97c5c",
+    buttonHoverColor: "#955c44",
+    buttonTextColor: "#212121"
+  }
+};
 
 // Initialize the repository with song lists
 function initializeSongLists() {
@@ -136,64 +178,40 @@ function initializeSongLists() {
     "bloodless",
     "Bloodless",
     //[ "Song A", "Song B", "Song C" ], // testing
-    bloodlessSongs,
-    {
-      backgroundColor: "#282828", // Dark gray
-      textColor: "#e9e9e9", // Light gray
-      buttonColor: "#686868", // Medium gray
-      buttonHoverColor: "#555555", // Darker gray
-      buttonTextColor: "#e9e9e9" // Light gray
-    }
+    songCollections.bloodless,
+    themes.bloodless
   ));
   
   songListRepo.addList(new SongList(
     "honey",
     "Honey",
-    honeySongs,
-    {
-      backgroundColor: "#095a8a", // Light blue
-      textColor: "#b1d3f1", // Light blue
-      buttonColor: "#94c1e8", // Medium blue
-      buttonHoverColor: "#6ba4d6", // Slightly darker blue
-      buttonTextColor: "#2c4c6b" // Dark blue
-    }
+    songCollections.honey,
+    themes.honey
   ));
   
   songListRepo.addList(new SongList(
     "theBaby",
     "The Baby",
-    theBabySongs,
-    {
-      backgroundColor: "#567c7e", // Teal
-      textColor: "#8ac7ca", // Light teal
-      buttonColor: "#2c4545", // Dark teal
-      buttonHoverColor: "#122227", // Very dark teal
-      buttonTextColor: "#8ac7ca" // Light teal
-    }
+    songCollections.theBaby,
+    themes.theBaby
   ));
   
   songListRepo.addList(new SongList(
     "discography",
     "Full Discography",
     [
-      ...preBabySongs,
-      ...theBabySongs,
-      ...scoutSongs,
+      ...songCollections.preBaby,
+      ...songCollections.theBaby,
+      ...songCollections.scout,
       "Desperado",
       "Born on a Train",
-      ...honeySongs,
+      ...songCollections.honey,
       "Maps",
       "Country",
       "Making Breakfast",
-      ...bloodlessSongs
+      ...songCollections.bloodless
     ],
-    {
-      backgroundColor: "#ef936d",
-      textColor: "#212121",
-      buttonColor: "#c97c5c",
-      buttonHoverColor: "#955c44",
-      buttonTextColor: "#212121"
-    }
+    themes.discography
   ));
 }
 
