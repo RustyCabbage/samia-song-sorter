@@ -73,6 +73,7 @@ select {
   font-style: italic;
   position: fixed;
   bottom: 0;
+  right: 2.25em;
   text-decoration: underline;
   background-color: transparent;
 }
