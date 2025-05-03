@@ -5,61 +5,28 @@ let totalComparisons = 0;
 let pendingMerges = [];
 let decisionHistory = [];
 
-// Calculate comparisons needed for an array dynamically
-function calcComparisonsNeeded(arr) {
-  if (!arr || arr.length <= 1) return 0;
-  return arr.length - 1;
-}
-
-// Calculate total comparisons needed for merge sort on array
-function calculateTotalComparisons(arr) {
-  if (!arr || arr.length <= 1) return 0;
-  
-  const n = arr.length;
-  const mid = Math.floor(n / 2);
-  const left = arr.slice(0, mid);
-  const right = arr.slice(mid);
-  
-  // Recursively calculate for left and right parts
-  const leftComps = calculateTotalComparisons(left);
-  const rightComps = calculateTotalComparisons(right);
-  
-  // Merging left and right requires at most (left.length + right.length - 1) comparisons
-  const mergeComps = calcComparisonsNeeded(arr);
-  
-  return leftComps + rightComps + mergeComps;
-}
-
 function startSorting() {
-  // Make sure we have a song list to sort
-  if (!currentSongList) {
-    console.error("No song list selected");
-    return;
-  }
-  
+  completedComparisons = 0;
+  pendingMerges = [];
+  decisionHistory = []; // Reset decision history
+
   const songs = currentSongList.songs;
-  if (songs.length === 0) {
-    console.error("Selected song list is empty");
-    return;
-  }
-  
+
+  // Shuffling
   const shuffledSongs = [...songs];
   for (let i = shuffledSongs.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [shuffledSongs[i], shuffledSongs[j]] = [shuffledSongs[j], shuffledSongs[i]];
   }
 
-  completedComparisons = 0;
-  pendingMerges = [];
-  decisionHistory = []; // Reset decision history
-  
-  // Initialize with worst-case scenario
+  // Initialize num comparisons with worst-case scenario
   totalComparisons = calculateTotalComparisons(shuffledSongs);
   updateProgressDisplay();
 
   currentState = {
     type: 'mergeSort',
-    array: shuffledSongs,
+    array: songs,
+    //array: shuffledSongs,
     onComplete: (sorted) => {
       finalSorted = sorted;
       showResult();
@@ -68,18 +35,20 @@ function startSorting() {
   processCurrentState();
 }
 
+// Calculate total comparisons needed for merge sort on array
+function calculateTotalComparisons(arr) {
+  if (!arr || arr.length <= 1) return 0;
+  
+  // A more accurate formula for merge sort comparisons
+  // In the worst case, merge sort requires n*log(n) comparisons
+  return Math.floor(arr.length * Math.log2(arr.length));
+}
+
 function updateProgressDisplay() {
   const progressPercentage = totalComparisons === 0 ?
     0 : Math.round((completedComparisons / totalComparisons) * 100);
 
   const progressDiv = document.getElementById("progress");
-  if (!progressDiv) {
-    const newProgressDiv = document.createElement("div");
-    newProgressDiv.id = "progress";
-    newProgressDiv.style.marginBottom = "20px";
-    document.getElementById("choices").insertAdjacentElement('beforebegin', newProgressDiv);
-  }
-
   document.getElementById("progress").textContent = `Progress: ${progressPercentage}% sorted`;
 }
 
@@ -227,6 +196,13 @@ function recalculateRemainingComparisons() {
   });
   
   totalComparisons = Math.max(completedComparisons, newTotal);
+}
+
+// Calculate comparisons needed for an array more efficiently
+function calcComparisonsNeeded(arr) {
+  if (!arr || arr.length <= 1) return 0;
+  // We need at most n-1 comparisons for an array of size n
+  return arr.length - 1;
 }
 
 // User chooses option A

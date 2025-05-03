@@ -115,7 +115,7 @@ h1, h2 {
   display: flex;
   justify-content: space-evenly;
   align-items: center;
-  margin-bottom: 3em;
+  margin: 3em 0;
 }
 
 /* Results styles */
