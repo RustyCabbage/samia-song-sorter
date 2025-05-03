@@ -48,7 +48,6 @@ function updateProgressDisplay() {
   const progressPercentage = totalComparisons === 0 ?
     0 : Math.round((completedComparisons / totalComparisons) * 100);
 
-  const progressDiv = document.getElementById("progress");
   document.getElementById("progress").textContent = `Progress: ${progressPercentage}% sorted`;
 }
 
@@ -153,13 +152,6 @@ function processMerge() {
   document.getElementById("btnB").textContent = right[rightIndex];
 
   // Update comparison display
-  const comparisonDiv = document.getElementById("comparison");
-  if (!comparisonDiv) {
-    const newComparisonDiv = document.createElement("div");
-    newComparisonDiv.id = "comparison";
-    document.getElementById("choices").insertAdjacentElement('beforebegin', newComparisonDiv);
-  }
-  
   document.getElementById("comparison").textContent = 
     `Comparison #${completedComparisons + 1} of ${totalComparisons} (approx)`;
 }
