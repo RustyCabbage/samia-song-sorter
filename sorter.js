@@ -1,267 +1,264 @@
-let currentState = null;
-let finalSorted = [];
-let completedComparisons = 0;
-let totalComparisons = 0;
-let pendingMerges = [];
-let decisionHistory = [];
+// Global variables for tracking the sorting process
+let songs = [];  // The songs to be sorted
+let compareQueue = []; // Queue of comparisons to be made
+let finalSorted = [];  // The final sorted list of songs
+let songRanks = {};    // Object to store the relative ranks of songs
+let decisionHistory = []; // Array to store the history of decisions
+let completedComparisons = 0;  // Number of comparisons completed
+let estimatedTotalComparisons = 0; // Estimated total comparisons needed
+let mergeContext = null; // Tracks the current merge operation
 
+// Initializes and starts the sorting process
 function startSorting() {
+  // Reset all state variables
+  songs = currentSongList.songs;
+  compareQueue = [];
+  finalSorted = [];
+  songRanks = {};
+  decisionHistory = [];
   completedComparisons = 0;
-  pendingMerges = [];
-  decisionHistory = []; // Reset decision history
-
-  const songs = currentSongList.songs;
-
-  // Shuffling
-  const shuffledSongs = [...songs];
-  for (let i = shuffledSongs.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffledSongs[i], shuffledSongs[j]] = [shuffledSongs[j], shuffledSongs[i]];
-  }
-
-  // Initialize num comparisons with worst-case scenario
-  totalComparisons = calculateTotalComparisons(shuffledSongs);
-  updateProgressDisplay();
-
-  currentState = {
-    type: 'mergeSort',
-    array: songs,
-    //array: shuffledSongs,
-    onComplete: (sorted) => {
-      finalSorted = sorted;
-      showResult();
-    }
-  };
-  processCurrentState();
-}
-
-// Calculate total comparisons needed for merge sort on array
-function calculateTotalComparisons(arr) {
-  if (!arr || arr.length <= 1) return 0;
   
-  // A more accurate formula for merge sort comparisons
-  // In the worst case, merge sort requires n*log(n) comparisons
-  return Math.floor(arr.length * Math.log2(arr.length));
+  // Calculate the estimated number of comparisons needed
+  // For merge sort, worst case is approximately n*log2(n)
+  estimatedTotalComparisons = Math.ceil(songs.length * Math.log2(songs.length));
+  
+  // Start with each song as a separate list
+  const lists = songs.map(song => [song]);
+  
+  // Begin the merge sort process
+  mergeSort(lists);
 }
 
-function updateProgressDisplay() {
-  const progressPercentage = totalComparisons === 0 ?
-    0 : Math.round((completedComparisons / totalComparisons) * 100);
-
-  const progressDiv = document.getElementById("progress");
-  document.getElementById("progress").textContent = `Progress: ${progressPercentage}% sorted`;
-}
-
-function processCurrentState() {
-  if (!currentState) return;
-
-  if (currentState.type === 'mergeSort') {
-    processMergeSort();
-  } else if (currentState.type === 'merge') {
-    processMerge();
-  }
-}
-
-function processMergeSort() {
-  const { array, onComplete } = currentState;
-
-  if (array.length <= 1) {
-    onComplete(array);
+// Main merge sort function
+function mergeSort(lists) {
+  // Base case: if there's only one list, we're done
+  if (lists.length <= 1) {
+    finalSorted = lists[0] || [];
+    showResult();
     return;
   }
+  
+  // Create pairs of lists to merge
+  const mergedLists = [];
+  
+  for (let i = 0; i < lists.length; i += 2) {
+    if (i + 1 < lists.length) {
+      // Merge two lists
+      merge(lists[i], lists[i + 1], mergedResult => {
+        mergedLists.push(mergedResult);
+        
+        // If all pairs have been merged, continue to the next level
+        if (mergedLists.length === Math.ceil(lists.length / 2)) {
+          mergeSort(mergedLists);
+        }
+      });
+    } else {
+      // Odd number of lists, this one gets passed through
+      mergedLists.push(lists[i]);
+      
+      // If all pairs have been merged, continue to the next level
+      if (mergedLists.length === Math.ceil(lists.length / 2)) {
+        mergeSort(mergedLists);
+      }
+    }
+  }
+}
 
-  const middle = Math.floor(array.length / 2);
-  const leftArray = array.slice(0, middle);
-  const rightArray = array.slice(middle);
+// Merge two sorted lists with user input
+function merge(left, right, callback) {
+  const merged = [];
+  let leftIndex = 0;
+  let rightIndex = 0;
+  
+  function continueComparing() {
+    // If one list is exhausted, add all items from the other
+    if (leftIndex >= left.length) {
+      merged.push(...right.slice(rightIndex));
+      callback(merged);
+      return;
+    }
+    
+    if (rightIndex >= right.length) {
+      merged.push(...left.slice(leftIndex));
+      callback(merged);
+      return;
+    }
+    
+    // Get the next items to compare
+    const leftItem = left[leftIndex];
+    const rightItem = right[rightIndex];
+    
+    // Check if we already know the preference based on transitivity
+    const knownPreference = getKnownPreference(leftItem, rightItem);
+    
+    if (knownPreference === 'left') {
+      merged.push(leftItem);
+      leftIndex++;
+      continueComparing();
+    } else if (knownPreference === 'right') {
+      merged.push(rightItem);
+      rightIndex++;
+      continueComparing();
+    } else {
+      // Need user input for this comparison
+      compareQueue.push({
+        songA: leftItem,
+        songB: rightItem,
+        onChoice: (choseA) => {
+          if (choseA) {
+            merged.push(leftItem);
+            leftIndex++;
+            // Record this preference
+            recordPreference(leftItem, rightItem);
+          } else {
+            merged.push(rightItem);
+            rightIndex++;
+            // Record this preference
+            recordPreference(rightItem, leftItem);
+          }
+          // Continue with the next comparison
+          continueComparing();
+        }
+      });
+      
+      // If this is the first item in the queue, start the comparison
+      if (compareQueue.length === 1) {
+        showNextComparison();
+      }
+    }
+  }
+  
+  // Start the merging process
+  continueComparing();
+}
 
-  // Track this pending merge for future comparisons calculation
-  const mergeId = pendingMerges.length;
-  pendingMerges.push({
-    left: leftArray,
-    right: rightArray,
-    status: 'pending'
-  });
+// Check if we already know which song is preferred
+function getKnownPreference(songA, songB) {
+  // If we've directly compared these two songs before
+  for (const decision of decisionHistory) {
+    if (decision.chosen === songA && decision.rejected === songB) {
+      return 'left';
+    } else if (decision.chosen === songB && decision.rejected === songA) {
+      return 'right';
+    }
+  }
+  
+  // Check for transitive preferences
+  const preferences = inferTransitivePreferences();
+  
+  for (const pref of preferences) {
+    if (pref.preferred === songA && pref.lessPreferred === songB) {
+      return 'left';
+    } else if (pref.preferred === songB && pref.lessPreferred === songA) {
+      return 'right';
+    }
+  }
+  
+  return null; // No known preference
+}
 
-  currentState = {
-    type: 'mergeSort',
-    array: leftArray,
-    onComplete: (sortedLeft) => {
-      currentState = {
-        type: 'mergeSort',
-        array: rightArray,
-        onComplete: (sortedRight) => {
-          pendingMerges[mergeId].status = 'active';
-          pendingMerges[mergeId].left = sortedLeft;
-          pendingMerges[mergeId].right = sortedRight;
-          
-          currentState = {
-            type: 'merge',
-            left: sortedLeft,
-            right: sortedRight,
-            result: [],
-            leftIndex: 0,
-            rightIndex: 0,
-            mergeId: mergeId,
-            onComplete
+// Infer preferences based on transitivity (A > B and B > C implies A > C)
+function inferTransitivePreferences() {
+  const directPreferences = decisionHistory.map(d => ({
+    preferred: d.chosen,
+    lessPreferred: d.rejected
+  }));
+  
+  const allPreferences = [...directPreferences];
+  let added = true;
+  
+  // Keep adding transitive preferences until no more can be found
+  while (added) {
+    added = false;
+    
+    for (const pref1 of allPreferences) {
+      for (const pref2 of allPreferences) {
+        // If A > B and B > C, then A > C
+        if (pref1.lessPreferred === pref2.preferred) {
+          const newPref = {
+            preferred: pref1.preferred,
+            lessPreferred: pref2.lessPreferred
           };
           
-          // Recalculate expected comparisons now that we have sorted subarrays
-          recalculateRemainingComparisons();
-          processCurrentState();
-        }
-      };
-      processCurrentState();
-    }
-  };
-  processCurrentState();
-}
-
-function processMerge() {
-  const { left, right, result, leftIndex, rightIndex, onComplete, mergeId } = currentState;
-
-  // All items processed, merge complete
-  if (leftIndex >= left.length && rightIndex >= right.length) {
-    if (mergeId !== undefined) {
-      pendingMerges[mergeId].status = 'completed';
-    }
-    onComplete(result);
-    return;
-  }
-
-  // Left array exhausted, add remaining right items
-  if (leftIndex >= left.length) {
-    currentState.result = [...result, ...right.slice(rightIndex)];
-    if (mergeId !== undefined) {
-      pendingMerges[mergeId].status = 'completed';
-    }
-    onComplete(currentState.result);
-    return;
-  }
-
-  // Right array exhausted, add remaining left items
-  if (rightIndex >= right.length) {
-    currentState.result = [...result, ...left.slice(leftIndex)];
-    if (mergeId !== undefined) {
-      pendingMerges[mergeId].status = 'completed';
-    }
-    onComplete(currentState.result);
-    return;
-  }
-
-  // Set the button content
-  document.getElementById("btnA").textContent = left[leftIndex];
-  document.getElementById("btnB").textContent = right[rightIndex];
-
-  // Update comparison display
-  const comparisonDiv = document.getElementById("comparison");
-  if (!comparisonDiv) {
-    const newComparisonDiv = document.createElement("div");
-    newComparisonDiv.id = "comparison";
-    document.getElementById("choices").insertAdjacentElement('beforebegin', newComparisonDiv);
-  }
-  
-  document.getElementById("comparison").textContent = 
-    `Comparison #${completedComparisons + 1} of ${totalComparisons} (approx)`;
-}
-
-function recalculateRemainingComparisons() {
-  // Start with comparisons already made
-  let newTotal = completedComparisons;
-  
-  // For each active merge operation, calculate remaining comparisons
-  pendingMerges.forEach(merge => {
-    if (merge.status === 'active') {
-      const { left, right } = merge;
-      const currentMerge = pendingMerges.find(m => 
-        m.left === left && m.right === right && m.status === 'active');
-      
-      if (currentMerge) {
-        const leftIndex = currentState.left === left ? currentState.leftIndex : 0;
-        const rightIndex = currentState.right === right ? currentState.rightIndex : 0;
-        
-        // Calculate comparisons needed for remaining elements
-        const remainingLeft = left.length - leftIndex;
-        const remainingRight = right.length - rightIndex;
-        
-        if (remainingLeft > 0 && remainingRight > 0) {
-          // For remaining elements, we need at most min(remainingLeft, remainingRight) comparisons
-          newTotal += Math.min(remainingLeft, remainingRight);
+          // Check if this preference is already known
+          const alreadyKnown = allPreferences.some(p => 
+            p.preferred === newPref.preferred && p.lessPreferred === newPref.lessPreferred
+          );
+          
+          if (!alreadyKnown) {
+            allPreferences.push(newPref);
+            added = true;
+          }
         }
       }
-    } else if (merge.status === 'pending') {
-      // For pending merges, we count worst-case scenario
-      newTotal += calcComparisonsNeeded([...merge.left, ...merge.right]);
     }
-    // Completed merges don't add to the count
+  }
+  
+  return allPreferences;
+}
+
+// Record a user preference
+function recordPreference(preferred, lessPreferred) {
+  decisionHistory.push({
+    comparison: completedComparisons + 1,
+    chosen: preferred,
+    rejected: lessPreferred
   });
   
-  totalComparisons = Math.max(completedComparisons, newTotal);
+  completedComparisons++;
 }
 
-// Calculate comparisons needed for an array more efficiently
-function calcComparisonsNeeded(arr) {
-  if (!arr || arr.length <= 1) return 0;
-  // We need at most n-1 comparisons for an array of size n
-  return arr.length - 1;
+// Display the next comparison to the user
+function showNextComparison() {
+  if (compareQueue.length === 0) return;
+  
+  const comparison = compareQueue[0];
+  
+  // Update the UI
+  document.getElementById("btnA").textContent = comparison.songA;
+  document.getElementById("btnB").textContent = comparison.songB;
+  
+  // Update progress information
+  updateProgressDisplay();
 }
 
-// User chooses option A
+// Update the progress display
+function updateProgressDisplay() {
+  // Calculate progress percentage (we can refine this estimate)
+  const progressPercentage = Math.min(
+    100, 
+    Math.round((completedComparisons / estimatedTotalComparisons) * 100)
+  );
+  
+  document.getElementById("progress").textContent = 
+    `Progress: ${progressPercentage}% sorted`;
+  
+  document.getElementById("comparison").textContent = 
+    `Comparison #${completedComparisons + 1} of ~${estimatedTotalComparisons} (estimated)`;
+}
+
+// Handle when the user selects option A
 function handleOptionA() {
-  if (currentState && currentState.type === 'merge') {
-    const chosenSong = currentState.left[currentState.leftIndex];
-    const rejectedSong = currentState.right[currentState.rightIndex];
-    
-    // Log this decision
-    decisionHistory.push({
-      comparison: completedComparisons + 1,
-      chosen: chosenSong,
-      rejected: rejectedSong
-    });
-    
-    currentState.result.push(chosenSong);
-    currentState.leftIndex++;
-    completedComparisons++;
-    
-    // Update the active merge in pendingMerges
-    if (currentState.mergeId !== undefined) {
-      pendingMerges[currentState.mergeId].leftProgress = currentState.leftIndex;
-      pendingMerges[currentState.mergeId].rightProgress = currentState.rightIndex;
-      pendingMerges[currentState.mergeId].resultLength = currentState.result.length;
-    }
-    
-    recalculateRemainingComparisons();
-    processCurrentState();
-    updateProgressDisplay();
+  if (compareQueue.length === 0) return;
+  
+  const comparison = compareQueue.shift();
+  comparison.onChoice(true);
+  
+  // Show the next comparison if any
+  if (compareQueue.length > 0) {
+    showNextComparison();
   }
 }
 
-// User chooses option B
+// Handle when the user selects option B
 function handleOptionB() {
-  if (currentState && currentState.type === 'merge') {
-    const chosenSong = currentState.right[currentState.rightIndex];
-    const rejectedSong = currentState.left[currentState.leftIndex];
-    
-    // Log this decision
-    decisionHistory.push({
-      comparison: completedComparisons + 1,
-      chosen: chosenSong,
-      rejected: rejectedSong
-    });
-    
-    currentState.result.push(chosenSong);
-    currentState.rightIndex++;
-    completedComparisons++;
-    
-    // Update the active merge in pendingMerges
-    if (currentState.mergeId !== undefined) {
-      pendingMerges[currentState.mergeId].leftProgress = currentState.leftIndex;
-      pendingMerges[currentState.mergeId].rightProgress = currentState.rightIndex;
-      pendingMerges[currentState.mergeId].resultLength = currentState.result.length;
-    }
-    
-    recalculateRemainingComparisons();
-    processCurrentState();
-    updateProgressDisplay();
+  if (compareQueue.length === 0) return;
+  
+  const comparison = compareQueue.shift();
+  comparison.onChoice(false);
+  
+  // Show the next comparison if any
+  if (compareQueue.length > 0) {
+    showNextComparison();
   }
 }
-
