@@ -177,7 +177,7 @@ function initializeSongLists() {
   songListRepo.addList(new SongList(
     "bloodless",
     "Bloodless",
-    //[ "Song 1", "Song 2", "Song 3", "Song 4" ], // testing
+    //[ "Song 1", "Song 2", "Song 3", "Song 4", "Song 5", "Song 6" ], // testing
     songCollections.bloodless,
     themes.bloodless
   ));
