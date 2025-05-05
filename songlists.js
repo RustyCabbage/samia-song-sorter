@@ -15,20 +15,6 @@ class SongList {
   get songs() { return [...this._songs]; } // Return a copy to prevent direct modification
   get theme() { return { ...this._theme }; } // Return a copy to prevent direct modification
   get songCount() { return this._songs.length; }
-  
-  // Method to apply the theme to the page
-  applyTheme() {
-    document.documentElement.style.setProperty('--background-color', this._theme.backgroundColor);
-    document.documentElement.style.setProperty('--text-color', this._theme.textColor);
-    document.documentElement.style.setProperty('--button-color', this._theme.buttonColor);
-    document.documentElement.style.setProperty('--button-hover-color', this._theme.buttonHoverColor);
-    document.documentElement.style.setProperty('--button-text-color', this._theme.buttonTextColor);
-  }
-
-  // Method to apply the song count to the page
-  applySongCount() {
-    document.getElementById("songCount").textContent = `${this.songCount} songs`;
-  }
 }
 
 // Repository for all song lists

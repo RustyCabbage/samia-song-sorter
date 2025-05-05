@@ -5,8 +5,8 @@ function initializeApp() {
     currentSongList = songListRepo.getList("bloodless");
     
     // Apply theme and song count through function calls
-    currentSongList.applyTheme();
-    currentSongList.applySongCount();
+    applyTheme();
+    applySongCount();
   
     // Hide the sorting and results interface initially, show only the selection UI
     document.getElementById("selectionInterface").style.display = "block"; 
@@ -18,6 +18,18 @@ function initializeApp() {
     
     // Set up event listeners
     setupEventListeners();
+}
+
+function applyTheme() {
+  document.documentElement.style.setProperty('--background-color', currentSongList._theme.backgroundColor);
+  document.documentElement.style.setProperty('--text-color', currentSongList._theme.textColor);
+  document.documentElement.style.setProperty('--button-color', currentSongList._theme.buttonColor);
+  document.documentElement.style.setProperty('--button-hover-color', currentSongList._theme.buttonHoverColor);
+  document.documentElement.style.setProperty('--button-text-color', currentSongList._theme.buttonTextColor);  
+}
+
+function applySongCount() {
+  document.getElementById("songCount").textContent = `${currentSongList.songCount} songs`;
 }
 
 function populateListSelector() {
@@ -36,8 +48,8 @@ function setupEventListeners() {
     // Set up event listener for list selection change
     document.getElementById("listSelector").addEventListener("change", function() {
       currentSongList = songListRepo.getList(this.value);
-      currentSongList.applyTheme();
-      currentSongList.applySongCount();
+      applyTheme();
+      applySongCount();
     });
     
     // Set up the start button
