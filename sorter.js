@@ -29,12 +29,37 @@ function startSorting() {
   mergeSort(lists);
 }
 
+<<<<<<< HEAD
 // Main merge sort function
 function mergeSort(lists) {
   // Base case: if there's only one list, we're done
   if (lists.length <= 1) {
     finalSorted = lists[0] || [];
     showResult();
+=======
+function updateProgressDisplay() {
+  const progressPercentage = totalComparisons === 0 ?
+    0 : Math.round((completedComparisons / totalComparisons) * 100);
+
+  document.getElementById("progress").textContent = `Progress: ${progressPercentage}% sorted`;
+}
+
+function processCurrentState() {
+  if (!currentState) return;
+
+  if (currentState.type === 'mergeSort') {
+    processMergeSort();
+  } else if (currentState.type === 'merge') {
+    processMerge();
+  }
+}
+
+function processMergeSort() {
+  const { array, onComplete } = currentState;
+
+  if (array.length <= 1) {
+    onComplete(array);
+>>>>>>> main
     return;
   }
   
@@ -180,6 +205,7 @@ function inferTransitivePreferences() {
             lessPreferred: pref2.lessPreferred
           };
           
+<<<<<<< HEAD
           // Check if this preference is already known
           const alreadyKnown = allPreferences.some(p => 
             p.preferred === newPref.preferred && p.lessPreferred === newPref.lessPreferred
@@ -189,6 +215,82 @@ function inferTransitivePreferences() {
             allPreferences.push(newPref);
             added = true;
           }
+=======
+          // Recalculate expected comparisons now that we have sorted subarrays
+          recalculateRemainingComparisons();
+          processCurrentState();
+        }
+      };
+      processCurrentState();
+    }
+  };
+  processCurrentState();
+}
+
+function processMerge() {
+  const { left, right, result, leftIndex, rightIndex, onComplete, mergeId } = currentState;
+
+  // All items processed, merge complete
+  if (leftIndex >= left.length && rightIndex >= right.length) {
+    if (mergeId !== undefined) {
+      pendingMerges[mergeId].status = 'completed';
+    }
+    onComplete(result);
+    return;
+  }
+
+  // Left array exhausted, add remaining right items
+  if (leftIndex >= left.length) {
+    currentState.result = [...result, ...right.slice(rightIndex)];
+    if (mergeId !== undefined) {
+      pendingMerges[mergeId].status = 'completed';
+    }
+    onComplete(currentState.result);
+    return;
+  }
+
+  // Right array exhausted, add remaining left items
+  if (rightIndex >= right.length) {
+    currentState.result = [...result, ...left.slice(leftIndex)];
+    if (mergeId !== undefined) {
+      pendingMerges[mergeId].status = 'completed';
+    }
+    onComplete(currentState.result);
+    return;
+  }
+
+  // Set the button content
+  document.getElementById("btnA").textContent = left[leftIndex];
+  document.getElementById("btnB").textContent = right[rightIndex];
+
+  // Update comparison display
+  document.getElementById("comparison").textContent = 
+    `Comparison #${completedComparisons + 1} of ${totalComparisons} (approx)`;
+}
+
+function recalculateRemainingComparisons() {
+  // Start with comparisons already made
+  let newTotal = completedComparisons;
+  
+  // For each active merge operation, calculate remaining comparisons
+  pendingMerges.forEach(merge => {
+    if (merge.status === 'active') {
+      const { left, right } = merge;
+      const currentMerge = pendingMerges.find(m => 
+        m.left === left && m.right === right && m.status === 'active');
+      
+      if (currentMerge) {
+        const leftIndex = currentState.left === left ? currentState.leftIndex : 0;
+        const rightIndex = currentState.right === right ? currentState.rightIndex : 0;
+        
+        // Calculate comparisons needed for remaining elements
+        const remainingLeft = left.length - leftIndex;
+        const remainingRight = right.length - rightIndex;
+        
+        if (remainingLeft > 0 && remainingRight > 0) {
+          // For remaining elements, we need at most min(remainingLeft, remainingRight) comparisons
+          newTotal += Math.min(remainingLeft, remainingRight);
+>>>>>>> main
         }
       }
     }
