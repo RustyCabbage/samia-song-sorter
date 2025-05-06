@@ -6,21 +6,22 @@ class SongList {
     this._id = id;
     this._name = name;
     this._songs = [...songs]; // Create a copy to avoid direct reference
-    this._theme = { ...theme }; // Create a copy to avoid direct reference
+    this._theme = theme; // Store theme reference directly (optimization)
   }
   
   // Getters
   get id() { return this._id; }
   get name() { return this._name; }
   get songs() { return [...this._songs]; } // Return a copy to prevent direct modification
-  get theme() { return { ...this._theme }; } // Return a copy to prevent direct modification
+  get theme() { return this._theme; } // Return direct reference - themes are static objects
   get songCount() { return this._songs.length; }
 }
 
 // Repository for all song lists
 class SongListRepository {
   constructor() {
-    this._lists = {};
+    this._lists = Object.create(null); // Use null prototype for pure object map (faster lookups)
+    this._listCache = null; // Cache for getAllLists()
   }
   
   // Add a song list to the repository
@@ -29,6 +30,7 @@ class SongListRepository {
       throw new Error('Must be a SongList instance');
     }
     this._lists[songList.id] = songList;
+    this._listCache = null; // Invalidate cache
   }
   
   // Get a song list by ID
@@ -36,8 +38,12 @@ class SongListRepository {
     return this._lists[id] || null;
   }
   
-  // Get all available song lists
+  // Get all available song lists - now with caching
   getAllLists() {
+    if (this._listCache) {
+      return this._listCache;
+    }
+    
     const lists = [];
     for (const id in this._lists) {
       lists.push({
@@ -45,12 +51,44 @@ class SongListRepository {
         name: this._lists[id].name
       });
     }
+    
+    this._listCache = lists;
     return lists;
   }
 }
 
-// Song lists data
-const songCollections = {
+const THEMES = {
+  bloodless: {
+    backgroundColor: "#282828", // Dark gray
+    textColor: "#e9e9e9", // Light gray
+    buttonColor: "#686868", // Medium gray
+    buttonHoverColor: "#555555", // Darker gray
+    buttonTextColor: "#e9e9e9" // Light gray
+  },
+  honey: {
+    backgroundColor: "#095a8a", // Light blue
+    textColor: "#b1d3f1", // Light blue
+    buttonColor: "#94c1e8", // Medium blue
+    buttonHoverColor: "#6ba4d6", // Slightly darker blue
+    buttonTextColor: "#2c4c6b" // Dark blue
+  },
+  theBaby: {
+    backgroundColor: "#567c7e", // Teal
+    textColor: "#8ac7ca", // Light teal
+    buttonColor: "#2c4545", // Dark teal
+    buttonHoverColor: "#122227", // Very dark teal
+    buttonTextColor: "#8ac7ca" // Light teal
+  },
+  discography: {
+    backgroundColor: "#ef936d",
+    textColor: "#212121",
+    buttonColor: "#c97c5c",
+    buttonHoverColor: "#955c44",
+    buttonTextColor: "#212121"
+  }
+};
+
+const SONG_COLLECTIONS = {
   preBaby: [
     "Welcome to Eden",
     "The Night Josh Tillman Listened To My Song",
@@ -125,83 +163,50 @@ const songCollections = {
   ]
 };
 
-// Theme definitions
-const themes = {
-  bloodless: {
-    backgroundColor: "#282828", // Dark gray
-    textColor: "#e9e9e9", // Light gray
-    buttonColor: "#686868", // Medium gray
-    buttonHoverColor: "#555555", // Darker gray
-    buttonTextColor: "#e9e9e9" // Light gray
-  },
-  honey: {
-    backgroundColor: "#095a8a", // Light blue
-    textColor: "#b1d3f1", // Light blue
-    buttonColor: "#94c1e8", // Medium blue
-    buttonHoverColor: "#6ba4d6", // Slightly darker blue
-    buttonTextColor: "#2c4c6b" // Dark blue
-  },
-  theBaby: {
-    backgroundColor: "#567c7e", // Teal
-    textColor: "#8ac7ca", // Light teal
-    buttonColor: "#2c4545", // Dark teal
-    buttonHoverColor: "#122227", // Very dark teal
-    buttonTextColor: "#8ac7ca" // Light teal
-  },
-  discography: {
-    backgroundColor: "#ef936d",
-    textColor: "#212121",
-    buttonColor: "#c97c5c",
-    buttonHoverColor: "#955c44",
-    buttonTextColor: "#212121"
-  }
-};
+const discographyList = [].concat(
+  SONG_COLLECTIONS.preBaby,
+  SONG_COLLECTIONS.theBaby,
+  SONG_COLLECTIONS.scout,
+  ["Desperado", "Born on a Train"],
+  SONG_COLLECTIONS.honey,
+  ["Maps", "Country", "Making Breakfast"],
+  SONG_COLLECTIONS.bloodless
+);
 
 // Initialize the repository with song lists
 function initializeSongLists() {
+  const songListRepo = new SongListRepository();
   // Create SongList instances and add them to the repository
   songListRepo.addList(new SongList(
     "bloodless",
     "Bloodless",
-    //[ "Song 1", "Song 2", "Song 3", "Song 4" ], // testing
-    songCollections.bloodless,
-    themes.bloodless
+    //[ "Song 1", "Song 2", "Song 3", "Song 4", "Song 5", "Song 6" ], // testing
+    SONG_COLLECTIONS.bloodless,
+    THEMES.bloodless
   ));
   
   songListRepo.addList(new SongList(
     "honey",
     "Honey",
-    songCollections.honey,
-    themes.honey
+    SONG_COLLECTIONS.honey,
+    THEMES.honey
   ));
   
   songListRepo.addList(new SongList(
     "theBaby",
     "The Baby",
-    songCollections.theBaby,
-    themes.theBaby
+    SONG_COLLECTIONS.theBaby,
+    THEMES.theBaby
   ));
   
   songListRepo.addList(new SongList(
     "discography",
     "Full Discography",
-    [
-      ...songCollections.preBaby,
-      ...songCollections.theBaby,
-      ...songCollections.scout,
-      "Desperado",
-      "Born on a Train",
-      ...songCollections.honey,
-      "Maps",
-      "Country",
-      "Making Breakfast",
-      ...songCollections.bloodless
-    ],
-    themes.discography
+    discographyList,
+    THEMES.discography
   ));
+  return songListRepo;
 }
 
-// Create the repository instance
-const songListRepo = new SongListRepository();
 // Initialize the repository when the script loads
-initializeSongLists();
+const songListRepo = initializeSongLists();

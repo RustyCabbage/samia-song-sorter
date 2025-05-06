@@ -17,16 +17,15 @@ body {
   margin: 0 auto;
   margin-bottom: 1em;
   padding: 1em;
-  transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
   max-width: 400px;
   text-align: center;
   font-size: 1em;
+  transition: background-color var(--transition-speed) ease;
 }
 
 /* Typography */
 h1, h2 {
   color: var(--text-color);
-  transition: color var(--transition-speed) ease;
 }
 
 .app-title {

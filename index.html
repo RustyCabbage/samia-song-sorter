@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sort and rank Samia songs based on your preferences">
   <title>Samia Song Sorter</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -12,13 +13,13 @@
   </header>
   
   <!-- Selection Interface -->
-  <section id="selectionInterface" class="interface-panel">
+  <section id="selectionInterface" class="interface-panel" aria-live="polite">
     <h2 class="section-title">Choose a Song List to Rank</h2>
     <div class="select-container">
-      <select id="listSelector" class="song-list-select" name="songList">
+      <select id="listSelector" class="song-list-select" name="songList" aria-label="Song list selection">
         <!-- Options will be populated by JavaScript -->
       </select>
-      <div id="songCount" class="song-count"></div>
+      <div id="songCount" class="song-count" aria-live="polite"></div>
     </div>
     <p class="instructions">
       This tool will help you rank songs by presenting you with pairs to choose between.
@@ -28,13 +29,13 @@
   </section>
   
   <!-- Sorting Interface -->
-  <section id="sortingInterface" class="interface-panel">
+  <section id="sortingInterface" class="interface-panel" aria-live="polite">
     <h2 class="section-title">Which song do you prefer?</h2>
-    <div id="progress" class="progress-indicator"></div>
-    <div id="comparison" class="comparison-text"></div>
+    <div id="progress" class="progress-indicator" aria-live="polite"></div>
+    <div id="comparison" class="comparison-text" aria-live="polite"></div>
     <div id="choices" class="choice-buttons">
-      <button id="btnA" class="choice-button"></button>
-      <button id="btnB" class="choice-button"></button>
+      <button id="btnA" class="choice-button" aria-label="Choose song A"></button>
+      <button id="btnB" class="choice-button" aria-label="Choose song B"></button>
     </div>
     <p class="warning">
       Warning: refreshing will erase your progress.
@@ -42,7 +43,7 @@
   </section>
   
   <!-- Results -->
-  <section id="resultsInterface" class="interface-panel">
+  <section id="resultsInterface" class="interface-panel" aria-live="polite">
     <div class="results-container">
       <h2 id="resultTitle">Your <i id="listName"></i> Ranking:</h2>
       <ol id="resultList">
@@ -52,12 +53,12 @@
     <div class="history-container">
       <h2 class="section-title">Your Decision History:</h2>
       <div class="decision-table">
-        <table>
+        <table aria-label="Decision history">
           <thead>
             <tr>
-              <th>#</th>
-              <th>Chosen</th>
-              <th>Rejected</th>
+              <th scope="col">#</th>
+              <th scope="col">Chosen</th>
+              <th scope="col">Rejected</th>
             </tr>
           </thead>
           <tbody id="decisionHistoryBody">

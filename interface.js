@@ -1,17 +1,33 @@
+// Cache DOM elements for better performance
+const DOM = {
+  selectionInterface: document.getElementById("selectionInterface"),
+  sortingInterface: document.getElementById("sortingInterface"),
+  resultsInterface: document.getElementById("resultsInterface"),
+  listSelector: document.getElementById("listSelector"),
+  songCount: document.getElementById("songCount"),
+  startButton: document.getElementById("startButton"),
+  btnA: document.getElementById("btnA"),
+  btnB: document.getElementById("btnB"),
+  progress: document.getElementById("progress"),
+  comparison: document.getElementById("comparison"),
+  resultList: document.getElementById("resultList"),
+  decisionHistoryBody: document.getElementById("decisionHistoryBody"),
+  listName: document.getElementById("listName"),
+  restartButton: document.getElementById("restartButton")
+};
+
 let currentSongList = null;
 
 function initializeApp() {
     // Set default song list
     currentSongList = songListRepo.getList("bloodless");
     
-    // Apply theme and song count through function calls
+    // Apply theme and song count
     applyTheme();
     applySongCount();
   
     // Hide the sorting and results interface initially, show only the selection UI
-    document.getElementById("selectionInterface").style.display = "block"; 
-    document.getElementById("sortingInterface").style.display = "none"; 
-    document.getElementById("resultsInterface").style.display = "none";
+    showInterface("selection");
   
     // Populate the list selector dropdown
     populateListSelector();
@@ -21,53 +37,66 @@ function initializeApp() {
 }
 
 function applyTheme() {
-  document.documentElement.style.setProperty('--background-color', currentSongList._theme.backgroundColor);
-  document.documentElement.style.setProperty('--text-color', currentSongList._theme.textColor);
-  document.documentElement.style.setProperty('--button-color', currentSongList._theme.buttonColor);
-  document.documentElement.style.setProperty('--button-hover-color', currentSongList._theme.buttonHoverColor);
-  document.documentElement.style.setProperty('--button-text-color', currentSongList._theme.buttonTextColor);  
+  // Use object destructuring for cleaner code
+  const { backgroundColor, textColor, buttonColor, buttonHoverColor, buttonTextColor } = currentSongList._theme;
+  
+  const root = document.documentElement.style;
+  root.setProperty('--background-color', backgroundColor);
+  root.setProperty('--text-color', textColor);
+  root.setProperty('--button-color', buttonColor);
+  root.setProperty('--button-hover-color', buttonHoverColor);
+  root.setProperty('--button-text-color', buttonTextColor);  
 }
 
 function applySongCount() {
-  document.getElementById("songCount").textContent = `${currentSongList.songCount} songs`;
+  DOM.songCount.textContent = `${currentSongList.songCount} songs`;
 }
 
 function populateListSelector() {
-    const selector = document.getElementById("listSelector");
+    const selector = DOM.listSelector;
     const lists = songListRepo.getAllLists();
+    
+    // Use document fragment for better performance
+    const fragment = document.createDocumentFragment();
     
     lists.forEach(list => {
       const option = document.createElement("option");
       option.value = list.id;
       option.textContent = list.name;
-      selector.appendChild(option);
+      fragment.appendChild(option);
     });
+    
+    selector.appendChild(fragment);
 }
 
 function setupEventListeners() {
     // Set up event listener for list selection change
-    document.getElementById("listSelector").addEventListener("change", function() {
+    DOM.listSelector.addEventListener("change", function() {
       currentSongList = songListRepo.getList(this.value);
       applyTheme();
       applySongCount();
     });
     
     // Set up the start button
-    document.getElementById("startButton").addEventListener("click", startSortingProcess);
+    DOM.startButton.addEventListener("click", startSortingProcess);
     
     // Set up buttons for comparison
-    document.getElementById("btnA").addEventListener("click", handleOptionA);
-    document.getElementById("btnB").addEventListener("click", handleOptionB);
+    DOM.btnA.addEventListener("click", handleOptionA);
+    DOM.btnB.addEventListener("click", handleOptionB);
     
     // Add event listener to restart button
-    document.getElementById("restartButton").addEventListener("click", resetInterface);
+    DOM.restartButton.addEventListener("click", resetInterface);
+}
+
+// Helper function to show the appropriate interface
+function showInterface(type) {
+  DOM.selectionInterface.style.display = type === "selection" ? "block" : "none";
+  DOM.sortingInterface.style.display = type === "sorting" ? "block" : "none";
+  DOM.resultsInterface.style.display = type === "results" ? "block" : "none";
 }
 
 function startSortingProcess() {
-    // Hide the selection interface and show sorting interface
-    document.getElementById("selectionInterface").style.display = "none";
-    document.getElementById("sortingInterface").style.display = "block";
-    document.getElementById("resultsInterface").style.display = "none";
+    showInterface("sorting");
     
     // Start the sorting
     startSorting();
@@ -75,22 +104,27 @@ function startSortingProcess() {
 
 function showResult() {
     // Set the list name in the results title
-    document.getElementById("listName").textContent = currentSongList.name;
+    DOM.listName.textContent = currentSongList.name;
     
-    // Clear previous results
-    const resultList = document.getElementById("resultList");
-    resultList.innerHTML = '';
+    // Clear previous results and use document fragment
+    DOM.resultList.innerHTML = '';
+    
+    const fragment = document.createDocumentFragment();
     
     // Add each song to the result list
     finalSorted.forEach(song => {
       const li = document.createElement("li");
       li.textContent = song;
-      resultList.appendChild(li);
+      fragment.appendChild(li);
     });
     
+    DOM.resultList.appendChild(fragment);
+    
     // Clear previous decision history
-    const decisionHistoryBody = document.getElementById("decisionHistoryBody");
-    decisionHistoryBody.innerHTML = '';
+    DOM.decisionHistoryBody.innerHTML = '';
+    
+    // Use a document fragment for history items
+    const historyFragment = document.createDocumentFragment();
     
     // Add each decision to the history table
     decisionHistory.forEach(decision => {
@@ -111,21 +145,18 @@ function showResult() {
       row.appendChild(chosenCell);
       row.appendChild(rejectedCell);
       
-      decisionHistoryBody.appendChild(row);
+      historyFragment.appendChild(row);
     });
     
-    // Show results and restart button
-    document.getElementById("selectionInterface").style.display = "none";
-    document.getElementById("sortingInterface").style.display = "none";
-    document.getElementById("resultsInterface").style.display = "block";
+    DOM.decisionHistoryBody.appendChild(historyFragment);
+    
+    // Show results interface
+    showInterface("results");
 }
 
 // Reset the interface to selection mode
 function resetInterface() {
-  // Show selection interface, hide others
-  document.getElementById("selectionInterface").style.display = "block";
-  document.getElementById("sortingInterface").style.display = "none";
-  document.getElementById("resultsInterface").style.display = "none";   
+  showInterface("selection");
 }
 
 // Initialize when the DOM is fully loaded
