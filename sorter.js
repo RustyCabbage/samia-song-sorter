@@ -5,6 +5,7 @@ let finalSorted = [];  // The final sorted list of songs
 let songRanks = {};    // Object to store the relative ranks of songs
 let decisionHistory = []; // Array to store the history of decisions
 let completedComparisons = 0;  // Number of comparisons completed
+
 let estimatedTotalComparisons = 0; // Estimated total comparisons needed
 let mergeContext = null; // Tracks the current merge operation
 
@@ -215,8 +216,8 @@ function showNextComparison() {
   const comparison = compareQueue[0];
   
   // Update the UI
-  document.getElementById("btnA").textContent = comparison.songA;
-  document.getElementById("btnB").textContent = comparison.songB;
+  DOM.btnA.textContent = comparison.songA;
+  DOM.btnB.textContent = comparison.songB;
   
   // Update progress information
   updateProgressDisplay();
@@ -230,32 +231,19 @@ function updateProgressDisplay() {
     Math.round((completedComparisons / estimatedTotalComparisons) * 100)
   );
   
-  document.getElementById("progress").textContent = 
+  DOM.progress.textContent = 
     `Progress: ${progressPercentage}% sorted`;
   
-  document.getElementById("comparison").textContent = 
+  DOM.comparison.textContent = 
     `Comparison #${completedComparisons + 1} of ~${estimatedTotalComparisons} (estimated)`;
 }
 
-// Handle when the user selects option A
-function handleOptionA() {
+// Handle when the user selects an option
+function handleOption(choseOptionA) {
   if (compareQueue.length === 0) return;
   
   const comparison = compareQueue.shift();
-  comparison.onChoice(true);
-  
-  // Show the next comparison if any
-  if (compareQueue.length > 0) {
-    showNextComparison();
-  }
-}
-
-// Handle when the user selects option B
-function handleOptionB() {
-  if (compareQueue.length === 0) return;
-  
-  const comparison = compareQueue.shift();
-  comparison.onChoice(false);
+  comparison.onChoice(choseOptionA);
   
   // Show the next comparison if any
   if (compareQueue.length > 0) {

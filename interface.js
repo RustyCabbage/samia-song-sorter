@@ -81,8 +81,8 @@ function setupEventListeners() {
     DOM.startButton.addEventListener("click", startSortingProcess);
     
     // Set up buttons for comparison
-    DOM.btnA.addEventListener("click", handleOptionA);
-    DOM.btnB.addEventListener("click", handleOptionB);
+    DOM.btnA.addEventListener("click", () => handleOption(true));
+    DOM.btnB.addEventListener("click", () => handleOption(false));
     
     // Add event listener to restart button
     DOM.restartButton.addEventListener("click", resetInterface);
