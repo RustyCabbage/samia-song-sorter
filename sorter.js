@@ -101,95 +101,98 @@ function merge(left, right, callback) {
     const knownPreference = getKnownPreference(leftItem, rightItem);
     
     if (knownPreference === 'left') {
-      merged.push(leftItem);
-      leftIndex++;
-      continueComparing();
+      handleSelection(true);
     } else if (knownPreference === 'right') {
-      merged.push(rightItem);
-      rightIndex++;
-      continueComparing();
+      handleSelection(false);
     } else {
       // Need user input for this comparison
       compareQueue.push({
         songA: leftItem,
         songB: rightItem,
-        onChoice: (choseA) => {
-          if (choseA) {
-            merged.push(leftItem);
-            leftIndex++;
-            // Record this preference
-            recordPreference(leftItem, rightItem);
-          } else {
-            merged.push(rightItem);
-            rightIndex++;
-            // Record this preference
-            recordPreference(rightItem, leftItem);
-          }
-          // Continue with the next comparison
-          continueComparing();
-        }
+        onChoice: handleSelection
       });
+      
       // If this is the first item in the queue, start the comparison
       if (compareQueue.length === 1) {
-        showNextComparison();
+        showComparison();
       }
+    }
+
+    /**
+     * Processes the result of a comparison
+     * either from known preferences or user input
+     * @param {boolean} selectedLeft
+     */
+    function handleSelection(selectedLeft) {
+      // Get the appropriate items based on selection
+      const selectedItem = selectedLeft ? leftItem : rightItem;
+      const otherItem = selectedLeft ? rightItem : leftItem;
+      
+      // Add the selected item and update the index
+      merged.push(selectedItem);
+      if (selectedLeft) {
+        leftIndex++;
+      } else {
+        rightIndex++;
+      }
+      
+      // If we're recording a new preference (not from knownPreference)
+      if (knownPreference === null) {
+        recordPreference(selectedItem, otherItem);
+      }
+      
+      // Continue with next comparison
+      continueComparing();
     }
   }
 }
 
-// Check if we already know which song is preferred
+/**
+ * Check if we already know which song is preferred
+ * @param {const} songA - left choice
+ * @param {const} songB - right choice 
+ * @returns {string} result - "left", "right" or null
+ */ 
 function getKnownPreference(songA, songB) {
-  // If we've directly compared these two songs before
-  for (const decision of decisionHistory) {
-    if (decision.chosen === songA && decision.rejected === songB) {
+  // Get all preferences (direct and transitive)
+  const allPreferences = inferTransitivePreferences();
+  
+  for (const pref of allPreferences) {
+    if (pref.chosen === songA && pref.rejected === songB) {
       return 'left';
-    } else if (decision.chosen === songB && decision.rejected === songA) {
+    } else if (pref.chosen === songB && pref.rejected === songA) {
       return 'right';
     }
   }
-  
-  // Check for transitive preferences
-  const preferences = inferTransitivePreferences();
-  
-  for (const pref of preferences) {
-    if (pref.preferred === songA && pref.lessPreferred === songB) {
-      return 'left';
-    } else if (pref.preferred === songB && pref.lessPreferred === songA) {
-      return 'right';
-    }
-  }
-  
   return null; // No known preference
 }
 
-// Infer preferences based on transitivity (A > B and B > C implies A > C)
+/**
+ * Infer preferences based on transitivity (A > B and B > C implies A > C)
+ * Takes global variable {Array} decisionHistory
+ * @returns {Array} - list of direct decisions + transitive preferences
+ */ 
 function inferTransitivePreferences() {
-  const directPreferences = decisionHistory.map(d => ({
-    preferred: d.chosen,
-    lessPreferred: d.rejected
-  }));
-  
-  const allPreferences = [...directPreferences];
+  const allPreferences = [...decisionHistory];
   
   // Keep adding transitive preferences until no more can be found
   let added = true;
   while (added) {
     added = false;
-    
     for (const pref1 of allPreferences) {
       for (const pref2 of allPreferences) {
         // If A > B and B > C, then A > C
-        if (pref1.lessPreferred === pref2.preferred) {
+        if (pref1.rejected === pref2.chosen) {
           const newPref = {
-            preferred: pref1.preferred,
-            lessPreferred: pref2.lessPreferred
+            chosen: pref1.chosen,
+            rejected: pref2.rejected
           };
           
           // Check if this preference is already known
+          // If not, add it to the list of preferences and rerun the loop
           const alreadyKnown = allPreferences.some(p => 
-            p.preferred === newPref.preferred && p.lessPreferred === newPref.lessPreferred
+            p.chosen === newPref.chosen && p.rejected === newPref.rejected
           );
-          
           if (!alreadyKnown) {
             allPreferences.push(newPref);
             added = true;
@@ -198,39 +201,30 @@ function inferTransitivePreferences() {
       }
     }
   }
-  
   return allPreferences;
 }
 
 ////////////////////////////////////////////////////
 
 // Record a user preference
-function recordPreference(preferred, lessPreferred) {
-  decisionHistory.push({
-    comparison: completedComparisons + 1,
-    chosen: preferred,
-    rejected: lessPreferred
-  });
+function recordPreference(chosen, rejected) {
   completedComparisons++;
+  decisionHistory.push({
+    comparison: completedComparisons,
+    chosen: chosen,
+    rejected: rejected
+  });
 }
 
-// Handle when the user selects an option
-function handleOption(choseOptionA) {
+/**
+ * Display a comparison for the user
+ * Takes global variable {Array} compareQueue
+ */
+function showComparison() {
   if (compareQueue.length === 0) return;
   
-  const comparison = compareQueue.shift();
-  comparison.onChoice(choseOptionA);
-  
-  // Show the next comparison if any
-  if (compareQueue.length > 0) {
-    showNextComparison();
-  }
-}
-
-// Display the next comparison to the user
-function showNextComparison() {
-  if (compareQueue.length === 0) return;
-  
+  // Shows the first element from compareQueue
+  // this element is later removed in handleOption(selectedLeft)
   const comparison = compareQueue[0];
   
   // Update the UI
@@ -239,6 +233,27 @@ function showNextComparison() {
   
   // Update progress information
   updateProgressDisplay();
+
+  // Program is continued by the user clicking a button and firing handleOption(selectedLeft)
+}
+
+/**
+ * Handle when the user selects an option
+ * Clicking the left button fires handleOption(true)
+ * Clicking the right button fires handleOption(false)
+ */
+function handleOption(selectedLeft) {
+  if (compareQueue.length === 0) return;
+  
+  // removes the first element from compareQueue 
+  // comparison.onChoice fires handleSelection(selectedLeft)
+  const comparison = compareQueue.shift();
+  comparison.onChoice(selectedLeft);
+
+  // Show the next comparison if any
+  if (compareQueue.length > 0) {
+    showComparison();
+  }
 }
 
 // Update the progress display
