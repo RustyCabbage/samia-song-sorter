@@ -96,7 +96,7 @@ h1, h2 {
   transform: scale(1.05);
 }
 
-.warning, .source {
+.warning {
   font-size: 0.75em;
   font-style: italic;
 }
@@ -204,6 +204,8 @@ footer {
 
 /* Source link positioning */
 .source {
+  font-size: 0.75em;
+  font-style: italic;
   background-color: transparent;
   position: fixed;
   bottom: 0.5em;
