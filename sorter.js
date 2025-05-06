@@ -20,8 +20,8 @@ function startSorting() {
   completedComparisons = 0;
   
   // Calculate the estimated number of comparisons needed
-  // For merge sort, worst case is approximately n*log2(n)
-  estimatedTotalComparisons = Math.ceil(songs.length * Math.log2(songs.length));
+  // For merge sort, worst case is approximately n*ceil(log2(n)) - 2^ceil(log2(n)) + 1
+  estimatedTotalComparisons = songs.length * Math.ceil(Math.log2(songs.length)) - 2 ** Math.ceil(Math.log2(songs.length)) + 1;
   
   // Start with each song as a separate list
   const lists = songs.map(song => [song]);
