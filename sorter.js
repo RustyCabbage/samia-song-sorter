@@ -47,20 +47,20 @@ function mergeSort(lists) {
       // Merge two lists
       merge(lists[i], lists[i + 1], mergedResult => {
         mergedLists.push(mergedResult);
-        
-        // If all pairs have been merged, continue to the next level
-        if (mergedLists.length === Math.ceil(lists.length / 2)) {
-          mergeSort(mergedLists);
-        }
+        checkContinueToNextLevel();
       });
     } else {
       // Odd number of lists, this one gets passed through
       mergedLists.push(lists[i]);
-      
-      // If all pairs have been merged, continue to the next level
-      if (mergedLists.length === Math.ceil(lists.length / 2)) {
-        mergeSort(mergedLists);
-      }
+      checkContinueToNextLevel();
+    }
+  }
+
+  // Helper function to check if we should continue to the next level
+  function checkContinueToNextLevel() {
+    // If all pairs have been merged, continue to the next level
+    if (mergedLists.length === Math.ceil(lists.length / 2)) {
+      mergeSort(mergedLists);
     }
   }
 }
