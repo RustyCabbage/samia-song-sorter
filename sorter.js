@@ -12,7 +12,7 @@ let mergeContext = null; // Tracks the current merge operation
 // Initializes and starts the sorting process
 function startSorting() {
   // Reset all state variables
-  songs = currentSongList.songs;
+  songs = currentSongList.songs; // currentSongList obtained from interface.js
   compareQueue = [];
   finalSorted = [];
   songRanks = {};
@@ -30,11 +30,14 @@ function startSorting() {
   mergeSort(lists);
 }
 
-////////////////////////////////////////////////////
+/*** START
+ * main merge sort function 
+ ***/
 
 /** 
  * Main merge sort function
  * @param {Array} lists - Array of arrays
+ * Finishes by firing showResult() from interface.js
  */
 function mergeSort(lists) {
   // Base case: if there's only one list, we're done
@@ -46,7 +49,7 @@ function mergeSort(lists) {
   
   // Create pairs of lists to merge
   const mergedLists = [];
-  
+
   for (let i = 0; i < lists.length; i += 2) {
     if (i + 1 < lists.length) {
       // Merge two lists
@@ -96,23 +99,31 @@ function merge(left, right, callback) {
     // Get the next items to compare
     const leftItem = left[leftIndex];
     const rightItem = right[rightIndex];
-    
+
+    /* Dev note: cases that can be resolved through transitivity never show up
+     * in this implementation so this is actually a completely useless check
+     *
     // Check if we already know the preference based on transitivity
     const knownPreference = getKnownPreference(leftItem, rightItem);
-    
+
     if (knownPreference === 'left') {
+      console.log(`Known preference: ${leftItem} > ${rightItem}`);
       handleSelection(true);
     } else if (knownPreference === 'right') {
+      console.log(`Known preference: ${rightItem} > ${leftItem}`);
       handleSelection(false);
-    } else {
+    } else
+    /**/ 
+    {
       // Need user input for this comparison
+      //console.log(`Adding ${leftItem} vs ${rightItem} to queue`);
       compareQueue.push({
         songA: leftItem,
         songB: rightItem,
         onChoice: handleSelection
       });
       
-      // If this is the first item in the queue, start the comparison
+      // If there is a comparison in the queue, show it to the user
       if (compareQueue.length === 1) {
         showComparison();
       }
@@ -125,27 +136,104 @@ function merge(left, right, callback) {
      */
     function handleSelection(selectedLeft) {
       // Get the appropriate items based on selection
-      const selectedItem = selectedLeft ? leftItem : rightItem;
-      const otherItem = selectedLeft ? rightItem : leftItem;
+      const chosen = selectedLeft ? leftItem : rightItem;
+      const rejected = selectedLeft ? rightItem : leftItem;
       
       // Add the selected item and update the index
-      merged.push(selectedItem);
+      merged.push(chosen);
       if (selectedLeft) {
         leftIndex++;
       } else {
         rightIndex++;
       }
       
+      /* Unnecessary since we never infer from knownPreference
+       *
       // If we're recording a new preference (not from knownPreference)
-      if (knownPreference === null) {
-        recordPreference(selectedItem, otherItem);
+      if (knownPreference === null)
+      /**/
+      {
+        recordPreference(chosen, rejected);
       }
-      
       // Continue with next comparison
       continueComparing();
     }
   }
 }
+
+/*** END
+ * main merge sort function
+ ***/
+
+// Record a user preference
+function recordPreference(chosen, rejected) {
+  completedComparisons++;
+  decisionHistory.push({
+    comparison: completedComparisons,
+    chosen: chosen,
+    rejected: rejected
+  });
+  console.log(`Comparison #${completedComparisons}: Chose ${chosen} > ${rejected}`);
+}
+
+/**
+ * Display a comparison for the user
+ * Takes global variable {Array} compareQueue
+ */
+function showComparison() {
+  if (compareQueue.length === 0) return;
+  
+  // Shows the first element from compareQueue
+  // this element is later removed in handleOption(selectedLeft)
+  const comparison = compareQueue[0];
+  
+  // Update the UI
+  DOM.btnA.textContent = comparison.songA;
+  DOM.btnB.textContent = comparison.songB;
+  
+  // Update progress information
+  updateProgressDisplay();
+
+  //console.log(`Showing comparison: ${compareQueue[0].songA} vs ${compareQueue[0].songB}`);
+  // Program is continued by the user clicking a button and firing handleOption(selectedLeft)
+}
+
+/**
+ * Handle when the user selects an option
+ * Clicking the left button fires handleOption(true)
+ * Clicking the right button fires handleOption(false)
+ */
+function handleOption(selectedLeft) {
+  if (compareQueue.length === 0) return;
+  
+  // removes the first element from compareQueue 
+  // comparison.onChoice fires handleSelection(selectedLeft)
+  const comparison = compareQueue.shift();
+  comparison.onChoice(selectedLeft);
+
+  // If there are more comparisons in the queue, show the next one to the user
+  if (compareQueue.length > 0) {
+    showComparison();
+  }
+}
+
+// Update the progress display
+function updateProgressDisplay() {
+  // Calculate progress percentage (we can refine this estimate)
+  const progressPercentage = 
+    Math.round((completedComparisons / estimatedTotalComparisons) * 100);
+  
+  DOM.progress.textContent = 
+    `Progress: ${progressPercentage}% sorted`;
+  
+  DOM.comparison.textContent = 
+    `Comparison #${completedComparisons + 1} of ~${estimatedTotalComparisons} (estimated)`;
+}
+
+/*** START 
+ * Get all preferences: direct and transitive.
+ * This is actually not used by the program lol. 
+ ***/
 
 /**
  * Check if we already know which song is preferred
@@ -204,67 +292,7 @@ function inferTransitivePreferences() {
   return allPreferences;
 }
 
-////////////////////////////////////////////////////
-
-// Record a user preference
-function recordPreference(chosen, rejected) {
-  completedComparisons++;
-  decisionHistory.push({
-    comparison: completedComparisons,
-    chosen: chosen,
-    rejected: rejected
-  });
-}
-
-/**
- * Display a comparison for the user
- * Takes global variable {Array} compareQueue
- */
-function showComparison() {
-  if (compareQueue.length === 0) return;
-  
-  // Shows the first element from compareQueue
-  // this element is later removed in handleOption(selectedLeft)
-  const comparison = compareQueue[0];
-  
-  // Update the UI
-  DOM.btnA.textContent = comparison.songA;
-  DOM.btnB.textContent = comparison.songB;
-  
-  // Update progress information
-  updateProgressDisplay();
-
-  // Program is continued by the user clicking a button and firing handleOption(selectedLeft)
-}
-
-/**
- * Handle when the user selects an option
- * Clicking the left button fires handleOption(true)
- * Clicking the right button fires handleOption(false)
- */
-function handleOption(selectedLeft) {
-  if (compareQueue.length === 0) return;
-  
-  // removes the first element from compareQueue 
-  // comparison.onChoice fires handleSelection(selectedLeft)
-  const comparison = compareQueue.shift();
-  comparison.onChoice(selectedLeft);
-
-  // Show the next comparison if any
-  if (compareQueue.length > 0) {
-    showComparison();
-  }
-}
-
-// Update the progress display
-function updateProgressDisplay() {
-  // Calculate progress percentage (we can refine this estimate)
-  const progressPercentage = 
-    Math.round((completedComparisons / estimatedTotalComparisons) * 100);
-  
-  DOM.progress.textContent = 
-    `Progress: ${progressPercentage}% sorted`;
-  
-  DOM.comparison.textContent = 
-    `Comparison #${completedComparisons + 1} of ~${estimatedTotalComparisons} (estimated)`;
-}
+/*** END
+ * Get all preferences: direct and transitive.
+ * This is actually not used by the program lol.
+ ***/
