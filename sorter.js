@@ -25,12 +25,17 @@ function startSorting() {
   
   // Start with each song as a separate list
   const lists = songs.map(song => [song]);
-  
+
   // Begin the merge sort process
   mergeSort(lists);
 }
 
-// Main merge sort function
+////////////////////////////////////////////////////
+
+/** 
+ * Main merge sort function
+ * @param {Array} lists - Array of arrays
+ */
 function mergeSort(lists) {
   // Base case: if there's only one list, we're done
   if (lists.length <= 1) {
@@ -71,6 +76,9 @@ function merge(left, right, callback) {
   let leftIndex = 0;
   let rightIndex = 0;
   
+  // Start the merging process
+  continueComparing();
+
   function continueComparing() {
     // If one list is exhausted, add all items from the other
     if (leftIndex >= left.length) {
@@ -121,16 +129,12 @@ function merge(left, right, callback) {
           continueComparing();
         }
       });
-      
       // If this is the first item in the queue, start the comparison
       if (compareQueue.length === 1) {
         showNextComparison();
       }
     }
   }
-  
-  // Start the merging process
-  continueComparing();
 }
 
 // Check if we already know which song is preferred
@@ -166,9 +170,9 @@ function inferTransitivePreferences() {
   }));
   
   const allPreferences = [...directPreferences];
-  let added = true;
   
   // Keep adding transitive preferences until no more can be found
+  let added = true;
   while (added) {
     added = false;
     
@@ -198,6 +202,8 @@ function inferTransitivePreferences() {
   return allPreferences;
 }
 
+////////////////////////////////////////////////////
+
 // Record a user preference
 function recordPreference(preferred, lessPreferred) {
   decisionHistory.push({
@@ -205,8 +211,20 @@ function recordPreference(preferred, lessPreferred) {
     chosen: preferred,
     rejected: lessPreferred
   });
-  
   completedComparisons++;
+}
+
+// Handle when the user selects an option
+function handleOption(choseOptionA) {
+  if (compareQueue.length === 0) return;
+  
+  const comparison = compareQueue.shift();
+  comparison.onChoice(choseOptionA);
+  
+  // Show the next comparison if any
+  if (compareQueue.length > 0) {
+    showNextComparison();
+  }
 }
 
 // Display the next comparison to the user
@@ -226,27 +244,12 @@ function showNextComparison() {
 // Update the progress display
 function updateProgressDisplay() {
   // Calculate progress percentage (we can refine this estimate)
-  const progressPercentage = Math.min(
-    100, 
-    Math.round((completedComparisons / estimatedTotalComparisons) * 100)
-  );
+  const progressPercentage = 
+    Math.round((completedComparisons / estimatedTotalComparisons) * 100);
   
   DOM.progress.textContent = 
     `Progress: ${progressPercentage}% sorted`;
   
   DOM.comparison.textContent = 
     `Comparison #${completedComparisons + 1} of ~${estimatedTotalComparisons} (estimated)`;
-}
-
-// Handle when the user selects an option
-function handleOption(choseOptionA) {
-  if (compareQueue.length === 0) return;
-  
-  const comparison = compareQueue.shift();
-  comparison.onChoice(choseOptionA);
-  
-  // Show the next comparison if any
-  if (compareQueue.length > 0) {
-    showNextComparison();
-  }
 }
