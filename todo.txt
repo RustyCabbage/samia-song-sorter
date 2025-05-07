@@ -1,0 +1,13 @@
+(pretend there's a question mark at the end of all of these)
+
+- To shuffle or not to shuffle
+	- Make this an option?
+- Import/Export decision history
+- Show decision history during sorting
+	- maybe make this toggleable
+- Use Atkinson Hyperlegible instead of Arial
+	- https://fonts.google.com/specimen/Atkinson+Hyperlegible
+	- I don't like the way it looks ._.
+	
+- Import song lists?
+	- Could I do this with a spotify link (album or playlist)? that would be cool.
