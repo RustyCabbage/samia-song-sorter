@@ -265,7 +265,7 @@ function updateProgressDisplay() {
   // Update the comparison count display to include both best and worst case estimates
   DOM.comparison.textContent = (bestCaseTotalComparisons === worstCaseTotalComparisons) ?
     `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons}` :
-    `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons} - ${worstCaseTotalComparisons}`;
+    `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons} to ${worstCaseTotalComparisons}`;
 }
 
 /**

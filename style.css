@@ -68,13 +68,6 @@ h1, h2 {
   transition: background-color var(--transition-speed) ease;
 }
 
-.song-list-select:hover,
-.action-button:hover, 
-.restart-button:hover,
-.choice-button:hover {
-  background-color: var(--button-hover-color);
-}
-
 /* Specific button styles */
 .song-list-select {
   padding: 0.75em;
@@ -88,11 +81,15 @@ h1, h2 {
 .choice-button {
   padding: 0.5em;
   width: 50%;
-  height: 4em;
+  height: auto;
+  min-height: 4em;
   margin: 0 1.5em;
 }
 
-.action-button:hover, .restart-button:hover, .choice-button:hover {
+.action-button:hover,
+.restart-button:hover,
+.choice-button:hover {
+  background-color: var(--button-hover-color);
   transform: scale(1.05);
 }
 
