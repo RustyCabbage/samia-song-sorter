@@ -8,7 +8,6 @@ let completedComparisons = 0;  // Number of comparisons completed
 
 let worstCaseTotalComparisons = 0; // Estimated total comparisons needed in worst case
 let bestCaseTotalComparisons = 0; // Estimated total comparisons needed in best case
-let mergeContext = null; // Tracks the current merge operation
 
 // Initializes and starts the sorting process
 function startSorting() {
@@ -51,8 +50,8 @@ function mergeSort(lists) {
     return;
   }
 
-  console.log("Lists:",lists.map(inner => `[${inner.join(',')}]`).join(' '));
-  console.log(`lists length: ${lists.length}`);
+  //console.log("Lists:",lists.map(inner => `[${inner.join(',')}]`).join(' '));
+  //console.log(`lists length: ${lists.length}`);
   
   // Create pairs of lists to merge
   const mergedLists = [];
@@ -132,6 +131,8 @@ function merge(left, right, callback) {
       compareQueue.push({
         songA: songA,
         songB: songB,
+        leftIndexFromRight: left.length - (leftIndex+1),
+        rightIndexFromRight: right.length - (rightIndex+1),
         onChoice: handleSelection
       });
       
@@ -205,7 +206,6 @@ function showComparison() {
   // Update progress information
   updateProgressDisplay();
  
-
   //console.log(`Showing comparison: ${compareQueue[0].songA} vs ${compareQueue[0].songB}`);
   // Program is continued by the user clicking a button and firing handleOption(selectedLeft)
 }
@@ -221,6 +221,8 @@ function handleOption(selectedLeft) {
   // removes the first element from compareQueue 
   // comparison.onChoice fires handleSelection(selectedLeft)
   const comparison = compareQueue.shift();
+  // Update the estimates based on the selection
+  updateEstimates(selectedLeft, comparison.leftIndexFromRight, comparison.rightIndexFromRight);
   comparison.onChoice(selectedLeft);
 
   // If there are more comparisons in the queue, show the next one to the user
@@ -253,16 +255,52 @@ function sumOfSmallerListsInMerges(n) {
 
 // Update the progress display
 function updateProgressDisplay() {
-  
   // Calculate progress percentage (we can refine this estimate)
   const progressPercentage = 
-    Math.round((completedComparisons / worstCaseTotalComparisons) * 100);
+    Math.round((completedComparisons / bestCaseTotalComparisons) * 100);
   
   DOM.progress.textContent = 
     `Progress: ${progressPercentage}% sorted`;
   
-  DOM.comparison.textContent = 
-    `Comparison #${completedComparisons + 1} of ~${worstCaseTotalComparisons} (estimated)`;
+  // Update the comparison count display to include both best and worst case estimates
+  DOM.comparison.textContent = (bestCaseTotalComparisons === worstCaseTotalComparisons) ?
+    `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons}` :
+    `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons} - ${worstCaseTotalComparisons}`;
+}
+
+/**
+ * Update the best and worst case estimates based on user selection
+ * By using indexFromRight we don't need to store the size of the sublists as well.
+ * @param {boolean} selectedLeft - whether the left item was selected
+ * @param {number} leftIndexFromRight - index of the left item in its list
+ * @param {number} rightIndexFromRight - index of the right item in its list
+ */
+function updateEstimates(selectedLeft, leftIndexFromRight, rightIndexFromRight) {
+  // If indexes are equal, no change needed
+  if (leftIndexFromRight === rightIndexFromRight) {
+    return;
+  }
+  
+  // If indexes are unequal:
+  if (selectedLeft) {
+    // Selected left item
+    if (leftIndexFromRight > rightIndexFromRight) {
+      // Selected higher index - increase min estimate
+      bestCaseTotalComparisons++;
+    } else if (leftIndexFromRight === 0 && rightIndexFromRight > 0) {
+      // Selected 0 index when other is > 0 - decrease max estimate
+      worstCaseTotalComparisons -= rightIndexFromRight;
+    }
+  } else {
+    // Selected right item
+    if (rightIndexFromRight > leftIndexFromRight) {
+      // Selected higher index - increase min estimate
+      bestCaseTotalComparisons++;
+    } else if (rightIndexFromRight === 0 && leftIndexFromRight > 0) {
+      // Selected 0 index when other is > 0 - decrease max estimate
+      worstCaseTotalComparisons -= leftIndexFromRight;
+    }
+  }
 }
 
 /*** START 
