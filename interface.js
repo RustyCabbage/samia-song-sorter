@@ -13,14 +13,18 @@ const DOM = {
   resultList: document.getElementById("resultList"),
   decisionHistoryBody: document.getElementById("decisionHistoryBody"),
   listName: document.getElementById("listName"),
-  restartButton: document.getElementById("restartButton")
+  restartButton: document.getElementById("restartButton"),
+  shuffleToggle: document.getElementById("shuffleToggle"),
+  shuffleLabel: document.getElementById("shuffleLabel")
 };
 
 let currentSongList = null;
+let shouldShuffle = true; // Variable to track shuffle state
 
 function initializeApp() {
     // Set default song list
     currentSongList = songListRepo.getList("bloodless");
+    DOM.shuffleToggle.checked = true;
     
     // Apply theme and song count
     applyTheme();
@@ -86,6 +90,11 @@ function setupEventListeners() {
     
     // Add event listener to restart button
     DOM.restartButton.addEventListener("click", resetInterface);
+    
+    // Set up shuffle toggle event listener
+    DOM.shuffleToggle.addEventListener("change", function() {
+      shouldShuffle = this.checked;
+    });
 }
 
 // Helper function to show the appropriate interface
@@ -98,8 +107,8 @@ function showInterface(type) {
 function startSortingProcess() {
     showInterface("sorting");
     
-    // Start the sorting
-    startSorting();
+    // Start the sorting, passing the shuffle flag
+    startSorting(shouldShuffle);
 }
 
 function showResult() {
@@ -157,6 +166,9 @@ function showResult() {
 // Reset the interface to selection mode
 function resetInterface() {
   showInterface("selection");
+  // Reset shuffle toggle to default unchecked state
+  DOM.shuffleToggle.checked = true;
+  shouldShuffle = true;
 }
 
 // Initialize when the DOM is fully loaded

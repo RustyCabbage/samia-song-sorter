@@ -10,7 +10,7 @@ let worstCaseTotalComparisons = 0; // Estimated total comparisons needed in wors
 let bestCaseTotalComparisons = 0; // Estimated total comparisons needed in best case
 
 // Initializes and starts the sorting process
-function startSorting() {
+function startSorting(shuffle = false) {
   // Reset all state variables
   songs = currentSongList.songs; // currentSongList obtained from interface.js
   compareQueue = [];
@@ -19,6 +19,10 @@ function startSorting() {
   decisionHistory = [];
   completedComparisons = 0;
   
+  if (shuffle) {
+    songs = shuffleArray([...songs]);
+  }
+
   // Start with each song as a separate list
   const lists = songs.map(song => [song]);
 
@@ -33,9 +37,39 @@ function startSorting() {
   mergeSort(lists);
 }
 
-/*** START
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+  }
+  return array;
+}
+
+/**
+ * Calculate the sum of the sizes of the smaller list in each merge step
+ * during a bottom-up merge sort of n elements.
+ * This is the minimum number of comparisons for a list of size n.
+ * 
+ * @param {number} n - The number of elements in the list
+ * @returns {number} total - The sum of the sizes of the smaller list in each merge step
+ */
+function sumOfSmallerListsInMerges(n) {
+  let total = 0;
+  for (let size = 1; size < n; size *= 2) {
+    // number of full-size merges of two sublists of length `size`
+    const fullMerges = Math.floor(n / (2 * size));
+    // leftover elements after those full merges
+    const rem = n % (2 * size);
+    // in the final (possibly partial) merge, we contribute any excess beyond `size`
+    const partial = Math.max(0, rem - size);
+    total += size * fullMerges + partial;
+  }
+  return total;
+}
+
+/*************** START
  * main merge sort function 
- ***/
+ ***************/
 
 /** 
  * Main merge sort function
@@ -173,9 +207,9 @@ function merge(left, right, callback) {
   }
 }
 
-/*** END
+/*************** END
  * main merge sort function
- ***/
+ ***************/
 
 // Record a user preference
 function recordPreference(chosen, rejected) {
@@ -186,28 +220,6 @@ function recordPreference(chosen, rejected) {
     rejected: rejected
   });
   console.log(`Comparison #${completedComparisons}: Chose ${chosen} > ${rejected}`);
-}
-
-/**
- * Display a comparison for the user
- * Takes global variable {Array} compareQueue
- */
-function showComparison() {
-  if (compareQueue.length === 0) return;
-  
-  // Shows the first element from compareQueue
-  // this element is later removed in handleOption(selectedLeft)
-  const comparison = compareQueue[0];
-  
-  // Update the UI
-  DOM.btnA.textContent = comparison.songA;
-  DOM.btnB.textContent = comparison.songB;
-  
-  // Update progress information
-  updateProgressDisplay();
- 
-  //console.log(`Showing comparison: ${compareQueue[0].songA} vs ${compareQueue[0].songB}`);
-  // Program is continued by the user clicking a button and firing handleOption(selectedLeft)
 }
 
 /**
@@ -232,40 +244,25 @@ function handleOption(selectedLeft) {
 }
 
 /**
- * Calculate the sum of the sizes of the smaller list in each merge step
- * during a bottom-up merge sort of n elements.
- * This is the minimum number of comparisons for a list of size n.
- * 
- * @param {number} n - The number of elements in the list
- * @returns {number} total - The sum of the sizes of the smaller list in each merge step
+ * Display a comparison for the user
+ * Takes global variable {Array} compareQueue
  */
-function sumOfSmallerListsInMerges(n) {
-  let total = 0;
-  for (let size = 1; size < n; size *= 2) {
-    // number of full-size merges of two sublists of length `size`
-    const fullMerges = Math.floor(n / (2 * size));
-    // leftover elements after those full merges
-    const rem = n % (2 * size);
-    // in the final (possibly partial) merge, we contribute any excess beyond `size`
-    const partial = Math.max(0, rem - size);
-    total += size * fullMerges + partial;
-  }
-  return total;
-}
-
-// Update the progress display
-function updateProgressDisplay() {
-  // Calculate progress percentage (we can refine this estimate)
-  const progressPercentage = 
-    Math.round((completedComparisons / bestCaseTotalComparisons) * 100);
+function showComparison() {
+  if (compareQueue.length === 0) return;
   
-  DOM.progress.textContent = 
-    `Progress: ${progressPercentage}% sorted`;
+  // Shows the first element from compareQueue
+  // this element is later removed in handleOption(selectedLeft)
+  const comparison = compareQueue[0];
   
-  // Update the comparison count display to include both best and worst case estimates
-  DOM.comparison.textContent = (bestCaseTotalComparisons === worstCaseTotalComparisons) ?
-    `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons}` :
-    `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons} to ${worstCaseTotalComparisons}`;
+  // Update the UI
+  DOM.btnA.textContent = comparison.songA;
+  DOM.btnB.textContent = comparison.songB;
+  
+  // Update progress information
+  updateProgressDisplay();
+ 
+  //console.log(`Showing comparison: ${compareQueue[0].songA} vs ${compareQueue[0].songB}`);
+  // Program is continued by the user clicking a button and firing handleOption(selectedLeft)
 }
 
 /**
@@ -303,10 +300,25 @@ function updateEstimates(selectedLeft, leftIndexFromRight, rightIndexFromRight) 
   }
 }
 
-/*** START 
+// Update the progress display
+function updateProgressDisplay() {
+  // Calculate progress percentage (we can refine this estimate)
+  const progressPercentage = 
+    Math.round((completedComparisons / bestCaseTotalComparisons) * 100);
+  
+  DOM.progress.textContent = 
+    `Progress: ${progressPercentage}% sorted`;
+  
+  // Update the comparison count display to include both best and worst case estimates
+  DOM.comparison.textContent = (bestCaseTotalComparisons === worstCaseTotalComparisons) ?
+    `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons}` :
+    `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons} to ${worstCaseTotalComparisons}`;
+}
+
+/*************** START 
  * Get all preferences: direct and transitive.
  * This is actually not used by the program lol. 
- ***/
+ ***************/
 
 /**
  * Check if we already know which song is preferred
@@ -365,7 +377,7 @@ function inferTransitivePreferences() {
   return allPreferences;
 }
 
-/*** END
+/*************** END
  * Get all preferences: direct and transitive.
  * This is actually not used by the program lol.
- ***/
+ ***************/
