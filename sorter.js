@@ -6,7 +6,8 @@ let songRanks = {};    // Object to store the relative ranks of songs
 let decisionHistory = []; // Array to store the history of decisions
 let completedComparisons = 0;  // Number of comparisons completed
 
-let estimatedTotalComparisons = 0; // Estimated total comparisons needed
+let worstCaseTotalComparisons = 0; // Estimated total comparisons needed in worst case
+let bestCaseTotalComparisons = 0; // Estimated total comparisons needed in best case
 let mergeContext = null; // Tracks the current merge operation
 
 // Initializes and starts the sorting process
@@ -19,12 +20,15 @@ function startSorting() {
   decisionHistory = [];
   completedComparisons = 0;
   
-  // Calculate the estimated number of comparisons needed
-  // For merge sort, worst case is approximately n*ceil(log2(n)) - 2^ceil(log2(n)) + 1
-  estimatedTotalComparisons = songs.length * Math.ceil(Math.log2(songs.length)) - 2 ** Math.ceil(Math.log2(songs.length)) + 1;
-  
   // Start with each song as a separate list
   const lists = songs.map(song => [song]);
+
+  // Calculate the estimated number of comparisons needed
+  // For this implementation of merge sort:
+  // - the worst case is approximately n*ceil(log2(n)) - 2^ceil(log2(n)) + 1
+  // - the best case is the sum of the size of the smaller list in each of the n-1 merge steps
+  worstCaseTotalComparisons = songs.length * Math.ceil(Math.log2(songs.length)) - 2 ** Math.ceil(Math.log2(songs.length)) + 1;
+  bestCaseTotalComparisons = sumOfSmallerListsInMerges(songs.length);
 
   // Begin the merge sort process
   mergeSort(lists);
@@ -46,6 +50,9 @@ function mergeSort(lists) {
     showResult();
     return;
   }
+
+  console.log("Lists:",lists.map(inner => `[${inner.join(',')}]`).join(' '));
+  console.log(`lists length: ${lists.length}`);
   
   // Create pairs of lists to merge
   const mergedLists = [];
@@ -222,18 +229,40 @@ function handleOption(selectedLeft) {
   }
 }
 
+/**
+ * Calculate the sum of the sizes of the smaller list in each merge step
+ * during a bottom-up merge sort of n elements.
+ * This is the minimum number of comparisons for a list of size n.
+ * 
+ * @param {number} n - The number of elements in the list
+ * @returns {number} total - The sum of the sizes of the smaller list in each merge step
+ */
+function sumOfSmallerListsInMerges(n) {
+  let total = 0;
+  for (let size = 1; size < n; size *= 2) {
+    // number of full-size merges of two sublists of length `size`
+    const fullMerges = Math.floor(n / (2 * size));
+    // leftover elements after those full merges
+    const rem = n % (2 * size);
+    // in the final (possibly partial) merge, we contribute any excess beyond `size`
+    const partial = Math.max(0, rem - size);
+    total += size * fullMerges + partial;
+  }
+  return total;
+}
+
 // Update the progress display
 function updateProgressDisplay() {
   
   // Calculate progress percentage (we can refine this estimate)
   const progressPercentage = 
-    Math.round((completedComparisons / estimatedTotalComparisons) * 100);
+    Math.round((completedComparisons / worstCaseTotalComparisons) * 100);
   
   DOM.progress.textContent = 
     `Progress: ${progressPercentage}% sorted`;
   
   DOM.comparison.textContent = 
-    `Comparison #${completedComparisons + 1} of ~${estimatedTotalComparisons} (estimated)`;
+    `Comparison #${completedComparisons + 1} of ~${worstCaseTotalComparisons} (estimated)`;
 }
 
 /*** START 
