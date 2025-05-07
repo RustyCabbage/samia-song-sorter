@@ -63,7 +63,6 @@ function mergeSort(lists) {
       checkContinueToNextLevel();
     }
   }
-
   // Helper function to check if we should continue to the next level
   function checkContinueToNextLevel() {
     // If all pairs have been merged, continue to the next level
@@ -73,7 +72,12 @@ function mergeSort(lists) {
   }
 }
 
-// Merge two sorted lists with user input
+/**
+ * Merge two sorted lists with user input
+ * @param {Array} left - left array
+ * @param {Array} right - right array
+ * @param {callback} callback - push the merged list to mergedLists
+ * */ 
 function merge(left, right, callback) {
   const merged = [];
   let leftIndex = 0;
@@ -83,6 +87,7 @@ function merge(left, right, callback) {
   continueComparing();
 
   function continueComparing() {
+    
     // If one list is exhausted, add all items from the other
     if (leftIndex >= left.length) {
       merged.push(...right.slice(rightIndex));
@@ -97,8 +102,8 @@ function merge(left, right, callback) {
     }
     
     // Get the next items to compare
-    const leftItem = left[leftIndex];
-    const rightItem = right[rightIndex];
+    const songA = left[leftIndex];
+    const songB = right[rightIndex];
 
     /* Dev note: cases that can be resolved through transitivity never show up
      * in this implementation so this is actually a completely useless check
@@ -118,8 +123,8 @@ function merge(left, right, callback) {
       // Need user input for this comparison
       //console.log(`Adding ${leftItem} vs ${rightItem} to queue`);
       compareQueue.push({
-        songA: leftItem,
-        songB: rightItem,
+        songA: songA,
+        songB: songB,
         onChoice: handleSelection
       });
       
@@ -131,13 +136,12 @@ function merge(left, right, callback) {
 
     /**
      * Processes the result of a comparison
-     * either from known preferences or user input
      * @param {boolean} selectedLeft
      */
     function handleSelection(selectedLeft) {
       // Get the appropriate items based on selection
-      const chosen = selectedLeft ? leftItem : rightItem;
-      const rejected = selectedLeft ? rightItem : leftItem;
+      const chosen = selectedLeft ? songA : songB;
+      const rejected = selectedLeft ? songB : songA;
       
       // Add the selected item and update the index
       merged.push(chosen);
@@ -193,6 +197,7 @@ function showComparison() {
   
   // Update progress information
   updateProgressDisplay();
+ 
 
   //console.log(`Showing comparison: ${compareQueue[0].songA} vs ${compareQueue[0].songB}`);
   // Program is continued by the user clicking a button and firing handleOption(selectedLeft)
@@ -219,6 +224,7 @@ function handleOption(selectedLeft) {
 
 // Update the progress display
 function updateProgressDisplay() {
+  
   // Calculate progress percentage (we can refine this estimate)
   const progressPercentage = 
     Math.round((completedComparisons / estimatedTotalComparisons) * 100);
