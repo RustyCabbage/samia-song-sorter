@@ -18,10 +18,10 @@ const DOM = {
   decisionHistoryBody: document.getElementById("decisionHistoryBody"),
   listName: document.getElementById("listName"),
   copyButton: document.getElementById("copyButton"),
+  copyHistoryButton: document.getElementById("copyHistoryButton"),
   copyStatus: document.getElementById("copyStatus"),
   restartButton: document.getElementById("restartButton")
 };
-
 let currentSongList = null;
 let shouldShuffle = true; // Variable to track shuffle state
 let notificationTimeout = null; // Variable to store timeout reference
@@ -79,30 +79,31 @@ function populateListSelector() {
 }
 
 function setupEventListeners() {
-    // Set up event listener for list selection change
-    DOM.listSelector.addEventListener("change", function() {
-      currentSongList = songListRepo.getList(this.value);
-      applyTheme();
-      applySongCount();
-    });
-    
-    // Set up the start button
-    DOM.startButton.addEventListener("click", startSortingProcess);
-    
-    // Set up buttons for comparison
-    DOM.btnA.addEventListener("click", () => handleOption(true));
-    DOM.btnB.addEventListener("click", () => handleOption(false));
-    
-    // Add event listener to restart button
-    DOM.restartButton.addEventListener("click", resetInterface);
-    
-    // Set up shuffle toggle event listener
-    DOM.shuffleToggle.addEventListener("change", function() {
-      shouldShuffle = this.checked;
-    });
-    
-    // Set up copy button
-    DOM.copyButton.addEventListener("click", copyResultsToClipboard);
+  // Set up event listener for list selection change
+  DOM.listSelector.addEventListener("change", function() {
+    currentSongList = songListRepo.getList(this.value);
+    applyTheme();
+    applySongCount();
+  });
+  
+  // Set up the start button
+  DOM.startButton.addEventListener("click", startSortingProcess);
+  
+  // Set up buttons for comparison
+  DOM.btnA.addEventListener("click", () => handleOption(true));
+  DOM.btnB.addEventListener("click", () => handleOption(false));
+  
+  // Add event listener to restart button
+  DOM.restartButton.addEventListener("click", resetInterface);
+  
+  // Set up shuffle toggle event listener
+  DOM.shuffleToggle.addEventListener("change", function() {
+    shouldShuffle = this.checked;
+  });
+  
+  // Set up copy buttons
+  DOM.copyButton.addEventListener("click", copyResultsToClipboard);
+  DOM.copyHistoryButton.addEventListener("click", copyHistoryToClipboard);
 }
 
 // Helper function to show the appropriate interface
@@ -186,6 +187,61 @@ function copyResultsToClipboard() {
     .then(() => {
       // Show success notification
       showNotification("Copied to clipboard!", true);
+    })
+    .catch(err => {
+      // Show error notification
+      showNotification("Copy failed. Please try again.", false);
+      console.error('Failed to copy text: ', err);
+    });
+}
+
+function copyResultsToClipboard() {
+  // Get the list name and all ranked songs
+  const listName = currentSongList.name;
+  const rankedSongs = Array.from(DOM.resultList.children).map((li, index) => 
+    `${index + 1}. ${li.textContent}`
+  );
+  
+  // Create the text content to copy
+  const textToCopy = `My ${listName} Song Ranking:\n\n${rankedSongs.join('\n')}`;
+  
+  // Use the Clipboard API to copy the text
+  navigator.clipboard.writeText(textToCopy)
+    .then(() => {
+      // Show success notification
+      showNotification("Ranking copied to clipboard!", true);
+    })
+    .catch(err => {
+      // Show error notification
+      showNotification("Copy failed. Please try again.", false);
+      console.error('Failed to copy text: ', err);
+    });
+}
+
+function copyHistoryToClipboard() {
+  // Get the list name
+  const listName = currentSongList.name;
+  
+  // Get all decision history rows
+  const historyRows = Array.from(DOM.decisionHistoryBody.querySelectorAll('tr'));
+  
+  // Format the history data
+  const historyText = historyRows.map(row => {
+    const cells = row.querySelectorAll('td');
+    const number = cells[0].textContent;
+    const preferred = cells[1].textContent;
+    const lessPreferred = cells[2].textContent;
+    return `${number}. Preferred: "${preferred}" over "${lessPreferred}"`;
+  });
+  
+  // Create the text content to copy
+  const textToCopy = `My ${listName} Decision History:\n\n${historyText.join('\n')}`;
+  
+  // Use the Clipboard API to copy the text
+  navigator.clipboard.writeText(textToCopy)
+    .then(() => {
+      // Show success notification
+      showNotification("History copied to clipboard!", true);
     })
     .catch(err => {
       // Show error notification
