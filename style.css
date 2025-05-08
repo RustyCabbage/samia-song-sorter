@@ -5,6 +5,7 @@
   --button-color: #686868;
   --button-hover-color: #555555;
   --button-text-color: #e9e9e9;
+
   --border-radius: 0.5em;
   --transition-speed: 0.3s;
 }
@@ -23,17 +24,11 @@ body {
 }
 
 /* Typography */
-h1, h2 {
-  color: var(--text-color);
-}
+h1, h2 { color: var(--text-color); }
 
-.app-title {
-  font-size: 2em;
-}
+.app-title { font-size: 2em; }
 
-.section-title {
-  font-size: 1.5em;
-}
+.section-title { font-size: 1.5em; }
 
 /* Selection interface */
 .select-container {
@@ -118,8 +113,9 @@ h1, h2 {
 /* Common button styles */
 .song-list-select,
 .action-button, 
-.restart-button,
-.choice-button {
+.choice-button,
+.copy-button,
+.restart-button {
   background-color: var(--button-color);
   color: var(--button-text-color);
   border: none;
@@ -148,10 +144,50 @@ h1, h2 {
 }
 
 .action-button:hover,
-.restart-button:hover,
-.choice-button:hover {
+.choice-button:hover,
+.copy-button:hover,
+.restart-button:hover {
   background-color: var(--button-hover-color);
   transform: scale(1.05);
+}
+
+/* Copy button styles */
+.copy-button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.copy-button {
+  padding: 0.75em 1.5em;
+}
+
+/* Copy status banner */
+.copy-status-banner {
+  position: fixed;
+  bottom: -60px;
+  left: 0;
+  right: 0;
+  background-color: rgba(50, 50, 50, 0.9);
+  color: var(--text-color);
+  text-align: center;
+  padding: 12px;
+  font-weight: bold;
+  z-index: 1000;
+  transition: bottom 0.3s ease-in-out;
+  border-top: 3px solid green;
+}
+
+.copy-status-banner.visible {
+  bottom: 0;
+}
+
+.copy-status-banner.success {
+  border-top-color: green;
+}
+
+.copy-status-banner.error {
+  border-top-color: red;
 }
 
 /* Sorting interface */

@@ -57,6 +57,9 @@
       <ol id="resultList">
         <!-- Song rankings will be populated here by JavaScript -->
       </ol>
+      <div class="copy-button-container">
+        <button id="copyButton" class="copy-button">Copy to Clipboard</button>
+      </div>
     </div>
     <div class="history-container">
       <h2 class="section-title">Your Decision History:</h2>
@@ -77,6 +80,9 @@
     </div>
     <button id="restartButton" class="restart-button">Rank Another List</button>
   </section>
+
+  <!-- Notification Banner -->
+  <div id="copyStatus" class="copy-status-banner" aria-live="polite"></div>
   
   <footer class="page-footer">
     <p class="source"><a href="https://github.com/RustyCabbage/samia-song-sorter">source</a></p>

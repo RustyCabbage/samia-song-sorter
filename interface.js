@@ -1,25 +1,30 @@
 // Cache DOM elements for better performance
 const DOM = {
   selectionInterface: document.getElementById("selectionInterface"),
-  sortingInterface: document.getElementById("sortingInterface"),
-  resultsInterface: document.getElementById("resultsInterface"),
   listSelector: document.getElementById("listSelector"),
   songCount: document.getElementById("songCount"),
   startButton: document.getElementById("startButton"),
-  btnA: document.getElementById("btnA"),
-  btnB: document.getElementById("btnB"),
+  shuffleToggle: document.getElementById("shuffleToggle"),
+  shuffleLabel: document.getElementById("shuffleLabel"),
+
+  sortingInterface: document.getElementById("sortingInterface"),
   progress: document.getElementById("progress"),
   comparison: document.getElementById("comparison"),
+  btnA: document.getElementById("btnA"),
+  btnB: document.getElementById("btnB"),
+
+  resultsInterface: document.getElementById("resultsInterface"),
   resultList: document.getElementById("resultList"),
   decisionHistoryBody: document.getElementById("decisionHistoryBody"),
   listName: document.getElementById("listName"),
-  restartButton: document.getElementById("restartButton"),
-  shuffleToggle: document.getElementById("shuffleToggle"),
-  shuffleLabel: document.getElementById("shuffleLabel")
+  copyButton: document.getElementById("copyButton"),
+  copyStatus: document.getElementById("copyStatus"),
+  restartButton: document.getElementById("restartButton")
 };
 
 let currentSongList = null;
 let shouldShuffle = true; // Variable to track shuffle state
+let notificationTimeout = null; // Variable to store timeout reference
 
 function initializeApp() {
     // Set default song list
@@ -95,6 +100,9 @@ function setupEventListeners() {
     DOM.shuffleToggle.addEventListener("change", function() {
       shouldShuffle = this.checked;
     });
+    
+    // Set up copy button
+    DOM.copyButton.addEventListener("click", copyResultsToClipboard);
 }
 
 // Helper function to show the appropriate interface
@@ -163,10 +171,54 @@ function showResult() {
     showInterface("results");
 }
 
+function copyResultsToClipboard() {
+  // Get the list name and all ranked songs
+  const listName = currentSongList.name;
+  const rankedSongs = Array.from(DOM.resultList.children).map((li, index) => 
+    `${index + 1}. ${li.textContent}`
+  );
+  
+  // Create the text content to copy
+  const textToCopy = `My ${listName} Song Ranking:\n\n${rankedSongs.join('\n')}`;
+  
+  // Use the Clipboard API to copy the text
+  navigator.clipboard.writeText(textToCopy)
+    .then(() => {
+      // Show success notification
+      showNotification("Copied to clipboard!", true);
+    })
+    .catch(err => {
+      // Show error notification
+      showNotification("Copy failed. Please try again.", false);
+      console.error('Failed to copy text: ', err);
+    });
+}
+
+// Show a notification banner
+function showNotification(message, isSuccess = true) {
+  // Clear any existing timeout
+  if (notificationTimeout) {
+    clearTimeout(notificationTimeout);
+  }
+  
+  // Set text and styling
+  DOM.copyStatus.textContent = message;
+  DOM.copyStatus.classList.remove('success', 'error');
+  DOM.copyStatus.classList.add(isSuccess ? 'success' : 'error');
+  
+  // Show the banner
+  DOM.copyStatus.classList.add('visible');
+  
+  // Hide after delay
+  notificationTimeout = setTimeout(() => {
+    DOM.copyStatus.classList.remove('visible');
+  }, 3000);
+}
+
 // Reset the interface to selection mode
 function resetInterface() {
   showInterface("selection");
-  // Reset shuffle toggle to default unchecked state
+  // Reset shuffle toggle to default checked state
   DOM.shuffleToggle.checked = true;
   shouldShuffle = true;
 }
