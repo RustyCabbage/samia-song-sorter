@@ -22,66 +22,87 @@ const DOM = {
   copyStatus: document.getElementById("copyStatus"),
   restartButton: document.getElementById("restartButton")
 };
-let currentSongList = null;
-let shouldShuffle = true; // Variable to track shuffle state
-let notificationTimeout = null; // Variable to store timeout reference
 
+// State management
+const state = {
+  currentSongList: null,
+  shouldShuffle: true,
+  notificationTimeout: null,
+  themeCache: {} // Cache for theme CSS calculations
+};
+
+// Initialize the application
 function initializeApp() {
-    // Set default song list
-    currentSongList = songListRepo.getList("bloodless");
-    DOM.shuffleToggle.checked = true;
-    
-    // Apply theme and song count
-    applyTheme();
-    applySongCount();
+  // Set default song list
+  state.currentSongList = songListRepo.getList("bloodless");
   
-    // Hide the sorting and results interface initially, show only the selection UI
-    showInterface("selection");
+  // Apply theme and song count
+  applyTheme();
+  applySongCount();
+
+  // Hide the sorting and results interface initially, show only the selection UI
+  showInterface("selection");
+
+  // Populate the list selector dropdown
+  populateListSelector();
   
-    // Populate the list selector dropdown
-    populateListSelector();
-    
-    // Set up event listeners
-    setupEventListeners();
+  // Set up event listeners
+  setupEventListeners();
 }
 
+// Apply theme to the document
 function applyTheme() {
-  // Use object destructuring for cleaner code
-  const { backgroundColor, textColor, buttonColor, buttonHoverColor, buttonTextColor } = currentSongList._theme;
+  const themeId = state.currentSongList.id;
   
+  // Use cached theme settings if available
+  if (!state.themeCache[themeId]) {
+    const { backgroundColor, textColor, buttonColor, buttonHoverColor, buttonTextColor } = state.currentSongList._theme;
+    
+    state.themeCache[themeId] = {
+      '--background-color': backgroundColor,
+      '--text-color': textColor,
+      '--button-color': buttonColor,
+      '--button-hover-color': buttonHoverColor,
+      '--button-text-color': buttonTextColor
+    };
+  }
+  
+  // Apply cached theme settings
   const root = document.documentElement.style;
-  root.setProperty('--background-color', backgroundColor);
-  root.setProperty('--text-color', textColor);
-  root.setProperty('--button-color', buttonColor);
-  root.setProperty('--button-hover-color', buttonHoverColor);
-  root.setProperty('--button-text-color', buttonTextColor);  
+  const theme = state.themeCache[themeId];
+  
+  for (const [property, value] of Object.entries(theme)) {
+    root.setProperty(property, value);
+  }
 }
 
+// Update song count display
 function applySongCount() {
-  DOM.songCount.textContent = `${currentSongList.songCount} songs`;
+  DOM.songCount.textContent = `${state.currentSongList.songCount} songs`;
 }
 
+// Populate the list selector dropdown
 function populateListSelector() {
-    const selector = DOM.listSelector;
-    const lists = songListRepo.getAllLists();
-    
-    // Use document fragment for better performance
-    const fragment = document.createDocumentFragment();
-    
-    lists.forEach(list => {
-      const option = document.createElement("option");
-      option.value = list.id;
-      option.textContent = list.name;
-      fragment.appendChild(option);
-    });
-    
-    selector.appendChild(fragment);
+  const lists = songListRepo.getAllLists();
+  
+  // Use document fragment for better performance
+  const fragment = document.createDocumentFragment();
+  
+  lists.forEach(list => {
+    const option = document.createElement("option");
+    option.value = list.id;
+    option.textContent = list.name;
+    fragment.appendChild(option);
+  });
+  
+  DOM.listSelector.appendChild(fragment);
 }
 
+// Set up all event listeners
 function setupEventListeners() {
   // Set up event listener for list selection change
   DOM.listSelector.addEventListener("change", function() {
-    currentSongList = songListRepo.getList(this.value);
+    state.currentSongList = songListRepo.getList(this.value);
     applyTheme();
     applySongCount();
   });
@@ -98,12 +119,12 @@ function setupEventListeners() {
   
   // Set up shuffle toggle event listener
   DOM.shuffleToggle.addEventListener("change", function() {
-    shouldShuffle = this.checked;
+    state.shouldShuffle = this.checked;
   });
   
   // Set up copy text elements
-  DOM.copyButton.addEventListener("click", copyResultsToClipboard);
-  DOM.copyHistoryButton.addEventListener("click", copyHistoryToClipboard);
+  DOM.copyButton.addEventListener("click", () => copyToClipboard('ranking'));
+  DOM.copyHistoryButton.addEventListener("click", () => copyToClipboard('history'));
 }
 
 // Helper function to show the appropriate interface
@@ -113,148 +134,106 @@ function showInterface(type) {
   DOM.resultsInterface.style.display = type === "results" ? "block" : "none";
 }
 
+// Start the sorting process
 function startSortingProcess() {
-    showInterface("sorting");
-    
-    // Start the sorting, passing the shuffle flag
-    startSorting(shouldShuffle);
+  showInterface("sorting");
+  
+  // Start the sorting, passing the shuffle flag
+  startSorting(state.currentSongList.songs, state.shouldShuffle);
 }
 
+// Render and display results
 function showResult() {
-    // Set the list name in the results title
-    DOM.listName.textContent = currentSongList.name;
-    
-    // Clear previous results and use document fragment
-    DOM.resultList.innerHTML = '';
-    
-    const fragment = document.createDocumentFragment();
-    
-    // Add each song to the result list
-    finalSorted.forEach(song => {
-      const li = document.createElement("li");
-      li.textContent = song;
-      fragment.appendChild(li);
-    });
-    
-    DOM.resultList.appendChild(fragment);
-    
-    // Clear previous decision history
-    DOM.decisionHistoryBody.innerHTML = '';
-    
-    // Use a document fragment for history items
-    const historyFragment = document.createDocumentFragment();
-    
-    // Add each decision to the history table
-    decisionHistory.forEach(decision => {
-      const row = document.createElement("tr");
-      
-      const comparisonCell = document.createElement("td");
-      comparisonCell.textContent = decision.comparison;
-      
-      const chosenCell = document.createElement("td");
-      chosenCell.textContent = decision.chosen;
-      chosenCell.className = "chosen";
-      
-      const rejectedCell = document.createElement("td");
-      rejectedCell.textContent = decision.rejected;
-      rejectedCell.className = "rejected";
-      
-      row.appendChild(comparisonCell);
-      row.appendChild(chosenCell);
-      row.appendChild(rejectedCell);
-      
-      historyFragment.appendChild(row);
-    });
-    
-    DOM.decisionHistoryBody.appendChild(historyFragment);
-    
-    // Show results interface
-    showInterface("results");
-}
-
-function copyResultsToClipboard() {
-  // Get the list name and all ranked songs
-  const listName = currentSongList.name;
-  const rankedSongs = Array.from(DOM.resultList.children).map((li, index) => 
-    `${index + 1}. ${li.textContent}`
-  );
+  // Set the list name in the results title
+  DOM.listName.textContent = state.currentSongList.name;
   
-  // Create the text content to copy
-  const textToCopy = `My ${listName} Song Ranking:\n\n${rankedSongs.join('\n')}`;
+  // Clear previous results
+  DOM.resultList.innerHTML = '';
+  DOM.decisionHistoryBody.innerHTML = '';
   
-  // Use the Clipboard API to copy the text
-  navigator.clipboard.writeText(textToCopy)
-    .then(() => {
-      // Show success notification
-      showNotification("Copied to clipboard!", true);
-    })
-    .catch(err => {
-      // Show error notification
-      showNotification("Copy failed. Please try again.", false);
-      console.error('Failed to copy text: ', err);
-    });
-}
-
-function copyResultsToClipboard() {
-  // Get the list name and all ranked songs
-  const listName = currentSongList.name;
-  const rankedSongs = Array.from(DOM.resultList.children).map((li, index) => 
-    `${index + 1}. ${li.textContent}`
-  );
+  // Create fragments for better performance
+  const resultsFragment = document.createDocumentFragment();
+  const historyFragment = document.createDocumentFragment();
   
-  // Create the text content to copy
-  const textToCopy = `My ${listName} Song Ranking:\n\n${rankedSongs.join('\n')}`;
-  
-  // Use the Clipboard API to copy the text
-  navigator.clipboard.writeText(textToCopy)
-    .then(() => {
-      // Show success notification
-      showNotification("Ranking copied to clipboard!", true);
-    })
-    .catch(err => {
-      // Show error notification
-      showNotification("Copy failed. Please try again.", false);
-      console.error('Failed to copy text: ', err);
-    });
-}
-
-function copyHistoryToClipboard() {
-  // Get the list name
-  const listName = currentSongList.name;
-  
-  // Get all decision history rows
-  const historyRows = Array.from(DOM.decisionHistoryBody.querySelectorAll('tr'));
-  
-  // Format the history data
-  const historyText = historyRows.map(row => {
-    const cells = row.querySelectorAll('td');
-    const number = cells[0].textContent;
-    const preferred = cells[1].textContent;
-    const lessPreferred = cells[2].textContent;
-    return `${number}. Preferred: "${preferred}" > "${lessPreferred}"`;
+  // Add each song to the result list
+  finalSorted.forEach((song, index) => {
+    const li = document.createElement("li");
+    li.textContent = song;
+    resultsFragment.appendChild(li);
   });
   
-  // Create the text content to copy
-  const textToCopy = `My ${listName} Decision History:\n\n${historyText.join('\n')}`;
+  // Add each decision to the history table
+  decisionHistory.forEach((decision, index) => {
+    const row = createHistoryRow(decision, index + 1);
+    historyFragment.appendChild(row);
+  });
   
-  // Use the Clipboard API to copy the text
+  // Append fragments to DOM
+  DOM.resultList.appendChild(resultsFragment);
+  DOM.decisionHistoryBody.appendChild(historyFragment);
+  
+  // Show results interface
+  showInterface("results");
+}
+
+// Create a history row element
+function createHistoryRow(decision, index) {
+  const row = document.createElement("tr");
+  
+  const comparisonCell = document.createElement("td");
+  comparisonCell.textContent = index;
+  
+  const chosenCell = document.createElement("td");
+  chosenCell.textContent = decision.chosen;
+  chosenCell.className = "chosen";
+  
+  const rejectedCell = document.createElement("td");
+  rejectedCell.textContent = decision.rejected;
+  rejectedCell.className = "rejected";
+  
+  row.append(comparisonCell, chosenCell, rejectedCell);
+  
+  return row;
+}
+
+// Universal copy function
+function copyToClipboard(type) {
+  const listName = state.currentSongList.name;
+  let textToCopy;
+  let successMessage;
+  
+  if (type === 'ranking') {
+    // Format ranking
+    const rankedSongs = Array.from(DOM.resultList.children).map((li, index) => 
+      `${index + 1}. ${li.textContent}`
+    );
+    textToCopy = `My ${listName} Song Ranking:\n\n${rankedSongs.join('\n')}`;
+    successMessage = "Ranking copied to clipboard!";
+  } else {
+    // Format history
+    const historyRows = Array.from(DOM.decisionHistoryBody.querySelectorAll('tr'));
+    const historyText = historyRows.map(row => {
+      const cells = row.querySelectorAll('td');
+      return `${cells[0].textContent}. Preferred: "${cells[1].textContent}" > "${cells[2].textContent}"`;
+    });
+    textToCopy = `My ${listName} Decision History:\n\n${historyText.join('\n')}`;
+    successMessage = "History copied to clipboard!";
+  }
+  
+  // Use the Clipboard API
   navigator.clipboard.writeText(textToCopy)
-    .then(() => {
-      // Show success notification
-      showNotification("History copied to clipboard!", true);
-    })
+    .then(() => showNotification(successMessage, true))
     .catch(err => {
-      // Show error notification
       showNotification("Copy failed. Please try again.", false);
-      console.error('Failed to copy text: ', err);
+      console.error('Failed to copy text:', err);
     });
 }
 
 // Show a notification banner
 function showNotification(message, isSuccess = true) {
   // Clear any existing timeout
-  if (notificationTimeout) {
-    clearTimeout(notificationTimeout);
+  if (state.notificationTimeout) {
+    clearTimeout(state.notificationTimeout);
   }
   
   // Set text and styling
@@ -266,7 +245,7 @@ function showNotification(message, isSuccess = true) {
   DOM.copyStatus.classList.add('visible');
   
   // Hide after delay
-  notificationTimeout = setTimeout(() => {
+  state.notificationTimeout = setTimeout(() => {
     DOM.copyStatus.classList.remove('visible');
   }, 3000);
 }
@@ -276,7 +255,7 @@ function resetInterface() {
   showInterface("selection");
   // Reset shuffle toggle to default checked state
   DOM.shuffleToggle.checked = true;
-  shouldShuffle = true;
+  state.shouldShuffle = true;
 }
 
 // Initialize when the DOM is fully loaded

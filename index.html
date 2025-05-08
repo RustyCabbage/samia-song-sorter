@@ -6,6 +6,10 @@
   <meta name="description" content="Sort and rank Samia songs based on your preferences">
   <title>Samia Song Sorter</title>
   <link rel="stylesheet" href="style.css">
+  
+  <!-- Preload critical JavaScript files -->
+  <link rel="preload" href="songlists.js" as="script">
+  <link rel="preload" href="interface.js" as="script">
 </head>
 <body>
   <header>
@@ -29,7 +33,7 @@
     <!-- Add shuffle toggle -->
     <div class="shuffle-container">
       <label class="switch">
-        <input type="checkbox" id="shuffleToggle" class="shuffle-toggle">
+        <input type="checkbox" id="shuffleToggle" class="shuffle-toggle" checked>
         <span class="slider"></span>
       </label>
       <label for="shuffleToggle" id="shuffleLabel" class="shuffle-label">Shuffle songs before ranking</label>
@@ -37,7 +41,7 @@
   </section>
   
   <!-- Sorting Interface -->
-  <section id="sortingInterface" class="interface-panel" aria-live="polite">
+  <section id="sortingInterface" class="interface-panel" aria-live="polite" style="display: none;">
     <h2 class="section-title">Which song do you prefer?</h2>
     <div id="progress" class="progress-indicator" aria-live="polite"></div>
     <div id="comparison" class="comparison-text" aria-live="polite"></div>
@@ -51,7 +55,7 @@
   </section>
   
   <!-- Results -->
-  <section id="resultsInterface" class="interface-panel" aria-live="polite">
+  <section id="resultsInterface" class="interface-panel" aria-live="polite" style="display: none;">
     <div class="results-container">
       <h2 id="resultTitle">Your <i id="listName"></i> Ranking:</h2>
       <ol id="resultList">
@@ -87,9 +91,9 @@
     <p class="source"><a href="https://github.com/RustyCabbage/samia-song-sorter">source</a></p>
   </footer>
   
-  <!-- Load scripts -->
-  <script src="songlists.js"></script>
-  <script src="interface.js"></script>
-  <script src="sorter.js"></script>
+  <!-- Load scripts with defer to improve page load performance -->
+  <script src="songlists.js" defer></script>
+  <script src="interface.js" defer></script>
+  <script src="sorter.js" defer></script>
 </body>
 </html>

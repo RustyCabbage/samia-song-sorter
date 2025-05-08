@@ -10,9 +10,9 @@ let worstCaseTotalComparisons = 0; // Estimated total comparisons needed in wors
 let bestCaseTotalComparisons = 0; // Estimated total comparisons needed in best case
 
 // Initializes and starts the sorting process
-function startSorting(shuffle = false) {
+function startSorting(songsToSort, shuffle = false) {
   // Reset all state variables
-  songs = currentSongList.songs; // currentSongList obtained from interface.js
+  songs = songsToSort;
   compareQueue = [];
   finalSorted = [];
   songRanks = {};

@@ -4,7 +4,6 @@
 - Import song lists?
 	- Could I do this with a spotify link (album or playlist)? that would be cool.
 
-
 ##### maybe someday
 - Show decision history during sorting
 	- shows in the console idk if it's something worth doing

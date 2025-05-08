@@ -6,22 +6,24 @@ class SongList {
     this._id = id;
     this._name = name;
     this._songs = [...songs]; // Create a copy to avoid direct reference
-    this._theme = theme; // Store theme reference directly (optimization)
+    this._theme = theme; // Store theme reference directly
+    this._songCount = songs.length; // Pre-calculate song count
   }
   
   // Getters
   get id() { return this._id; }
   get name() { return this._name; }
   get songs() { return [...this._songs]; } // Return a copy to prevent direct modification
-  get theme() { return this._theme; } // Return direct reference - themes are static objects
-  get songCount() { return this._songs.length; }
+  get theme() { return this._theme; }
+  get songCount() { return this._songCount; }
 }
 
 // Repository for all song lists
 class SongListRepository {
   constructor() {
-    this._lists = Object.create(null); // Use null prototype for pure object map (faster lookups)
+    this._lists = Object.create(null); // Use null prototype for pure object map
     this._listCache = null; // Cache for getAllLists()
+    this._idArray = []; // Keep track of IDs for faster iteration
   }
   
   // Add a song list to the repository
@@ -29,7 +31,9 @@ class SongListRepository {
     if (!(songList instanceof SongList)) {
       throw new Error('Must be a SongList instance');
     }
+    
     this._lists[songList.id] = songList;
+    this._idArray.push(songList.id);
     this._listCache = null; // Invalidate cache
   }
   
@@ -44,13 +48,10 @@ class SongListRepository {
       return this._listCache;
     }
     
-    const lists = [];
-    for (const id in this._lists) {
-      lists.push({
-        id: id,
-        name: this._lists[id].name
-      });
-    }
+    const lists = this._idArray.map(id => ({
+      id: id,
+      name: this._lists[id].name
+    }));
     
     this._listCache = lists;
     return lists;
@@ -89,7 +90,7 @@ const THEMES = {
 };
 
 const SONG_COLLECTIONS = {
-  preBaby: [
+  preBaby: Object.freeze([
     "Welcome to Eden",
     "The Night Josh Tillman Listened To My Song",
     "Someone Tell the Boys",
@@ -101,9 +102,9 @@ const SONG_COLLECTIONS = {
     "Ode to Artifice",
     "Never Said",
     "Gotta Have You"
-  ],
+  ]),
   
-  theBaby: [
+  theBaby: Object.freeze([
     "Pool",
     "Fit N Full",
     "Big Wheel",
@@ -115,16 +116,16 @@ const SONG_COLLECTIONS = {
     "Winnebago",
     "Minnesota",
     "Is There Something In The Movies?"
-  ],
+  ]),
   
-  scout: [
+  scout: Object.freeze([
     "As You Are",
     "Show Up",
     "Elephant",
     "The Promise"
-  ],
+  ]),
   
-  honey: [
+  honey: Object.freeze([
     "Kill Her Freak Out",
     "Charm You",
     "Pink Balloon",
@@ -136,9 +137,9 @@ const SONG_COLLECTIONS = {
     "Nanana",
     "Amelia",
     "Dream Song"
-  ],
+  ]),
   
-  bloodless: [
+  bloodless: Object.freeze([
     "Biscuits Intro",
     "Bovine Excision",
     "Hole in a Frame",
@@ -152,7 +153,7 @@ const SONG_COLLECTIONS = {
     "Proof",
     "North Poles",
     "Pants"
-  ],
+  ]),
 
   nonAlbumSingles: [
     "Desperado",
@@ -163,48 +164,28 @@ const SONG_COLLECTIONS = {
   ]
 };
 
-const discographyList = [].concat(
-  SONG_COLLECTIONS.preBaby,
-  SONG_COLLECTIONS.theBaby,
-  SONG_COLLECTIONS.scout,
-  ["Desperado", "Born on a Train"],
-  SONG_COLLECTIONS.honey,
-  ["Maps", "Country", "Making Breakfast"],
-  SONG_COLLECTIONS.bloodless
-);
+const discographyList = [
+  ...SONG_COLLECTIONS.preBaby,
+  ...SONG_COLLECTIONS.theBaby,
+  ...SONG_COLLECTIONS.scout,
+  "Desperado", "Born on a Train",
+  ...SONG_COLLECTIONS.honey,
+  "Maps", "Country", "Making Breakfast",
+  ...SONG_COLLECTIONS.bloodless
+];
 
 // Initialize the repository with song lists
 function initializeSongLists() {
   const songListRepo = new SongListRepository();
-  // Create SongList instances and add them to the repository
-  songListRepo.addList(new SongList(
-    "bloodless",
-    "Bloodless",
-    //[ "Song 1", "Song 2", "Song 3", "Song 4", "Song 5", "Song 6" ], // testing
-    SONG_COLLECTIONS.bloodless,
-    THEMES.bloodless
-  ));
   
-  songListRepo.addList(new SongList(
-    "honey",
-    "Honey",
-    SONG_COLLECTIONS.honey,
-    THEMES.honey
-  ));
+  // Create and add SongList instances all at once
+  [
+    new SongList("bloodless", "Bloodless", SONG_COLLECTIONS.bloodless, THEMES.bloodless),
+    new SongList("honey", "Honey", SONG_COLLECTIONS.honey, THEMES.honey),
+    new SongList("theBaby", "The Baby", SONG_COLLECTIONS.theBaby, THEMES.theBaby),
+    new SongList("discography", "Full Discography", discographyList, THEMES.discography)
+  ].forEach(list => songListRepo.addList(list));
   
-  songListRepo.addList(new SongList(
-    "theBaby",
-    "The Baby",
-    SONG_COLLECTIONS.theBaby,
-    THEMES.theBaby
-  ));
-  
-  songListRepo.addList(new SongList(
-    "discography",
-    "Full Discography",
-    discographyList,
-    THEMES.discography
-  ));
   return songListRepo;
 }
 
