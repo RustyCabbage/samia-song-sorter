@@ -101,7 +101,7 @@ function setupEventListeners() {
     shouldShuffle = this.checked;
   });
   
-  // Set up copy buttons
+  // Set up copy text elements
   DOM.copyButton.addEventListener("click", copyResultsToClipboard);
   DOM.copyHistoryButton.addEventListener("click", copyHistoryToClipboard);
 }
@@ -231,7 +231,7 @@ function copyHistoryToClipboard() {
     const number = cells[0].textContent;
     const preferred = cells[1].textContent;
     const lessPreferred = cells[2].textContent;
-    return `${number}. Preferred: "${preferred}" over "${lessPreferred}"`;
+    return `${number}. Preferred: "${preferred}" > "${lessPreferred}"`;
   });
   
   // Create the text content to copy
