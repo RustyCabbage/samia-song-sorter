@@ -214,7 +214,7 @@ function copyToClipboard(type) {
     const historyRows = Array.from(DOM.decisionHistoryBody.querySelectorAll('tr'));
     const historyText = historyRows.map(row => {
       const cells = row.querySelectorAll('td');
-      return `${cells[0].textContent}. Preferred: "${cells[1].textContent}" > "${cells[2].textContent}"`;
+      return `${cells[0].textContent}. "${cells[1].textContent}" > "${cells[2].textContent}"`;
     });
     textToCopy = `My ${listName} Decision History:\n\n${historyText.join('\n')}`;
     successMessage = "History copied to clipboard!";
