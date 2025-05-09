@@ -113,9 +113,7 @@ h1, h2 { color: var(--text-color); }
 /* Common button styles */
 .song-list-select,
 .action-button, 
-.choice-button,
-.copy-button,
-.restart-button {
+.choice-button {
   background-color: var(--button-color);
   color: var(--button-text-color);
   border: none;
@@ -132,7 +130,7 @@ h1, h2 { color: var(--text-color); }
   max-width: 300px
 }
 
-.action-button, .restart-button {
+.action-button {
   padding: 1em 2em;
   margin: 1.5em 0;
 }
@@ -146,9 +144,7 @@ h1, h2 { color: var(--text-color); }
 }
 
 .action-button:hover,
-.choice-button:hover,
-.copy-button:hover,
-.restart-button:hover {
+.choice-button:hover {
   background-color: var(--button-hover-color);
   transform: scale(1.05);
 }
@@ -195,7 +191,7 @@ h1, h2 { color: var(--text-color); }
   transition: color var(--transition-speed) ease;
   font-size: 0.75em;
   cursor: pointer;
-  display: block;
+  display: inline-block;
   text-align: center;
   margin: 0 0 0.5em 0;
 }

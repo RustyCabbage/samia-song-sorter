@@ -1,23 +1,20 @@
 // Global variables for tracking the sorting process
 let songs = [];  // The songs to be sorted
-let compareQueue = []; // Queue of comparisons to be made
-let finalSorted = [];  // The final sorted list of songs
-let songRanks = {};    // Object to store the relative ranks of songs
-let decisionHistory = []; // Array to store the history of decisions
-let completedComparisons = 0;  // Number of comparisons completed
 
 let worstCaseTotalComparisons = 0; // Estimated total comparisons needed in worst case
 let bestCaseTotalComparisons = 0; // Estimated total comparisons needed in best case
+let completedComparisons = 0;  // Number of comparisons completed
+let decisionHistory = []; // Array to store the history of decisions
+
+let compareQueue = []; // Queue of comparisons to be made
 
 // Initializes and starts the sorting process
 function startSorting(songsToSort, shuffle = false) {
   // Reset all state variables
   songs = songsToSort;
-  compareQueue = [];
-  finalSorted = [];
-  songRanks = {};
-  decisionHistory = [];
   completedComparisons = 0;
+  decisionHistory = [];
+  compareQueue = [];
   
   if (shuffle) {
     songs = shuffleArray([...songs]);
@@ -79,8 +76,8 @@ function sumOfSmallerListsInMerges(n) {
 function mergeSort(lists) {
   // Base case: if there's only one list, we're done
   if (lists.length <= 1) {
-    finalSorted = lists[0] || [];
-    showResult();
+    const finalSorted = lists[0] || [];
+    showResult(finalSorted);
     return;
   }
 
