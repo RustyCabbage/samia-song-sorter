@@ -149,6 +149,14 @@ h1, h2 { color: var(--text-color); }
   transform: scale(1.05);
 }
 
+/* remove hover style on touch devices */
+@media (pointer: coarse) {
+  .choice-button:hover {
+    background-color: var(--button-color);
+    transform: none;
+  }
+}
+
 /* Sorting interface */
 .progress-indicator,
 .comparison-text {
@@ -316,8 +324,8 @@ footer { margin-top: 0; }
 /* Link styling */
 .source a {
   color: var(--text-color);
-  text-decoration: none;
   border-bottom: 1px solid var(--text-color);
+  text-decoration: none;
   transition: color var(--transition-speed) ease, border-color var(--transition-speed) ease;
 }
 
@@ -349,12 +357,5 @@ footer { margin-top: 0; }
   .choice-button {
     width: 10em;
     margin: 0 0.5em;
-  }
-}
-
-/* remove hover style on touch devices */
-@media (pointer: coarse) {
-  .choice-button:hover {
-    all: revert-layer;
   }
 }
