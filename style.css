@@ -149,14 +149,6 @@ h1, h2 { color: var(--text-color); }
   transform: scale(1.05);
 }
 
-/* remove hover style on touch devices */
-@media (pointer: coarse) {
-  .choice-button:hover {
-    background-color: var(--button-color);
-    transform: none;
-  }
-}
-
 /* Sorting interface */
 .progress-indicator,
 .comparison-text {
