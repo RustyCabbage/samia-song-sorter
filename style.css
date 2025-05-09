@@ -351,3 +351,10 @@ footer { margin-top: 0; }
     margin: 0 0.5em;
   }
 }
+
+/* remove hover style on touch devices */
+@media (pointer: coarse) {
+  .choice-button:hover {
+    all: revert-layer;
+  }
+}
