@@ -12,6 +12,7 @@ const DOM = {
   comparison: document.getElementById("comparison"),
   btnA: document.getElementById("btnA"),
   btnB: document.getElementById("btnB"),
+  copyDecisionsButton: document.getElementById("copyDecisionsButton"),
 
   resultsInterface: document.getElementById("resultsInterface"),
   resultList: document.getElementById("resultList"),
@@ -111,11 +112,20 @@ function setupEventListeners() {
   DOM.startButton.addEventListener("click", startSortingProcess);
   
   // Set up buttons for comparison
-  DOM.btnA.addEventListener("click", () => handleOption(true));
-  DOM.btnB.addEventListener("click", () => handleOption(false));
+  DOM.btnA.addEventListener("click", () => {
+    handleOption(true);
+    // Blur the button to remove focus state
+    DOM.btnA.blur();
+  });
+  
+  DOM.btnB.addEventListener("click", () => {
+    handleOption(false);
+    // Blur the button to remove focus state
+    DOM.btnB.blur();
+  });
   
   // Add event listener to restart button
-  DOM.restartButton.addEventListener("click", resetInterface);
+  DOM.restartButton.addEventListener("click", () => resetInterface(state.shouldShuffle));
   
   // Set up shuffle toggle event listener
   DOM.shuffleToggle.addEventListener("change", function() {
@@ -124,6 +134,7 @@ function setupEventListeners() {
   
   // Set up copy text elements
   DOM.copyButton.addEventListener("click", () => copyToClipboard('ranking'));
+  DOM.copyDecisionsButton.addEventListener("click", () => copyToClipboard('decisions'));
   DOM.copyHistoryButton.addEventListener("click", () => copyToClipboard('history'));
 }
 
@@ -143,7 +154,7 @@ function startSortingProcess() {
 }
 
 // Render and display results
-function showResult() {
+function showResult(finalSorted) {
   // Set the list name in the results title
   DOM.listName.textContent = state.currentSongList.name;
   
@@ -209,7 +220,13 @@ function copyToClipboard(type) {
     );
     textToCopy = `My ${listName} Song Ranking:\n\n${rankedSongs.join('\n')}`;
     successMessage = "Ranking copied to clipboard!";
-  } else {
+  } else if (type === 'decisions') {
+    const decisionsText = decisionHistory.map((decision, index) => 
+      `${index + 1}. ${decision.chosen} > ${decision.rejected}`
+    );
+    textToCopy = `My Partial ${listName} Decision History:\n\n${decisionsText.join('\n')}`;
+    successMessage = "Decisions copied to clipboard!"
+  } else if (type === 'history') {
     // Format history
     const historyRows = Array.from(DOM.decisionHistoryBody.querySelectorAll('tr'));
     const historyText = historyRows.map(row => {
@@ -251,11 +268,11 @@ function showNotification(message, isSuccess = true) {
 }
 
 // Reset the interface to selection mode
-function resetInterface() {
+function resetInterface(shouldShuffle = true) {
   showInterface("selection");
   // Reset shuffle toggle to default checked state
-  DOM.shuffleToggle.checked = true;
-  state.shouldShuffle = true;
+  DOM.shuffleToggle.checked = shouldShuffle;
+  state.shouldShuffle = shouldShuffle;
 }
 
 // Initialize when the DOM is fully loaded

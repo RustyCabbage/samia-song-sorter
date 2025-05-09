@@ -7,12 +7,17 @@
 ##### maybe someday
 - Show decision history during sorting
 	- shows in the console idk if it's something worth doing
-- Import/Export decision history
-	- if i want to do this mid sort i probably have to store shuffle seed
+- Import decision history mid sort
+	- probably have to store shuffle seed when exporting
+- back/undo button
+	- not easily possible with current implementation since going back merge levels breaks everything
+- restart button mid sort
+	- probably have to store shuffle seed
+	- lazy implementation to take you to the list selection interface is very simple, but I don't see how it's much better than just refreshing the page
 
 ##### probably never
 - tie buttons
-- back button
+
 - Use Atkinson Hyperlegible instead of Arial
 	- https://fonts.google.com/specimen/Atkinson+Hyperlegible
 	- I don't like the way it looks ._.
