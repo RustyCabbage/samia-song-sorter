@@ -1,17 +1,16 @@
 // Global variables for tracking the sorting process
-let songs = [];  // The songs to be sorted
-
 let worstCaseTotalComparisons = 0; // Estimated total comparisons needed in worst case
 let bestCaseTotalComparisons = 0; // Estimated total comparisons needed in best case
 let completedComparisons = 0;  // Number of comparisons completed
 let decisionHistory = []; // Array to store the history of decisions
 
-let compareQueue = []; // Queue of comparisons to be made
+// Queue of comparisons to be made, each with its own resolver
+let compareQueue = []; 
 
 // Initializes and starts the sorting process
-function startSorting(songsToSort, shuffle = false) {
+async function startSorting(songsToSort, shuffle = false) {
   // Reset all state variables
-  songs = songsToSort;
+  let songs = [...songsToSort];
   completedComparisons = 0;
   decisionHistory = [];
   compareQueue = [];
@@ -31,7 +30,9 @@ function startSorting(songsToSort, shuffle = false) {
   bestCaseTotalComparisons = sumOfSmallerListsInMerges(songs.length);
 
   // Begin the merge sort process
-  mergeSort(lists);
+  const result = await mergeSort(lists);
+  showResult(result);
+  return result;
 }
 
 function shuffleArray(array) {
@@ -71,71 +72,55 @@ function sumOfSmallerListsInMerges(n) {
 /** 
  * Main merge sort function
  * @param {Array} lists - Array of arrays
- * Finishes by firing showResult() from interface.js
+ * @returns {Promise<Array>} - Promise that resolves to the final sorted array
  */
-function mergeSort(lists) {
+async function mergeSort(lists) {
   // Base case: if there's only one list, we're done
   if (lists.length <= 1) {
-    const finalSorted = lists[0] || [];
-    showResult(finalSorted);
-    return;
+    return lists[0] || [];
   }
 
   //console.log("Lists:",lists.map(inner => `[${inner.join(',')}]`).join(' '));
   //console.log(`lists length: ${lists.length}`);
   
-  // Create pairs of lists to merge
+  // Create pairs of lists to merge - process them sequentially to avoid UI conflicts
   const mergedLists = [];
-
   for (let i = 0; i < lists.length; i += 2) {
     if (i + 1 < lists.length) {
-      // Merge two lists
-      merge(lists[i], lists[i + 1], mergedResult => {
-        mergedLists.push(mergedResult);
-        checkContinueToNextLevel();
-      });
+      // Merge two lists - one at a time to prevent UI conflicts
+      const mergedList = await merge(lists[i], lists[i + 1]);
+      mergedLists.push(mergedList);
     } else {
-      // Odd number of lists, this one gets passed through
-      mergedLists.push(lists[i]);
-      checkContinueToNextLevel();
+      // Odd number of lists, this one gets passed through to the front of the list
+      mergedLists.unshift(lists[i]);
     }
   }
-  // Helper function to check if we should continue to the next level
-  function checkContinueToNextLevel() {
-    // If all pairs have been merged, continue to the next level
-    if (mergedLists.length === Math.ceil(lists.length / 2)) {
-      mergeSort(mergedLists);
-    }
-  }
+  
+  // Continue to the next level of merge sort
+  return mergeSort(mergedLists);
 }
 
 /**
  * Merge two sorted lists with user input
  * @param {Array} left - left array
  * @param {Array} right - right array
- * @param {callback} callback - push the merged list to mergedLists
- * */ 
-function merge(left, right, callback) {
+ * @returns {Promise<Array>} - Promise that resolves to the merged array
+ */
+async function merge(left, right) {
   const merged = [];
   let leftIndex = 0;
   let rightIndex = 0;
   
-  // Start the merging process
-  continueComparing();
-
-  function continueComparing() {
-    
+  while (leftIndex < left.length || rightIndex < right.length) {
     // If one list is exhausted, add all items from the other
     if (leftIndex >= left.length) {
       merged.push(...right.slice(rightIndex));
-      callback(merged);
-      return;
+      break;
     }
     
     if (rightIndex >= right.length) {
       merged.push(...left.slice(leftIndex));
-      callback(merged);
-      return;
+      break;
     }
     
     // Get the next items to compare
@@ -146,39 +131,26 @@ function merge(left, right, callback) {
      * in this implementation so this is actually a completely useless check
      *
     // Check if we already know the preference based on transitivity
-    const knownPreference = getKnownPreference(leftItem, rightItem);
+    const knownPreference = getKnownPreference(songA, songB);
 
     if (knownPreference === 'left') {
-      console.log(`Known preference: ${leftItem} > ${rightItem}`);
-      handleSelection(true);
+      console.log(`Known preference: ${songA} > ${songB}`);
+      merged.push(songA);
+      leftIndex++;
+      recordPreference(songA, songB);
     } else if (knownPreference === 'right') {
-      console.log(`Known preference: ${rightItem} > ${leftItem}`);
-      handleSelection(false);
+      console.log(`Known preference: ${songB} > ${songA}`);
+      merged.push(songB);
+      rightIndex++;
+      recordPreference(songB, songA);
     } else
-    /**/ 
+    /**/
     {
       // Need user input for this comparison
-      //console.log(`Adding ${leftItem} vs ${rightItem} to queue`);
-      compareQueue.push({
-        songA: songA,
-        songB: songB,
-        leftIndexFromRight: left.length - (leftIndex+1),
-        rightIndexFromRight: right.length - (rightIndex+1),
-        onChoice: handleSelection
-      });
+      const selectedLeft = await requestUserComparison(songA, songB, 
+        left.length - (leftIndex+1), right.length - (rightIndex+1));
       
-      // If there is a comparison in the queue, show it to the user
-      if (compareQueue.length === 1) {
-        showComparison();
-      }
-    }
-
-    /**
-     * Processes the result of a comparison
-     * @param {boolean} selectedLeft
-     */
-    function handleSelection(selectedLeft) {
-      // Get the appropriate items based on selection
+      // Process the user's choice
       const chosen = selectedLeft ? songA : songB;
       const rejected = selectedLeft ? songB : songA;
       
@@ -190,18 +162,44 @@ function merge(left, right, callback) {
         rightIndex++;
       }
       
-      /* Unnecessary since we never infer from knownPreference
-       *
-      // If we're recording a new preference (not from knownPreference)
-      if (knownPreference === null)
-      /**/
-      {
-        recordPreference(chosen, rejected);
-      }
-      // Continue with next comparison
-      continueComparing();
+      // Record the preference
+      recordPreference(chosen, rejected);
     }
   }
+  
+  return merged;
+}
+
+/**
+ * Request user comparison between two songs
+ * @param {string} songA - First song to compare
+ * @param {string} songB - Second song to compare
+ * @param {number} leftIndexFromRight - Index from right for left list
+ * @param {number} rightIndexFromRight - Index from right for right list
+ * @returns {Promise<boolean>} - Promise that resolves to true if left was selected, false otherwise
+ */
+function requestUserComparison(songA, songB, leftIndexFromRight, rightIndexFromRight) {
+  return new Promise(resolve => {
+    // Create comparison object with the resolver included
+    const comparison = {
+      songA: songA,
+      songB: songB,
+      leftIndexFromRight: leftIndexFromRight,
+      rightIndexFromRight: rightIndexFromRight,
+      resolve: resolve // Store the resolver in the comparison object itself
+    };
+    
+    // Add to queue
+    compareQueue.push(comparison);
+    
+    // If this is the only comparison in the queue, show it
+    if (compareQueue.length === 1) {
+      // Use setTimeout to ensure UI updates properly
+      setTimeout(() => {
+        showComparison();
+      }, 0);
+    }
+  });
 }
 
 /*************** END
@@ -227,16 +225,21 @@ function recordPreference(chosen, rejected) {
 function handleOption(selectedLeft) {
   if (compareQueue.length === 0) return;
   
-  // removes the first element from compareQueue 
-  // comparison.onChoice fires handleSelection(selectedLeft)
+  // Get the current comparison with its own resolver
   const comparison = compareQueue.shift();
+  
   // Update the estimates based on the selection
   updateEstimates(selectedLeft, comparison.leftIndexFromRight, comparison.rightIndexFromRight);
-  comparison.onChoice(selectedLeft);
+  
+  // Resolve the promise with the user's choice
+  comparison.resolve(selectedLeft);
 
   // If there are more comparisons in the queue, show the next one to the user
   if (compareQueue.length > 0) {
-    showComparison();
+    // Wait a moment before showing the next comparison to ensure UI updates
+    setTimeout(() => {
+      showComparison();
+    }, 0);
   }
 }
 
@@ -257,8 +260,6 @@ function showComparison() {
   
   // Update progress information
   updateProgressDisplay();
- 
-  //console.log(`Showing comparison: ${compareQueue[0].songA} vs ${compareQueue[0].songB}`);
   // Program is continued by the user clicking a button and firing handleOption(selectedLeft)
 }
 
