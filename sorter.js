@@ -20,10 +20,8 @@ async function startSorting(songsToSort, shuffle = false) {
   }
 
   // Calculate the estimated number of comparisons needed
-  // - i know the worst case  
-  // - i dont know the best case, use 0 for now
   worstCaseTotalComparisons = getWorstCaseMergeInsertion(songs.length);
-  bestCaseTotalComparisons = 1;
+  bestCaseTotalComparisons = getBestCaseMergeInsertion(songs.length);
 
   // Begin the merge sort process
   const result = await mergeInsertionSort(songs);
@@ -37,6 +35,88 @@ function shuffleArray(array) {
     [array[i], array[j]] = [array[j], array[i]];
   }
   return array;
+}
+
+function getBestCaseMergeInsertion(n) {
+  return F(n)+G(n);
+}
+
+/**
+ * Computes F(n) = F(⌊n/2⌋) + ⌊n/2⌋ without any bitwise ops.
+ * This is the number of merge comparisons done in a MergeInsertion of size n
+ * @param {number} n - nonnegative integer
+ * @returns {number}
+ */
+function F(n) {
+  let total = 0;
+  while (n > 1) {
+    n = Math.floor(n / 2);
+    total += n;
+  }
+  return total;
+}
+
+/**
+ * This hella stupid recursive function gives the number of insertion comparisons
+ * in the best case of a MergeInsertion of size n
+ * @param n - nonnegative integer
+ * @returns {number} 
+ */
+function G(n) {
+  if (n <= 2) {
+    return 0; // no insertions necessary for n<=2
+  }
+  // the not recursive bit:
+  // get number of insertions
+  const numInsertions = Math.floor((n-1)/2); 
+  // decompose number of insertions into consecutive Jacobsthal differences, plus a remainder
+  // this is the same as the insertion groups used elsewhere in the function
+  const decomposition = calculateInsertionGroups(numInsertions);
+  
+  let numComparisons = 0;
+  for (i=0; i < decomposition.length; i++) {
+    // the num comparisons given the decomposition is 
+    numComparisons += decomposition[i] * (i+1)
+  }
+  // we want to add the number of full groups (since every full group requires +1 comparison)
+  // if the last group is a full group (meaning the sum of it and the previous one is the next power of 2)
+  // then we multiple by the number of groups, else multiply by number of groups + 1
+  // and obvs if there's only group then this is a moot point 
+  numComparisons +=
+    (decomposition.slice(-2).reduce((a, b) => a + b, 0) === 2 ** decomposition.length)
+    ? decomposition.length : (decomposition.length - 1);
+  // 10: floor = 4 = [2,2] = 2*1 + 2*2 + 2
+  // 17: floor n-1/2 = 8 = [2,2,4] = 2*1 + 2*2 + 2 + 4*3 = 20
+  // 21: floor n-1/2 = 10 = [2,2,6] = 2*1 + 2*2 + 6*3 + 3 = 27
+
+  return G(Math.floor(n/2)) + numComparisons;
+}
+
+/**
+ * Calculate the insertion groups for the Ford-Johnson algorithm
+ * Groups have sizes: 2, 2, 6, 10, 22, 42, ...
+ * @param {number} numElements - Number of elements to group
+ * @returns {Array} - Array of group sizes
+ */
+function calculateInsertionGroups(numElements) {
+  const groups = [];
+  let remainingElements = numElements;
+  
+  // Calculate Jacobsthal numbers for determining group sizes
+  let a = 1, b = 1;
+  while (remainingElements > 0) {
+    // Next Jacobsthal number
+    const next = b + 2 * a;
+    a = b;
+    b = next;
+    
+    // Group size = difference between consecutive Jacobsthal numbers
+    const groupSize = Math.min(b - a, remainingElements);
+    groups.push(groupSize);
+    remainingElements -= groupSize;
+  }
+  
+  return groups;
 }
 
 // https://en.wikipedia.org/wiki/Merge-insertion_sort#Analysis
@@ -85,7 +165,7 @@ async function mergeInsertionSort(arr, depth=0) {
   // <<<Push the larger and smaller>>>
   const orderedPairs = new Map();
   for (const pair of pairs) {
-    console.log(`${indent}Comparison ${completedComparisons+1}: ${pair[0]} vs ${pair[1]}`);
+    //console.log(`${indent}Merge: Comparison ${completedComparisons+1}: ${pair[0]} vs ${pair[1]}`);
     // <<<COMPARE PAIRS BELOW>>>
     // Need user input for this comparison
     const selectedLeft = await requestUserComparison(pair[0], pair[1]);
@@ -138,7 +218,7 @@ async function mergeInsertionSort(arr, depth=0) {
     console.log(`${indent}No elements to insert. Sort complete: [${result}]`);
     return result;
   }
-  console.log(`${indent}Remaining elements: [${remainingElements}]`);
+  console.log(`${indent}Remaining elements (${remainingElements.length}): [${remainingElements}]`);
   // If there is 1 element, no need to calc groups and stuff
   if (remainingElements.length === 1) {  
     reorderedElements = [...remainingElements];
@@ -148,7 +228,7 @@ async function mergeInsertionSort(arr, depth=0) {
     console.log(`${indent}Insertion Groups: [${insertionGroups}]`);
     // Step 5.3: Reorder elements according to the Ford-Johnson sequence
     reorderedElements = reorderForInsertion(remainingElements, insertionGroups);
-    console.log(`${indent}Reordered elements: [${reorderedElements}]`);   
+    console.log(`${indent}Reordered elements (${reorderedElements.length}): [${reorderedElements}]`);   
   }
 
   // Step 5.4: Insert each element using binary search up to but not including xi
@@ -165,7 +245,7 @@ async function mergeInsertionSort(arr, depth=0) {
       const index = result.indexOf(largerElement);
       subsequenceOfS = result.slice(0,index);
     }
-    console.log(`${indent}Inserting ${elem} into [${subsequenceOfS}]`);
+    //console.log(`${indent}Inserting ${elem} into ${subsequenceOfS.length} elements: [${subsequenceOfS}]`);
     const index = await getInsertionIndex(subsequenceOfS, elem);
     result.splice(index, 0, elem);
     console.log(`${indent}Updated S: [${result}]`);
@@ -173,33 +253,6 @@ async function mergeInsertionSort(arr, depth=0) {
 
   console.log(`${indent}Sorted list: [${result}]`);
   return result;
-
-  /**
-   * Calculate the insertion groups for the Ford-Johnson algorithm
-   * Groups have sizes: 2, 2, 6, 10, 22, 42, ...
-   * @param {number} numElements - Number of elements to group
-   * @returns {Array} - Array of group sizes
-   */
-  function calculateInsertionGroups(numElements) {
-    const groups = [];
-    let remainingElements = numElements;
-    
-    // Calculate Jacobsthal numbers for determining group sizes
-    let a = 1, b = 1;
-    while (remainingElements > 0) {
-      // Next Jacobsthal number
-      const next = b + 2 * a;
-      a = b;
-      b = next;
-      
-      // Group size = difference between consecutive Jacobsthal numbers
-      const groupSize = Math.min(b - a, remainingElements);
-      groups.push(groupSize);
-      remainingElements -= groupSize;
-    }
-    
-    return groups;
-  }
 
   /**
    * Reorder elements according to the Ford-Johnson insertion sequence
@@ -215,7 +268,7 @@ async function mergeInsertionSort(arr, depth=0) {
     for (const groupSize of groups) {
       // Get elements for this group
       const group = elements.slice(startIndex, startIndex + groupSize);
-      console.log(`${indent}Group to reorder: [${group}]`);
+      //console.log(`${indent}Group to reorder: [${group}]`);
       
       // Add group elements to result
       result.push(...group.reverse());
@@ -228,24 +281,25 @@ async function mergeInsertionSort(arr, depth=0) {
   /**
    * Get insertion index through binary search
    * @param {Array} arr - The sorted array
-   * @param {*} element - The element to insert
+   * @param {*} elem - The element to insert
    * @returns {Integer} left - index to insert at
    */
-  async function getInsertionIndex(arr, element) {
+  async function getInsertionIndex(arr, elem) {
     let left = 0;
     let right = arr.length - 1;
     
     // Find insertion point using binary search
     while (left <= right) {
       const mid = Math.floor((left + right) / 2);
-      console.log(`Left: ${left}, Mid: ${mid}, Right: ${right}`);
-      console.log(`${indent}Comparison ${completedComparisons+1}: ${arr[mid]} vs ${element}`);
+      console.log(`${indent}Left: ${left}, Mid: ${mid}, Right: ${right}`);
+      console.log(`${indent}Inserting ${elem} into ${right - left + 1} elements: [${arr.slice(left,right+1)}]`);
+      //console.log(`${indent}Insertion: Comparison ${completedComparisons+1}: ${arr[mid]} vs ${element}`);
       // <<<COMPARE PAIRS BELOW>>>
-      const selectedLeft = await requestUserComparison(arr[mid], element);
+      const selectedLeft = await requestUserComparison(arr[mid], elem);
     
       // Process the user's choice
-      const chosen = selectedLeft ? arr[mid] : element;
-      const rejected = selectedLeft ? element : arr[mid];
+      const chosen = selectedLeft ? arr[mid] : elem;
+      const rejected = selectedLeft ? elem : arr[mid];
 
       if (selectedLeft) {
         right = mid - 1;
