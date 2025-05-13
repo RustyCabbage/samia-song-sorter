@@ -5,7 +5,7 @@ const DOM = {
   songCount: document.getElementById("songCount"),
   startButton: document.getElementById("startButton"),
   shuffleToggle: document.getElementById("shuffleToggle"),
-  shuffleLabel: document.getElementById("shuffleLabel"),
+  mergeTypeToggle: document.getElementById("mergeTypeToggle"),
 
   sortingInterface: document.getElementById("sortingInterface"),
   progress: document.getElementById("progress"),
@@ -28,6 +28,7 @@ const DOM = {
 const state = {
   currentSongList: null,
   shouldShuffle: true,
+  shouldMergeInsert: false,
   notificationTimeout: null,
   themeCache: {} // Cache for theme CSS calculations
 };
@@ -125,11 +126,16 @@ function setupEventListeners() {
   });
   
   // Add event listener to restart button
-  DOM.restartButton.addEventListener("click", () => resetInterface(state.shouldShuffle));
+  DOM.restartButton.addEventListener("click", () => resetInterface(state));
   
   // Set up shuffle toggle event listener
   DOM.shuffleToggle.addEventListener("change", function() {
     state.shouldShuffle = this.checked;
+  });
+
+  // Set up shuffle toggle event listener
+  DOM.mergeTypeToggle.addEventListener("change", function() {
+    state.shouldMergeInsert = this.checked;
   });
   
   // Set up copy text elements
@@ -149,8 +155,9 @@ function showInterface(type) {
 function startSortingProcess() {
   showInterface("sorting");
   
-  // Start the sorting, passing the shuffle flag
-  startSorting(state.currentSongList.songs, state.shouldShuffle);
+  // Start the sorting using the unified function
+  console.log(`Starting sorting with ${state.shouldMergeInsert ? 'merge-insertion' : 'merge'} algorithm`);
+  startSorting(state.currentSongList.songs, state.shouldShuffle, state.shouldMergeInsert);
 }
 
 // Render and display results
@@ -268,11 +275,16 @@ function showNotification(message, isSuccess = true) {
 }
 
 // Reset the interface to selection mode
-function resetInterface(shouldShuffle = true) {
+function resetInterface(state) {
   showInterface("selection");
-  // Reset shuffle toggle to default checked state
-  DOM.shuffleToggle.checked = shouldShuffle;
-  state.shouldShuffle = shouldShuffle;
+  /*
+  // Reset shuffle toggle to stay the same
+  DOM.shuffleToggle.checked = state.shouldShuffle;
+  state.shouldShuffle = state.shouldShuffle;
+  // Reset merge type toggle to stay the same
+  DOM.mergeTypeToggle.checked = state.shouldMergeInsert;
+  state.shouldMergeInsert = state.shouldMergeInsert;
+  */
 }
 
 // Initialize when the DOM is fully loaded
