@@ -54,27 +54,62 @@ class SongListRepository {
 
 const THEMES = {
   bloodless: {
-    backgroundColor: "#282828", // Dark gray
-    textColor: "#e9e9e9", // Light gray
-    buttonColor: "#686868", // Medium gray
-    buttonHoverColor: "#555555", // Darker gray
-    buttonTextColor: "#e9e9e9" // Light gray
+    backgroundColor: "#292929",
+    textColor: "#e9e9e9",
+    buttonColor: "#6F7275",
+    buttonHoverColor: "#484950",
+    buttonTextColor: "#e9e9e9"
   },
   honey: {
+    backgroundColor: "#0B5380",
+    textColor: "#9ACDE1",
+    buttonColor: "#9ACDE1",
+    buttonHoverColor: "#76AFCA",
+    buttonTextColor: "#0A1D3B"
+  },
+  theBaby: {
+    backgroundColor: "#617679",
+    textColor: "#C6BCBD",
+    buttonColor: "#2C3534",
+    buttonHoverColor: "#1B2525",
+    buttonTextColor: "#C6BCBD"
+  },
+  scout: {
+    backgroundColor: "#F49862",
+    textColor: "#102512",
+    buttonColor: "#E08828",
+    buttonHoverColor: "#D1801E",
+    buttonTextColor: "#102512"    
+  },  
+  scout_pink: {
+    backgroundColor: "#FBB19D", // or F6AF9E
+    textColor: "#102512",
+    buttonColor: "#EC8F30",
+    buttonHoverColor: "#D58220",
+    buttonTextColor: "#102512"    
+  },
+  scout_oj: {
+    backgroundColor: "#F09349",
+    textColor: "#102512",
+    buttonColor: "#D58220",
+    buttonHoverColor: "#C57916",
+    buttonTextColor: "#102512"
+  },
+  honey_og: {
     backgroundColor: "#095a8a", // Light blue
     textColor: "#b1d3f1", // Light blue
     buttonColor: "#94c1e8", // Medium blue
     buttonHoverColor: "#6ba4d6", // Slightly darker blue
     buttonTextColor: "#2c4c6b" // Dark blue
   },
-  theBaby: {
+  theBaby_og: {
     backgroundColor: "#567c7e", // Teal
     textColor: "#8ac7ca", // Light teal
     buttonColor: "#2c4545", // Dark teal
     buttonHoverColor: "#122227", // Very dark teal
     buttonTextColor: "#8ac7ca" // Light teal
   },
-  discography: {
+  scout_og: {
     backgroundColor: "#ef936d",
     textColor: "#212121",
     buttonColor: "#c97c5c",
@@ -177,7 +212,7 @@ function initializeSongLists() {
     new SongList("bloodless", "Bloodless", SONG_COLLECTIONS.bloodless, THEMES.bloodless),
     new SongList("honey", "Honey", SONG_COLLECTIONS.honey, THEMES.honey),
     new SongList("theBaby", "The Baby", SONG_COLLECTIONS.theBaby, THEMES.theBaby),
-    new SongList("discography", "Full Discography", discographyList, THEMES.discography)
+    new SongList("discography", "Full Discography", discographyList, THEMES.scout)
   ].forEach(list => songListRepo.addList(list));
   
   return songListRepo;
