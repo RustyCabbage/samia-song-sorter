@@ -21,40 +21,34 @@ class SongList {
 // Repository for all song lists
 class SongListRepository {
   constructor() {
-    this._lists = Object.create(null); // Use null prototype for pure object map
-    this._listCache = null; // Cache for getAllLists()
-    this._idArray = []; // Keep track of IDs for faster iteration
+    this._lists = new Map(); // Use Map instead of Object for better performance with key-value pairs
+    this._listCache = null;
   }
   
-  // Add a song list to the repository
   addList(songList) {
     if (!(songList instanceof SongList)) {
       throw new Error('Must be a SongList instance');
     }
     
-    this._lists[songList.id] = songList;
-    this._idArray.push(songList.id);
-    this._listCache = null; // Invalidate cache
+    this._lists.set(songList.id, songList);
+    this._listCache = null;
   }
   
-  // Get a song list by ID
   getList(id) {
-    return this._lists[id] || null;
+    return this._lists.get(id) || null;
   }
   
-  // Get all available song lists - now with caching
   getAllLists() {
     if (this._listCache) {
       return this._listCache;
     }
     
-    const lists = this._idArray.map(id => ({
-      id: id,
-      name: this._lists[id].name
+    this._listCache = Array.from(this._lists.entries()).map(([id, list]) => ({
+      id,
+      name: list.name
     }));
     
-    this._listCache = lists;
-    return lists;
+    return this._listCache;
   }
 }
 
@@ -84,7 +78,7 @@ const THEMES = {
     backgroundColor: "#ef936d",
     textColor: "#212121",
     buttonColor: "#c97c5c",
-    buttonHoverColor: "#955c44",
+    buttonHoverColor: "#bb7355",
     buttonTextColor: "#212121"
   }
 };

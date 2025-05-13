@@ -56,25 +56,29 @@ function initializeApp() {
 function applyTheme() {
   const themeId = state.currentSongList.id;
   
-  // Use cached theme settings if available
-  if (!state.themeCache[themeId]) {
-    const { backgroundColor, textColor, buttonColor, buttonHoverColor, buttonTextColor } = state.currentSongList._theme;
+  // Only calculate and apply theme if it changed
+  if (state.currentThemeId !== themeId) {
+    state.currentThemeId = themeId;
     
-    state.themeCache[themeId] = {
-      '--background-color': backgroundColor,
-      '--text-color': textColor,
-      '--button-color': buttonColor,
-      '--button-hover-color': buttonHoverColor,
-      '--button-text-color': buttonTextColor
-    };
-  }
-  
-  // Apply cached theme settings
-  const root = document.documentElement.style;
-  const theme = state.themeCache[themeId];
-  
-  for (const [property, value] of Object.entries(theme)) {
-    root.setProperty(property, value);
+    if (!state.themeCache[themeId]) {
+      const { backgroundColor, textColor, buttonColor, buttonHoverColor, buttonTextColor } = state.currentSongList._theme;
+      
+      state.themeCache[themeId] = {
+        '--background-color': backgroundColor,
+        '--text-color': textColor,
+        '--button-color': buttonColor,
+        '--button-hover-color': buttonHoverColor,
+        '--button-text-color': buttonTextColor
+      };
+    }
+    
+    // Apply cached theme settings
+    const root = document.documentElement.style;
+    const theme = state.themeCache[themeId];
+    
+    for (const [property, value] of Object.entries(theme)) {
+      root.setProperty(property, value);
+    }
   }
 }
 
@@ -102,53 +106,73 @@ function populateListSelector() {
 
 // Set up all event listeners
 function setupEventListeners() {
-  // Set up event listener for list selection change
-  DOM.listSelector.addEventListener("change", function() {
-    state.currentSongList = songListRepo.getList(this.value);
-    applyTheme();
-    applySongCount();
-  });
-  
-  // Set up the start button
-  DOM.startButton.addEventListener("click", startSortingProcess);
-  
-  // Set up buttons for comparison
-  DOM.btnA.addEventListener("click", () => {
-    handleOption(true);
-    // Blur the button to remove focus state
-    DOM.btnA.blur();
-  });
-  
-  DOM.btnB.addEventListener("click", () => {
-    handleOption(false);
-    // Blur the button to remove focus state
-    DOM.btnB.blur();
-  });
-  
-  // Add event listener to restart button
-  DOM.restartButton.addEventListener("click", () => resetInterface(state));
-  
-  // Set up shuffle toggle event listener
-  DOM.shuffleToggle.addEventListener("change", function() {
-    state.shouldShuffle = this.checked;
+  DOM.selectionInterface.addEventListener('click', (e) => {
+    // Handle button click
+    if (e.target.id === 'startButton') {
+      startSortingProcess();
+    }
   });
 
-  // Set up shuffle toggle event listener
-  DOM.mergeTypeToggle.addEventListener("change", function() {
-    state.shouldMergeInsert = this.checked;
+  // Handle changes to form controls in the selection interface
+  DOM.selectionInterface.addEventListener('change', (e) => {
+    const target = e.target;
+    
+    switch(target.id) {
+      case 'listSelector':
+        state.currentSongList = songListRepo.getList(target.value);
+        applyTheme();
+        applySongCount();
+        break;
+      case 'shuffleToggle':
+        state.shouldShuffle = target.checked;
+        break;
+      case 'mergeTypeToggle':
+        state.shouldMergeInsert = target.checked;
+        break;
+    }
+  });
+    
+  DOM.sortingInterface.addEventListener('click', (e) => {
+    const target = e.target;
+    
+    switch(target.id) {
+      case 'btnA':
+        handleOption(true);
+        DOM.btnA.blur();
+        break;
+      case 'btnB':
+        handleOption(false);
+        DOM.btnB.blur();
+        break;
+      case 'copyDecisionsButton':
+        copyToClipboard('decisions');
+        break;
+    }
   });
   
-  // Set up copy text elements
-  DOM.copyButton.addEventListener("click", () => copyToClipboard('ranking'));
-  DOM.copyDecisionsButton.addEventListener("click", () => copyToClipboard('decisions'));
-  DOM.copyHistoryButton.addEventListener("click", () => copyToClipboard('history'));
+  // Refactored results interface event handler with switch statement
+  DOM.resultsInterface.addEventListener('click', (e) => {
+    const target = e.target;
+    
+    switch(target.id) {
+      case 'copyButton':
+        copyToClipboard('ranking');
+        break;
+      case 'copyHistoryButton':
+        copyToClipboard('history');
+        break;
+      case 'restartButton':
+        resetInterface(state);
+        break;
+    }
+  });
 }
 
 // Helper function to show the appropriate interface
 function showInterface(type) {
-  DOM.selectionInterface.style.display = type === "selection" ? "block" : "none";
-  DOM.sortingInterface.style.display = type === "sorting" ? "block" : "none";
-  DOM.resultsInterface.style.display = type === "results" ? "block" : "none";
+  DOM.selectionInterface.hidden = type !== "selection";
+  DOM.sortingInterface.hidden = type !== "sorting";
+  DOM.resultsInterface.hidden = type !== "results";
 }
 
 // Start the sorting process
@@ -277,14 +301,6 @@ function showNotification(message, isSuccess = true) {
 // Reset the interface to selection mode
 function resetInterface(state) {
   showInterface("selection");
-  /*
-  // Reset shuffle toggle to stay the same
-  DOM.shuffleToggle.checked = state.shouldShuffle;
-  state.shouldShuffle = state.shouldShuffle;
-  // Reset merge type toggle to stay the same
-  DOM.mergeTypeToggle.checked = state.shouldMergeInsert;
-  state.shouldMergeInsert = state.shouldMergeInsert;
-  */
 }
 
 // Initialize when the DOM is fully loaded

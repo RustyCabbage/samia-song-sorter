@@ -2,12 +2,12 @@
 
 #### todo
 
-##### eventually:tm:
+##### eventually :tm:
 - Import song lists?
 	- Could I do this with a spotify link (album or playlist)? that would be cool.
 
 ##### maybe someday
-- Show decision history during sorting
+- Show decision history during sorting 
 	- shows in the console idk if it's something worth doing
 - Import decision history mid sort
 	- probably have to store shuffle seed when exporting
@@ -19,7 +19,7 @@
 
 ##### probably never
 - tie buttons
-
+	- yuck!
 - Use Atkinson Hyperlegible instead of Arial
 	- https://fonts.google.com/specimen/Atkinson+Hyperlegible
 	- I don't like the way it looks ._.
