@@ -219,17 +219,13 @@ async function mergeInsertionSort(arr, depth=0) {
     return result;
   }
   console.log(`${indent}Remaining elements (${remainingElements.length}): [${remainingElements}]`);
-  // If there is 1 element, no need to calc groups and stuff
-  if (remainingElements.length === 1) {  
-    reorderedElements = [...remainingElements];
-  } else {
-    // Step 5.2: Calculate the special insertion groups
-    const insertionGroups = calculateInsertionGroups(remainingElements.length);
-    console.log(`${indent}Insertion Groups: [${insertionGroups}]`);
-    // Step 5.3: Reorder elements according to the Ford-Johnson sequence
-    reorderedElements = reorderForInsertion(remainingElements, insertionGroups);
-    console.log(`${indent}Reordered elements (${reorderedElements.length}): [${reorderedElements}]`);   
-  }
+
+  // Step 5.2: Calculate the special insertion groups
+  const insertionGroups = calculateInsertionGroups(remainingElements.length);
+  console.log(`${indent}Insertion Groups: [${insertionGroups}]`);
+  // Step 5.3: Reorder elements according to the Ford-Johnson sequence
+  reorderedElements = reorderForInsertion(remainingElements, insertionGroups);
+  console.log(`${indent}Reordered elements (${reorderedElements.length}): [${reorderedElements}]`);   
 
   // Step 5.4: Insert each element using binary search up to but not including xi
   // Create a reverse map of orderedPairs so we can get the index of the larger element
@@ -238,17 +234,29 @@ async function mergeInsertionSort(arr, depth=0) {
     orderedPairsReversed.set(value, key);
   });
 
+  // these variables are needed to accurately update the estimated number of comparisons 
+  let groupIndex = 0;
+  let currentGroupCount = 0;
+
   for (const elem of reorderedElements) {
-    let subsequenceOfS = [...result];
+    currentGroupCount++;
+    const isLastInGroup = currentGroupCount === insertionGroups[groupIndex];
+
+    let subsequenceOfS = [...result]; // default case for unpaired element
     const largerElement = orderedPairsReversed.get(elem);
     if (largerElement !== undefined) {
       const index = result.indexOf(largerElement);
-      subsequenceOfS = result.slice(0,index);
+      subsequenceOfS = result.slice(0,index); // get elements of S up to the larger element
     }
     //console.log(`${indent}Inserting ${elem} into ${subsequenceOfS.length} elements: [${subsequenceOfS}]`);
-    const index = await getInsertionIndex(subsequenceOfS, elem);
+    const index = await getInsertionIndex(subsequenceOfS, elem, isLastInGroup);
     result.splice(index, 0, elem);
     console.log(`${indent}Updated S: [${result}]`);
+
+    if (isLastInGroup) {
+      groupIndex++;
+      currentGroupCount = 0;
+    }
   }
 
   console.log(`${indent}Sorted list: [${result}]`);
@@ -284,9 +292,10 @@ async function mergeInsertionSort(arr, depth=0) {
    * @param {*} elem - The element to insert
    * @returns {Integer} left - index to insert at
    */
-  async function getInsertionIndex(arr, elem) {
+  async function getInsertionIndex(arr, elem, isLastInGroup) {
     let left = 0;
     let right = arr.length - 1;
+    let keepUpdating = true;
     
     // Find insertion point using binary search
     while (left <= right) {
@@ -306,12 +315,56 @@ async function mergeInsertionSort(arr, depth=0) {
       } else {
         left = mid + 1;
       }
-  
+
       // Record the preference
       recordPreference(chosen, rejected);
+
+      // Update the estimates based on the selection
+      if (keepUpdating) {
+        keepUpdating = updateEstimates(selectedLeft, arr.length, left, right, isLastInGroup);
+      }
       // <<<COMPARE PAIRS ABOVE>>>
     }
     return left;
+  }
+
+  // Updates estimates
+  function updateEstimates(selectedLeft, insertionLength, left, right, isLastInGroup) {
+    let keepUpdating = true;
+    // The best case occurs by going right if the subsequence size is of the form m=2^k-1
+    // i.e. 1,3,7,15,31,63, etc.
+    // and going left otherwise.
+    const shouldGoRight = Number.isInteger(Math.log2(insertionLength+1));
+
+    // could write this much simpler but i don't care anymore lol
+    if (shouldGoRight && !isLastInGroup) {
+      if (selectedLeft) {
+        console.log(`${indent}Updating estimate: needed to go right, went left`);
+        bestCaseTotalComparisons++;
+        keepUpdating = false;
+      }
+    }
+    if (!shouldGoRight) {
+      if (!selectedLeft) { 
+        console.log(`${indent}Updating estimate: needed to go left, went right`);
+        bestCaseTotalComparisons++;
+        keepUpdating = false;
+      } else if (left === right) {
+        // if left === right then there's only 1 choice and it doesn't matter which way you pick i think
+        console.log(`${indent}Updating estimate: only 1 choice it doesn't matter`);
+        worstCaseTotalComparisons--;
+        keepUpdating = false;
+      } else if (left>right) {
+        // if the loop is broken and they went left the whole time we should be good.
+        console.log(`${indent}Updating estimate: did the correct choice yay`);
+        worstCaseTotalComparisons--;
+        keepUpdating = false;
+      }
+    }
+
+    bestCaseTotalComparisons = Math.min(bestCaseTotalComparisons, worstCaseTotalComparisons);
+
+    return keepUpdating;
   }
 
   // Record a user preference
@@ -357,34 +410,6 @@ function requestUserComparison(songA, songB) {
   });
 }
 
-
-
-/**
- * Handle when the user selects an option
- * Clicking the left button fires handleOption(true)
- * Clicking the right button fires handleOption(false)
- */
-function handleOption(selectedLeft) {
-  if (compareQueue.length === 0) return;
-  
-  // Get the current comparison with its own resolver
-  const comparison = compareQueue.shift();
-  
-  // Update the estimates based on the selection
-  //updateEstimates(selectedLeft, comparison.leftIndexFromRight, comparison.rightIndexFromRight);
-  
-  // Resolve the promise with the user's choice
-  comparison.resolve(selectedLeft);
-
-  // If there are more comparisons in the queue, show the next one to the user
-  if (compareQueue.length > 0) {
-    // Wait a moment before showing the next comparison to ensure UI updates
-    setTimeout(() => {
-      showComparison();
-    }, 0);
-  }
-}
-
 /**
  * Display a comparison for the user
  * Takes global variable {Array} compareQueue
@@ -403,6 +428,29 @@ function showComparison() {
   // Update progress information
   updateProgressDisplay();
   // Program is continued by the user clicking a button and firing handleOption(selectedLeft)
+}
+
+/**
+ * Handle when the user selects an option
+ * Clicking the left button fires handleOption(true)
+ * Clicking the right button fires handleOption(false)
+ */
+function handleOption(selectedLeft) {
+  if (compareQueue.length === 0) return;
+  
+  // Get the current comparison with its own resolver
+  const comparison = compareQueue.shift();
+  
+  // Resolve the promise with the user's choice
+  comparison.resolve(selectedLeft);
+
+  // If there are more comparisons in the queue, show the next one to the user
+  if (compareQueue.length > 0) {
+    // Wait a moment before showing the next comparison to ensure UI updates
+    setTimeout(() => {
+      showComparison();
+    }, 0);
+  }
 }
 
 // Update the progress display
