@@ -139,12 +139,12 @@ function getWorstCaseMergeInsertion(n) {
  */
 async function mergeInsertionSort(arr, depth=0) {
   const indent = '  '.repeat(depth); // Indentation for current depth
-  console.log(`${indent}Recursion depth ${depth} - Input array: [${arr}]`);
+  //console.log(`${indent}Recursion depth ${depth} - Input array: [${arr}]`);
 
   // Base case: array of length 1
   if (arr.length <= 1) {
-    console.log(`${indent}Only one element. Sort complete: [${arr}]`);
-    console.log(`${indent}<<<Exiting depth ${depth}>>>`);
+    //console.log(`${indent}Only one element. Sort complete: [${arr}]`);
+    //console.log(`${indent}<<<Exiting depth ${depth}>>>`);
     return(arr);
   }
 
@@ -155,7 +155,7 @@ async function mergeInsertionSort(arr, depth=0) {
     
   }
   const unpaired = arr.length % 2 === 1 ? arr[arr.length - 1] : null;
-  console.log(
+  //console.log(
     `${indent}Pairs: [`
     + pairs.map(pair => `(${pair[0]}:${pair[1]})`).join(", ")
     + "]"
@@ -165,7 +165,7 @@ async function mergeInsertionSort(arr, depth=0) {
   // <<<Push the larger and smaller>>>
   const orderedPairs = new Map();
   for (const pair of pairs) {
-    //console.log(`${indent}Merge: Comparison ${completedComparisons+1}: ${pair[0]} vs ${pair[1]}`);
+    ////console.log(`${indent}Merge: Comparison ${completedComparisons+1}: ${pair[0]} vs ${pair[1]}`);
     // <<<COMPARE PAIRS BELOW>>>
     // Need user input for this comparison
     const selectedLeft = await requestUserComparison(pair[0], pair[1]);
@@ -179,7 +179,7 @@ async function mergeInsertionSort(arr, depth=0) {
     // Record the preference
     recordPreference(chosen, rejected);
   }
-  console.log(
+  //console.log(
     `${indent}Ordered Pairs: [`
     + Array.from(orderedPairs.entries())
       .map(([larger, smaller]) => `(${larger}:${smaller})`)
@@ -189,7 +189,7 @@ async function mergeInsertionSort(arr, depth=0) {
 
   // Step 3: Recursively sort the larger elements
   const largerElements = Array.from(orderedPairs.keys());
-  console.log(`${indent}Larger Elements: [${largerElements}]`);
+  //console.log(`${indent}Larger Elements: [${largerElements}]`);
   const sortedLargerElements = await mergeInsertionSort(largerElements, depth+1);
 
   // Prepare the result array with sorted larger elements (S)
@@ -197,7 +197,7 @@ async function mergeInsertionSort(arr, depth=0) {
 
   // Step 4: Insert the element paired with the smallest element in S  
   result.unshift(orderedPairs.get(result[0]));
-  console.log(`${indent}Inserted smallest paired element. S: [${result}]`);
+  //console.log(`${indent}Inserted smallest paired element. S: [${result}]`);
 
   // Step 5: Insertion
   // Step 5.1: Collect remaining smaller elements + unpaired element if it exists
@@ -215,17 +215,17 @@ async function mergeInsertionSort(arr, depth=0) {
   // If there are no elements to insert, we can stop here
   let reorderedElements = [];
   if (remainingElements.length === 0) {
-    console.log(`${indent}No elements to insert. Sort complete: [${result}]`);
+    //console.log(`${indent}No elements to insert. Sort complete: [${result}]`);
     return result;
   }
-  console.log(`${indent}Remaining elements (${remainingElements.length}): [${remainingElements}]`);
+  //console.log(`${indent}Remaining elements (${remainingElements.length}): [${remainingElements}]`);
 
   // Step 5.2: Calculate the special insertion groups
   const insertionGroups = calculateInsertionGroups(remainingElements.length);
-  console.log(`${indent}Insertion Groups: [${insertionGroups}]`);
+  //console.log(`${indent}Insertion Groups: [${insertionGroups}]`);
   // Step 5.3: Reorder elements according to the Ford-Johnson sequence
   reorderedElements = reorderForInsertion(remainingElements, insertionGroups);
-  console.log(`${indent}Reordered elements (${reorderedElements.length}): [${reorderedElements}]`);   
+  //console.log(`${indent}Reordered elements (${reorderedElements.length}): [${reorderedElements}]`);   
 
   // Step 5.4: Insert each element using binary search up to but not including xi
   // Create a reverse map of orderedPairs so we can get the index of the larger element
@@ -248,10 +248,10 @@ async function mergeInsertionSort(arr, depth=0) {
       const index = result.indexOf(largerElement);
       subsequenceOfS = result.slice(0,index); // get elements of S up to the larger element
     }
-    //console.log(`${indent}Inserting ${elem} into ${subsequenceOfS.length} elements: [${subsequenceOfS}]`);
+    ////console.log(`${indent}Inserting ${elem} into ${subsequenceOfS.length} elements: [${subsequenceOfS}]`);
     const index = await getInsertionIndex(subsequenceOfS, elem, isLastInGroup);
     result.splice(index, 0, elem);
-    console.log(`${indent}Updated S: [${result}]`);
+    //console.log(`${indent}Updated S: [${result}]`);
 
     if (isLastInGroup) {
       groupIndex++;
@@ -259,7 +259,7 @@ async function mergeInsertionSort(arr, depth=0) {
     }
   }
 
-  console.log(`${indent}Sorted list: [${result}]`);
+  //console.log(`${indent}Sorted list: [${result}]`);
   return result;
 
   /**
@@ -276,7 +276,7 @@ async function mergeInsertionSort(arr, depth=0) {
     for (const groupSize of groups) {
       // Get elements for this group
       const group = elements.slice(startIndex, startIndex + groupSize);
-      //console.log(`${indent}Group to reorder: [${group}]`);
+      ////console.log(`${indent}Group to reorder: [${group}]`);
       
       // Add group elements to result
       result.push(...group.reverse());
@@ -300,9 +300,9 @@ async function mergeInsertionSort(arr, depth=0) {
     // Find insertion point using binary search
     while (left <= right) {
       const mid = Math.floor((left + right) / 2);
-      console.log(`${indent}Left: ${left}, Mid: ${mid}, Right: ${right}`);
-      console.log(`${indent}Inserting ${elem} into ${right - left + 1} elements: [${arr.slice(left,right+1)}]`);
-      //console.log(`${indent}Insertion: Comparison ${completedComparisons+1}: ${arr[mid]} vs ${element}`);
+      //console.log(`${indent}Left: ${left}, Mid: ${mid}, Right: ${right}`);
+      //console.log(`${indent}Inserting ${elem} into ${right - left + 1} elements: [${arr.slice(left,right+1)}]`);
+      ////console.log(`${indent}Insertion: Comparison ${completedComparisons+1}: ${arr[mid]} vs ${element}`);
       // <<<COMPARE PAIRS BELOW>>>
       const selectedLeft = await requestUserComparison(arr[mid], elem);
     
@@ -339,24 +339,24 @@ async function mergeInsertionSort(arr, depth=0) {
     // could write this much simpler but i don't care anymore lol
     if (shouldGoRight && !isLastInGroup) {
       if (selectedLeft) {
-        console.log(`${indent}Updating estimate: needed to go right, went left`);
+        //console.log(`${indent}Updating estimate: needed to go right, went left`);
         bestCaseTotalComparisons++;
         keepUpdating = false;
       }
     }
     if (!shouldGoRight) {
       if (!selectedLeft) { 
-        console.log(`${indent}Updating estimate: needed to go left, went right`);
+        //console.log(`${indent}Updating estimate: needed to go left, went right`);
         bestCaseTotalComparisons++;
         keepUpdating = false;
       } else if (left === right) {
         // if left === right then there's only 1 choice and it doesn't matter which way you pick i think
-        console.log(`${indent}Updating estimate: only 1 choice it doesn't matter`);
+        //console.log(`${indent}Updating estimate: only 1 choice it doesn't matter`);
         worstCaseTotalComparisons--;
         keepUpdating = false;
       } else if (left>right) {
         // if the loop is broken and they went left the whole time we should be good.
-        console.log(`${indent}Updating estimate: did the correct choice yay`);
+        //console.log(`${indent}Updating estimate: did the correct choice yay`);
         worstCaseTotalComparisons--;
         keepUpdating = false;
       }
@@ -474,11 +474,11 @@ testCase = [...Array(n+1).keys()];
 testCase.shift();
 testCase = [1,2,0,4,5];
 result = startSorting(testCase, shuffle=false);
-console.log(`Number of comparisons: ${completedComparisons}`);
+//console.log(`Number of comparisons: ${completedComparisons}`);
 */
 
 /*
 for (const n of testCase) {
-	console.log(`n=${n}: insertion groups: ${calculateInsertionGroups(n)}`);
+	//console.log(`n=${n}: insertion groups: ${calculateInsertionGroups(n)}`);
 }
 */
