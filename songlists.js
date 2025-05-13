@@ -75,12 +75,12 @@ const THEMES = {
     buttonTextColor: "#C6BCBD"
   },
   scout: {
-    backgroundColor: "#F49862",
+    backgroundColor: "#F5A380",
     textColor: "#102512",
-    buttonColor: "#E08828",
-    buttonHoverColor: "#D1801E",
-    buttonTextColor: "#102512"    
-  },  
+    buttonColor: "#EC8F30",
+    buttonHoverColor: "#E28A2A",
+    buttonTextColor: "#102512"
+  },
   scout_pink: {
     backgroundColor: "#FBB19D", // or F6AF9E
     textColor: "#102512",

@@ -186,5 +186,5 @@ print(bright_sorted)
 interpolate_hex("#1B2525", "#3C4543", 0.5) # The Baby button color
 interpolate_hex("#F49862", "#EC8F30", 0.5) # Scout_oj background color
 interpolate_hex("#C57916", "#EC8F30", 0.4) # Scout_oj button color
-interpolate_hex("#C57916", "#EC8F30", 0.7) # Scout button color
-interpolate_hex("#C57916", "#EC8F30", 0.3) # Scout button hover color
+interpolate_hex("#F49862", "#F6AF9E", 0.5) # Scout bg  color
+interpolate_hex("#C57916", "#EC8F30", 0.75) # Scout button hover color
