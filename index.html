@@ -30,14 +30,28 @@
       Select a list and click "Start Ranking" when you're ready.
     </p>
     <button id="startButton" class="action-button">Start Ranking</button>
-    <!-- Add shuffle toggle -->
-    <div class="shuffle-container">
-      <label class="switch">
-        <input type="checkbox" id="shuffleToggle" class="shuffle-toggle" checked>
-        <span class="slider"></span>
-      </label>
-      <label for="shuffleToggle" id="shuffleLabel" class="shuffle-label">Shuffle songs before ranking</label>
-    </div>
+    <!-- Add toggles -->
+    <div class="slider-container">
+      <div class="toggle-row">
+        <label class="switch">
+          <input type="checkbox" id="shuffleToggle" class="slider-toggle" checked>
+          <span class="slider"></span>
+        </label>
+        <label for="shuffleToggle" id="shuffleLabel" class="slider-label">Shuffle songs before ranking</label>
+      </div>
+      <div class="toggle-row">
+        <label class="switch">
+          <input type="checkbox" id="mergeTypeToggle" class="slider-toggle">
+          <span class="slider"></span>
+        </label>
+        <label for="mergeTypeToggle" id="mergeTypeLabel" class="slider-label">
+          Use experimental merge algorithm<span class="tooltip">[?]
+            <span class="tooltip-text">
+              Uses merge-insertion sort to reduce the number of necessary comparisons on average and in the worst case.
+            </span>
+          </span>
+        </label>
+      </div>
   </section>
   
   <!-- Sorting Interface -->
