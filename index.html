@@ -41,13 +41,13 @@
       </div>
       <div class="toggle-row">
         <label class="switch">
-          <input type="checkbox" id="mergeTypeToggle" class="slider-toggle">
+          <input type="checkbox" id="mergeTypeToggle" class="slider-toggle" checked>
           <span class="slider"></span>
         </label>
         <label for="mergeTypeToggle" id="mergeTypeLabel" class="slider-label">
-          Use experimental merge algorithm<span class="tooltip">[?]
+          Use Ford-Johnson merge algorithm<span class="tooltip">[?]
             <span class="tooltip-text">
-              Uses merge-insertion sort to reduce the number of necessary comparisons on average and in the worst case.
+              Uses merge-insertion sort to reduce the number of necessary comparisons on average and in the worst case. Slightly experimental in the sense that I'm not 100% sure that the estimated best/worst case number of comparisons are correct.
             </span>
           </span>
         </label>

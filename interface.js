@@ -28,7 +28,7 @@ const DOM = {
 const state = {
   currentSongList: null,
   shouldShuffle: true,
-  shouldMergeInsert: false,
+  shouldMergeInsert: true,
   notificationTimeout: null,
   themeCache: {} // Cache for theme CSS calculations
 };
