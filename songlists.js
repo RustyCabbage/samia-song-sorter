@@ -112,8 +112,8 @@ const THEMES = {
   scout_og: {
     backgroundColor: "#ef936d",
     textColor: "#212121",
-    buttonColor: "#E08828",
-    buttonHoverColor: "#D1801E",
+    buttonColor: "#c97c5c",
+    buttonHoverColor: "#bb7355",
     buttonTextColor: "#212121"
   }
 };
