@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Sort and rank Samia songs based on your preferences">
   <title>Samia Song Sorter</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/components.css">
+  <link rel="stylesheet" href="styles/buttons.css">
   <link rel="icon" href="images/favicon-32x32.png" type="image/png">
   
   <link rel="preload" href="songlists.js" as="script">
@@ -19,10 +21,10 @@
   
   <main>
     <!-- Selection Interface -->
-    <section id="selectionInterface" class="interface-panel" aria-live="polite">
+    <section id="selectionInterface" aria-live="polite">
       <h2 class="section-title">Choose a Song List to Rank</h2>
       <div class="select-container">
-        <select id="listSelector" class="song-list-select" name="songList" aria-label="Song list selection">
+        <select id="listSelector" class="button song-list-select" name="songList" aria-label="Song list selection">
           <!-- Options will be populated by JavaScript -->
         </select>
         <div id="songCount" class="song-count" aria-live="polite"></div>
@@ -31,7 +33,7 @@
         This tool will help you rank songs by presenting you with pairs to choose between.
         Select a list and click "Start Ranking" when you're ready.
       </p>
-      <button id="startButton" class="action-button">Start Ranking</button>
+      <button id="startButton" class="button action-button scale-hover">Start Ranking</button>
       
       <div class="slider-container">
         <div class="toggle-row">
@@ -59,25 +61,25 @@
     </section>
     
     <!-- Sorting Interface -->
-    <section id="sortingInterface" class="interface-panel" aria-live="polite" hidden>
+    <section id="sortingInterface" aria-live="polite" hidden>
       <h2 class="section-title">Which song do you prefer?</h2>
       <div id="progress" class="progress-indicator" aria-live="polite"></div>
       <div id="comparison" class="comparison-text" aria-live="polite"></div>
       <div id="choices" class="choice-buttons">
-        <button id="btnA" class="choice-button" aria-label="Choose song A"></button>
-        <button id="btnB" class="choice-button" aria-label="Choose song B"></button>
+        <button id="btnA" class="button choice-button scale-hover" aria-label="Choose song A"></button>
+        <button id="btnB" class="button choice-button scale-hover" aria-label="Choose song B"></button>
       </div>
       <p class="warning">
         Warning: refreshing will erase your progress.
       </p>
-      <div class="decision-actions">
+      <div class="sorting-actions">
         <p id="copyDecisionsButton" class="copy-text">Copy previous decisions to clipboard</p>
         <p id="importDecisionsButton" class="copy-text">Import decisions</p>
       </div>
     </section>
     
     <!-- Results Interface -->
-    <section id="resultsInterface" class="interface-panel" aria-live="polite" hidden>
+    <section id="resultsInterface" aria-live="polite" hidden>
       <div class="results-container">
         <h2 id="resultTitle">Your <i id="listName"></i> Ranking:</h2>
         <ol id="resultList">
@@ -103,7 +105,7 @@
         </div>
         <p id="copyHistoryButton" class="copy-text">Copy history to clipboard</p>
       </div>
-      <button id="restartButton" class="action-button">Rank Another List</button>
+      <button id="restartButton" class="button action-button scale-hover">Rank Another List</button>
     </section>
   </main>
 
@@ -123,17 +125,16 @@
         <textarea id="importTextarea" class="import-textarea" placeholder="Paste decisions here..."></textarea>
       </div>
       <div class="modal-footer">
-        <button id="cancelImport" class="action-button small-button">Cancel</button>
-        <button id="confirmImport" class="action-button small-button">Import</button>
+        <button id="cancelImport" class="button small-button">Cancel</button>
+        <button id="confirmImport" class="button small-button">Import</button>
       </div>
     </div>
   </div>
   
-  <footer class="page-footer">
+  <footer>
     <p class="source"><a href="https://github.com/RustyCabbage/samia-song-sorter">source</a></p>
   </footer>
-  
-  <!-- Load scripts with defer to improve page load performance -->
+
   <script src="songlists.js" defer></script>
   <script src="import_export.js" defer></script>
   <script src="interface.js" defer></script>
