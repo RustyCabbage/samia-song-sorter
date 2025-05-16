@@ -82,7 +82,7 @@ function copyToClipboard(type, currentSongList) {
 }
 
 // Show a notification banner
-function showNotification(message, isSuccess = true) {
+function showNotification(message, isSuccess = true, timeoutDuration=3000) {
   // Clear any existing timeout
   if (ClipboardState.notificationTimeout) {
     clearTimeout(ClipboardState.notificationTimeout);
@@ -99,7 +99,7 @@ function showNotification(message, isSuccess = true) {
   // Hide after delay
   ClipboardState.notificationTimeout = setTimeout(() => {
     DOM.copyStatus.classList.remove('visible');
-  }, 3000);
+  }, timeoutDuration);
 }
 
 // Process imported decisions

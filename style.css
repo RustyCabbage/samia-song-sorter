@@ -11,7 +11,7 @@
 }
 
 /* Utility classes */
-.centered-container { margin: 0 auto; text-align: center; max-width: 400px; }
+.centered-container { margin: 0 auto; text-align: center; max-width: 450px; }
 
 /* Base styles */
 body.centered-container {
@@ -119,6 +119,7 @@ body.centered-container {
 .song-list-select { padding: 0.75em; margin-bottom: 0.5em; width: 100%; max-width: 75%; }
 .action-button { padding: 1em 2em; margin: 1.5em 0; }
 .choice-button { padding: 0.5em; width: 50%; min-height: 4em; margin: 0 1.5em; }
+.small-button { padding: 0.5em 1em; margin: 0; }
 
 .song-list-select:hover,
 .song-list-select:focus {
@@ -162,7 +163,6 @@ body.centered-container {
 
 /* Modal Dialog Styles */
 .modal {
-  display: none;
   position: fixed;
   top: 0;
   left: 0;
@@ -170,18 +170,26 @@ body.centered-container {
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.7);
   z-index: 1001;
+  
+  /* Set flex display with centering */
+  display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Ensure hidden attribute works properly */
+.modal[hidden] {
+  display: none;
 }
 
 .modal-content {
   background-color: var(--background-color);
   border-radius: var(--border-radius);
   padding: 1.5em;
-  width: 90%;
-  max-width: 500px;
+  max-width: 450px;
   max-height: 80vh;
   overflow-y: auto;
+  margin: 0 auto;
 }
 
 .modal-header {
@@ -194,6 +202,28 @@ body.centered-container {
 .modal-title {
   margin: 0;
   font-size: 1.25em;
+}
+
+.modal-body {
+  text-align: justify;
+}
+
+.import-textarea {
+  width: 100%; /* Make the textarea 100% width to match modal-body */
+  height: 150px;
+  margin-top: 0.5em;
+  background-color: var(--button-color);
+  color: var(--button-text-color);
+  border: none;
+  border-radius: var(--border-radius);
+  resize: vertical;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1em;
+  margin-top: 1em;
 }
 
 .close-button {
@@ -232,14 +262,14 @@ body.centered-container {
 /* Copy status banner */
 .copy-status-banner {
   position: fixed;
-  bottom: -4em; left: 0; right: 0;
+  bottom: -10em; left: 0; right: 0;
   color: var(--button-text-color);
   background-color: var(--button-hover-color);
   text-align: center;
   padding: 0.75em;
   font-weight: bold;
   z-index: 1000;
-  transition: bottom var(--transition-speed) ease-in-out;
+  transition: bottom calc(var(--transition-speed)*2.5) ease-in-out;
   border-top: 0.25em solid green;
   opacity: 0.9;
 }

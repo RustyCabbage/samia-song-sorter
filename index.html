@@ -72,7 +72,7 @@
       </p>
       <div class="decision-actions">
         <p id="copyDecisionsButton" class="copy-text">Copy previous decisions to clipboard</p>
-        <p id="importDecisionsButton" class="copy-text">Import Decisions</p>
+        <p id="importDecisionsButton" class="copy-text">Import decisions</p>
       </div>
     </section>
     
@@ -111,14 +111,15 @@
   <div id="copyStatus" class="copy-status-banner" aria-live="polite"></div>
   
   <!-- Import Decisions Modal -->
-  <div id="importModal" class="modal">
+  <div id="importModal" class="modal" hidden>
     <div class="modal-content">
       <div class="modal-header">
         <h3 class="modal-title">Import Decisions</h3>
         <button id="closeModal" class="close-button" aria-label="Close">&times;</button>
       </div>
       <div class="modal-body">
-        <p>Paste your previous decisions below. The format should match what was copied using "Copy previous decisions to clipboard".</p>
+        <div>Paste your previous decisions below.</div>
+        <div>The parser will look for "#. SongA > SongB" on separate lines.</div>
         <textarea id="importTextarea" class="import-textarea" placeholder="Paste decisions here..."></textarea>
       </div>
       <div class="modal-footer">

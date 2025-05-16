@@ -718,74 +718,6 @@ const SongSorter = (function() {
 
     return `${year}-${month}-${day} ${hour12}:${minutes}:${seconds} ${ampm}`;
     }
-
-    /**
-     * Check if we already know which song is preferred
-     * @param {const} songA - left choice
-     * @param {const} songB - right choice 
-     * @returns {string} result - "left", "right" or null
-     */ 
-    function getKnownPreference(songA, songB) {
-      // Get all preferences (direct and transitive)
-      const allPreferences = inferTransitivePreferences();
-      
-      let selectedLeft = null;
-      for (const pref of allPreferences) {
-        if (pref.chosen === songA && pref.rejected === songB) {
-          selectedLeft = true;
-          break;
-        } else if (pref.chosen === songB && pref.rejected === songA) {
-          selectedLeft = false;
-          break;
-        }
-      }
-      
-      const preference = {
-        selectedLeft: selectedLeft,
-        type: 'infer'
-      }
-      return preference;
-    }
-
-    /**
-     * Infer preferences based on transitivity (A > B and B > C implies A > C)
-     * Takes global variable {Array} decisionHistory
-     * @returns {Array} - list of direct decisions + transitive preferences
-     */ 
-    function inferTransitivePreferences() {
-      const allPreferences = [...decisionHistory];
-      
-      // Keep adding transitive preferences until no more can be found
-      let added = true;
-      while (added) {
-        added = false;
-        for (const pref1 of allPreferences) {
-          for (const pref2 of allPreferences) {
-            // If A > B and B > C, then A > C
-            if (pref1.rejected === pref2.chosen) {
-              const newPref = {
-                comparison: null,
-                chosen: pref1.chosen,
-                rejected: pref2.rejected,
-                elapsedTime: null,
-                type: 'infer',
-              };
-              
-              // Check if this preference is already known
-              // If not, add it to the list of preferences and rerun the loop
-              const alreadyKnown = allPreferences.some(p => 
-                p.chosen === newPref.chosen && p.rejected === newPref.rejected
-              );
-              if (!alreadyKnown) {
-                allPreferences.push(newPref);
-                added = true;
-              }
-            }
-          }
-        }
-      }
-      return allPreferences;
-    }
         
     /**
      * Get the history of decisions
@@ -818,6 +750,74 @@ const SongSorter = (function() {
     };
   })();
   
+/**
+ * Check if we already know which song is preferred
+ * @param {const} songA - left choice
+ * @param {const} songB - right choice 
+ * @returns {string} result - "left", "right" or null
+ */ 
+function getKnownPreference(songA, songB) {
+  // Get all preferences (direct and transitive)
+  const allPreferences = inferTransitivePreferences();
+  
+  let selectedLeft = null;
+  for (const pref of allPreferences) {
+    if (pref.chosen === songA && pref.rejected === songB) {
+      selectedLeft = true;
+      break;
+    } else if (pref.chosen === songB && pref.rejected === songA) {
+      selectedLeft = false;
+      break;
+    }
+  }
+  
+  const preference = {
+    selectedLeft: selectedLeft,
+    type: 'infer'
+  }
+  return preference;
+}
+
+/**
+ * Infer preferences based on transitivity (A > B and B > C implies A > C)
+ * Takes global variable {Array} decisionHistory
+ * @returns {Array} - list of direct decisions + transitive preferences
+ */ 
+function inferTransitivePreferences() {
+  const allPreferences = [...decisionHistory];
+  
+  // Keep adding transitive preferences until no more can be found
+  let added = true;
+  while (added) {
+    added = false;
+    for (const pref1 of allPreferences) {
+      for (const pref2 of allPreferences) {
+        // If A > B and B > C, then A > C
+        if (pref1.rejected === pref2.chosen) {
+          const newPref = {
+            comparison: null,
+            chosen: pref1.chosen,
+            rejected: pref2.rejected,
+            elapsedTime: null,
+            type: 'infer',
+          };
+          
+          // Check if this preference is already known
+          // If not, add it to the list of preferences and rerun the loop
+          const alreadyKnown = allPreferences.some(p => 
+            p.chosen === newPref.chosen && p.rejected === newPref.rejected
+          );
+          if (!alreadyKnown) {
+            allPreferences.push(newPref);
+            added = true;
+          }
+        }
+      }
+    }
+  }
+  return allPreferences;
+}
+
   // Export the decision history for access by other modules
   function getDecisionHistory() {
     return SongSorter.getDecisionHistory();
