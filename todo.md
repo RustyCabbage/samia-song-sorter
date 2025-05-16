@@ -5,10 +5,13 @@
 ##### eventually :tm:
 - Import song lists?
 	- Could I do this with a spotify link (album or playlist)? that would be cool.
+- elapsed time column in decision history
 
 ##### maybe someday
 - back/undo button
 	- was not easily possible with previous implementation, idk about now that i use async/await
+- skip button
+	- only within a recusion level? idk how this affects the algorithm
 - Show decision history during sorting 
 	- shows in the console idk if it's something worth doing
 - Import decision history mid sort
