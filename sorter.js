@@ -162,13 +162,20 @@ const SongSorter = (function() {
         const songA = left[leftIndex];
         const songB = right[rightIndex];
         
-        // Need user input for this comparison
-        const selectedLeft = await requestUserComparison(
+        let selectedLeft = null;
+        const pref = getKnownPreference(songA, songB);
+        if (pref !== null) {
+          console.log(`Known comparison: ${(pref === 'left') ? songA : songB} > ${(pref === 'left') ? songB : songA}`);
+          selectedLeft = (pref === 'left') ? true : false;
+        } else {
+          // Need user input for this comparison
+          selectedLeft = await requestUserComparison(
           songA, songB, 
           left.length - (leftIndex + 1), 
           right.length - (rightIndex + 1)
-        );
-        
+          );
+        }
+
         // Process the user's choice
         if (selectedLeft) {
           merged.push(songA);
@@ -336,8 +343,15 @@ const SongSorter = (function() {
       // Step 2: Compare elements in each pair (larger element first)
       const orderedPairs = new Map();
       for (const pair of pairs) {
-        // Need user input for this comparison
-        const selectedLeft = await requestUserComparison(pair[0], pair[1]);
+        let selectedLeft = null;
+        const pref = getKnownPreference(pair[0], pair[1]);
+        if (pref !== null) {
+          console.log(`Known comparison: ${(pref === 'left') ? pair[0] : pair[1]} > ${(pref === 'left') ? pair[1] : pair[0]}`);
+          selectedLeft = (pref === 'left') ? true : false;
+        } else {
+          // Need user input for this comparison
+          selectedLeft = await requestUserComparison(pair[0], pair[1]);
+        }
         
         // Process the user's choice
         const chosen = selectedLeft ? pair[0] : pair[1];
@@ -455,8 +469,15 @@ const SongSorter = (function() {
       while (left <= right) {
         const mid = Math.floor((left + right) / 2);
         
-        // Need user input for this comparison
-        const selectedLeft = await requestUserComparison(arr[mid], elem);
+        let selectedLeft = null;
+        const pref = getKnownPreference(arr[mid], elem);
+        if (pref !== null) {
+          console.log(`Known comparison: ${(pref === 'left') ? arr[mid] : elem} > ${(pref === 'left') ? elem : arr[mid]}`);
+          selectedLeft = (pref === 'left') ? true : false;
+        } else {
+          // Need user input for this comparison
+          selectedLeft = await requestUserComparison(arr[mid], elem);
+        }
         
         // Process the user's choice
         const chosen = selectedLeft ? arr[mid] : elem;
@@ -589,7 +610,7 @@ const SongSorter = (function() {
       
       // Calculate time since last decision
       let elapsedTime = null;
-      let elapsedTimeFormatted = null;
+      let elapsedTimeFormatted = " N/A  ";
       if (lastDecisionTimestamp) {
         elapsedTime = now - lastDecisionTimestamp;
         // Format time as minutes:seconds
@@ -603,14 +624,15 @@ const SongSorter = (function() {
       lastDecisionTimestamp = now;      
 
       // Log the timestamps to console
-      console.log(`${formatLocalTime(now)} | Time: ${(elapsedTimeFormatted !== null) ? elapsedTimeFormatted : " N/A  "} | Comparison #${completedComparisons}: ${chosen} > ${rejected}`);
+      console.log(`${formatLocalTime(now)} | Time: ${elapsedTimeFormatted} | Comparison #${completedComparisons}: ${chosen} > ${rejected}`);
 
       // Add decision to history with timestamps
       decisionHistory.push({
         comparison: completedComparisons,
         chosen: chosen,
         rejected: rejected,
-        elapsedTime: elapsedTime
+        elapsedTime: elapsedTime,
+        imported: false
       });
     }
 
@@ -662,7 +684,85 @@ const SongSorter = (function() {
         `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons}` :
         `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons} to ${worstCaseTotalComparisons}`;
     }
-    
+
+    /**
+     * Format the timestamp in local time: YYYY-MM-DD hh:mm:ss AM/PM
+     * @param {Date} date - The date to format
+     * @returns {string} Formatted date string
+     */
+    function formatLocalTime(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = date.getHours();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const hour12 = hours % 12 || 12; // Convert 0 to 12
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hour12}:${minutes}:${seconds} ${ampm}`;
+    }
+
+    /**
+     * Check if we already know which song is preferred
+     * @param {const} songA - left choice
+     * @param {const} songB - right choice 
+     * @returns {string} result - "left", "right" or null
+     */ 
+    function getKnownPreference(songA, songB) {
+      // Get all preferences (direct and transitive)
+      const allPreferences = inferTransitivePreferences();
+      
+      for (const pref of allPreferences) {
+        if (pref.chosen === songA && pref.rejected === songB) {
+          return 'left';
+        } else if (pref.chosen === songB && pref.rejected === songA) {
+          return 'right';
+        }
+      }
+      return null; // No known preference
+    }
+
+    /**
+     * Infer preferences based on transitivity (A > B and B > C implies A > C)
+     * Takes global variable {Array} decisionHistory
+     * @returns {Array} - list of direct decisions + transitive preferences
+     */ 
+    function inferTransitivePreferences() {
+      const allPreferences = [...decisionHistory];
+      
+      // Keep adding transitive preferences until no more can be found
+      let added = true;
+      while (added) {
+        added = false;
+        for (const pref1 of allPreferences) {
+          for (const pref2 of allPreferences) {
+            // If A > B and B > C, then A > C
+            if (pref1.rejected === pref2.chosen) {
+              const newPref = {
+                comparison: null,
+                chosen: pref1.chosen,
+                rejected: pref2.rejected,
+                elapsedTime: null,
+                imported: false
+              };
+              
+              // Check if this preference is already known
+              // If not, add it to the list of preferences and rerun the loop
+              const alreadyKnown = allPreferences.some(p => 
+                p.chosen === newPref.chosen && p.rejected === newPref.rejected
+              );
+              if (!alreadyKnown) {
+                allPreferences.push(newPref);
+                added = true;
+              }
+            }
+          }
+        }
+      }
+      return allPreferences;
+    }
+        
     /**
      * Get the history of decisions
      * @returns {Array} - Array of decision objects
@@ -671,11 +771,26 @@ const SongSorter = (function() {
       return decisionHistory;
     }
     
+    /**
+     * Add an imported decision to the decision history
+     * @param {object} decision - The decision to add
+     */
+    function addImportedDecision(decision) {
+      decisionHistory.push({
+        comparison: null,
+        chosen: decision.chosen,
+        rejected: decision.rejected,
+        elapsedTime: null,
+        imported: true
+      });
+    }
+    
     // External API
     return {
       startSorting: startSorting,
       handleOption: handleOption,
-      getDecisionHistory: getDecisionHistory
+      getDecisionHistory: getDecisionHistory,
+      addImportedDecision: addImportedDecision
     };
   })();
   
@@ -700,21 +815,3 @@ const SongSorter = (function() {
       return SongSorter.getDecisionHistory();
     }
   });
-
-      /**
-     * Format the timestamp in local time: YYYY-MM-DD hh:mm:ss AM/PM
-     * @param {Date} date - The date to format
-     * @returns {string} Formatted date string
-     */
-    function formatLocalTime(date) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = date.getHours();
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      const hour12 = hours % 12 || 12; // Convert 0 to 12
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      const seconds = String(date.getSeconds()).padStart(2, '0');
-      
-      return `${year}-${month}-${day} ${hour12}:${minutes}:${seconds} ${ampm}`;
-    }

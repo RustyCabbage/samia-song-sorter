@@ -152,6 +152,58 @@ body.centered-container {
 }
 .warning { font-size: 0.75em; font-style: italic; }
 
+.decision-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+  margin-top: 0.5em;
+}
+
+/* Modal Dialog Styles */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1001;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background-color: var(--background-color);
+  border-radius: var(--border-radius);
+  padding: 1.5em;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1em;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.25em;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 1.5em;
+  cursor: pointer;
+}
+
 /* Results styles */
 .results-container ol,
 .decision-table table {
@@ -171,7 +223,7 @@ body.centered-container {
   cursor: pointer;
   display: inline-block;
   text-align: center;
-  margin: 0 0 0.5em;
+  margin: 0.5em 0 0 0em;
   opacity: 0.9;
 }
 .copy-text:hover { color: var(--button-hover-color); }

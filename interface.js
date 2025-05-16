@@ -13,6 +13,7 @@ const DOM = {
   btnA: document.getElementById("btnA"),
   btnB: document.getElementById("btnB"),
   copyDecisionsButton: document.getElementById("copyDecisionsButton"),
+  importDecisionsButton: document.getElementById("importDecisionsButton"),
 
   resultsInterface: document.getElementById("resultsInterface"),
   resultList: document.getElementById("resultList"),
@@ -21,7 +22,13 @@ const DOM = {
   copyButton: document.getElementById("copyButton"),
   copyHistoryButton: document.getElementById("copyHistoryButton"),
   copyStatus: document.getElementById("copyStatus"),
-  restartButton: document.getElementById("restartButton")
+  restartButton: document.getElementById("restartButton"),
+  
+  importModal: document.getElementById("importModal"),
+  importTextarea: document.getElementById("importTextarea"),
+  closeModal: document.getElementById("closeModal"),
+  cancelImport: document.getElementById("cancelImport"),
+  confirmImport: document.getElementById("confirmImport")
 };
 
 // State management
@@ -147,6 +154,9 @@ function setupEventListeners() {
       case 'copyDecisionsButton':
         copyToClipboard('decisions');
         break;
+      case 'importDecisionsButton':
+        openImportModal();
+        break;
     }
   });
   
@@ -164,6 +174,27 @@ function setupEventListeners() {
       case 'restartButton':
         resetInterface(state);
         break;
+    }
+  });
+  
+  // Set up modal event listeners
+  DOM.closeModal.addEventListener('click', closeImportModal);
+  DOM.cancelImport.addEventListener('click', closeImportModal);
+  DOM.confirmImport.addEventListener('click', processImportedDecisions);
+  
+  // Close modal when clicking outside it
+  window.addEventListener('click', (e) => {
+    if (e.target === DOM.importModal) {
+      closeImportModal();
+    }
+  });
+  
+  // Add keyboard event listeners for modal
+  DOM.importModal.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeImportModal();
+    } else if (e.key === 'Enter' && e.ctrlKey) {
+      processImportedDecisions();
     }
   });
 }
@@ -253,7 +284,7 @@ function copyToClipboard(type) {
     successMessage = "Ranking copied to clipboard!";
   } else if (type === 'decisions') {
     const decisionsText = decisionHistory.map((decision, index) => 
-      `${index + 1}. ${decision.chosen} > ${decision.rejected}`
+      `${index + 1}. "${decision.chosen}" > "${decision.rejected}"`
     );
     textToCopy = `My Partial ${listName} Decision History:\n\n${decisionsText.join('\n')}`;
     successMessage = "Decisions copied to clipboard!"
@@ -301,6 +332,131 @@ function showNotification(message, isSuccess = true) {
 // Reset the interface to selection mode
 function resetInterface(state) {
   showInterface("selection");
+}
+
+// Process imported decisions
+function processImportedDecisions() {
+  const text = DOM.importTextarea.value.trim();
+  
+  if (!text) {
+    showNotification("No decisions to import", false);
+    return;
+  }
+  
+  try {
+    // Parse the imported decisions
+    const decisions = parseImportedDecisions(text);
+    
+    if (decisions.length === 0) {
+      showNotification("No valid decisions found", false);
+      return;
+    }
+    
+    // Add the decisions to the decision history
+    importDecisions(decisions);
+    
+    // Close the modal
+    closeImportModal();
+    
+    // Show success message
+    showNotification(`Successfully imported ${decisions.length} decisions!`, true);
+  } catch (error) {
+    showNotification("Error parsing decisions: " + error.message, false);
+  }
+}
+
+// Parse imported decisions from text
+function parseImportedDecisions(text) {
+  const decisions = [];
+  const lines = text.split('\n');
+  
+  // Get only the lines with decision data (format: "X. Song A > Song B")
+  const decisionLines = lines.filter(line => line.match(/^\d+\.\s+.+\s+>\s+.+$/));
+  
+  for (const line of decisionLines) {
+    // Extract the song names using regex
+    const match = line.match(/^\d+\.\s+(?:"([^"]+)"|([^>]+))\s+>\s+(?:"([^"]+)"|(.+))$/);
+    
+    if (match) {
+      // If the song names are in quotes, use those, otherwise use the unquoted versions
+      const chosen = match[1] || match[2].trim();
+      const rejected = match[3] || match[4].trim();
+      
+      if (chosen && rejected) {
+        decisions.push({ chosen, rejected });
+      }
+    }
+  }
+  
+  return decisions;
+}
+
+// Open import modal
+function openImportModal() {
+  DOM.importModal.style.display = 'block';
+  DOM.importTextarea.value = '';
+  setTimeout(() => DOM.importTextarea.focus(), 100);
+}
+
+// Close import modal
+function closeImportModal() {
+  DOM.importModal.style.display = 'none';
+  DOM.importTextarea.value = '';
+}
+
+// Import decisions into the decision history
+function importDecisions(decisions) {
+  // Get the current decision history from the sorter
+  const currentHistory = getDecisionHistory();
+  
+  // Check for duplicates or conflicts
+  const existingDecisions = new Map();
+  currentHistory.forEach(decision => {
+    const key = `${decision.chosen}-${decision.rejected}`;
+    existingDecisions.set(key, true);
+    
+    // Also check for conflicts (reversed decisions)
+    const reverseKey = `${decision.rejected}-${decision.chosen}`;
+    existingDecisions.set(reverseKey, false);
+  });
+  
+  let addedCount = 0;
+  let skippedCount = 0;
+  let conflictCount = 0;
+  
+  // Process each imported decision
+  for (const decision of decisions) {
+    const key = `${decision.chosen}-${decision.rejected}`;
+    const reverseKey = `${decision.rejected}-${decision.chosen}`;
+    
+    // Skip if we already have this exact decision
+    if (existingDecisions.get(key) === true) {
+      skippedCount++;
+      continue;
+    }
+    
+    // Skip if we have a conflicting decision
+    if (existingDecisions.get(reverseKey) === true) {
+      conflictCount++;
+      continue;
+    }
+    
+    // Add the decision to the history using the SongSorter API
+    SongSorter.addImportedDecision(decision);
+    
+    // Mark as added for future checks
+    existingDecisions.set(key, true);
+    existingDecisions.set(reverseKey, false);
+    addedCount++;
+  }
+  
+  // Update the progress display if there are current comparisons in progress
+  if (typeof updateProgressDisplay === 'function') {
+    updateProgressDisplay();
+  }
+  
+  // Log stats to console
+  console.log(`Import summary: ${addedCount} added, ${skippedCount} skipped, ${conflictCount} conflicts`);
 }
 
 // Initialize when the DOM is fully loaded

@@ -69,7 +69,10 @@
       <p class="warning">
         Warning: refreshing will erase your progress.
       </p>
-      <p id="copyDecisionsButton" class="copy-text">Copy previous decisions to clipboard</p>
+      <div class="decision-actions">
+        <p id="copyDecisionsButton" class="copy-text">Copy previous decisions to clipboard</p>
+        <p id="importDecisionsButton" class="copy-text">Import Decisions</p>
+      </div>
     </section>
     
     <!-- Results Interface -->
@@ -105,6 +108,24 @@
 
   <!-- Notification Banner -->
   <div id="copyStatus" class="copy-status-banner" aria-live="polite"></div>
+  
+  <!-- Import Decisions Modal -->
+  <div id="importModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Import Decisions</h3>
+        <button id="closeModal" class="close-button" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Paste your previous decisions below. The format should match what was copied using "Copy previous decisions to clipboard".</p>
+        <textarea id="importTextarea" class="import-textarea" placeholder="Paste decisions here..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button id="cancelImport" class="action-button small-button">Cancel</button>
+        <button id="confirmImport" class="action-button small-button">Import</button>
+      </div>
+    </div>
+  </div>
   
   <footer class="page-footer">
     <p class="source"><a href="https://github.com/RustyCabbage/samia-song-sorter">source</a></p>
