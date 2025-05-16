@@ -125,10 +125,16 @@ body.centered-container {
   background-color: var(--button-hover-color);
 }
 
-.action-button:hover,
-.choice-button:hover {
+.action-button:hover {
   background-color: var(--button-hover-color);
   transform: scale(1.05);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .choice-button:hover {
+    background-color: var(--button-hover-color);
+    transform: scale(1.05);
+  }
 }
 
 .choice-buttons {
@@ -234,4 +240,13 @@ footer { margin-top: 0; }
   .decision-table td { padding: 0.5em 0.375em; }
   .song-list-select { width: 90%; }
   .choice-button { width: 10em; margin: 0 0.5em; }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .choice-button:hover,
+  .choice-button:focus,
+  .choice-button:active {
+    background-color: var(--button-color);
+    transform: none !important;
+  }
 }
