@@ -1,12 +1,14 @@
 #=============================================
 # R Script: Extract Dominant Colors from Album Cover
-# 1) Read image and extract RGB values
-# 2) Iteratively apply K-means clustering (k = 2, 3, ...) until stopping criteria
-# 3) Regenerate the image replacing each pixel with its k-means color
+# This script:
+# 1) Reads an image and extracts RGB values
+# 2) Applies K-means clustering to find dominant colors
+# 3) Reconstructs the image using the clustered colors
+# 4) Analyzes colors by size and brightness
 #=============================================
 
-# Install required packages if not already installed
-required_pkgs <- c("jpeg", "grDevices")
+# Load required packages
+required_pkgs <- c("jpeg", "grDevices", "ggplot2", "reshape2")
 for (pkg in required_pkgs) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
     install.packages(pkg)
@@ -14,41 +16,117 @@ for (pkg in required_pkgs) {
 }
 
 library(jpeg)
+library(ggplot2)
+library(reshape2)
 
-# ---- Parameters ----
-image_path    <- "Samia - Scout.jpg"    # Path to your album cover image
-distance_thresh <- 0.16                           # Euclidean distance threshold for stopping
-max_k          <- 10                            # Maximum k to try (safeguard)
+#=============================================
+# PARAMETERS
+#=============================================
+image_path      <- "Samia - Scout.jpg"  # Path to album cover image
+distance_thresh <- 0.16                 # Euclidean distance threshold for stopping
+max_k           <- 10                   # Maximum k to try
 
-# ---- Read image ----
+#=============================================
+# FUNCTIONS
+#=============================================
+
+# Function to interpolate between two hex colors
+interpolate_hex <- function(hex1, hex2, t) {
+  rgb1 <- grDevices::col2rgb(hex1) / 255
+  rgb2 <- grDevices::col2rgb(hex2) / 255
+  rgb_interp <- (1 - t) * rgb1 + t * rgb2
+  grDevices::rgb(rgb_interp[1], rgb_interp[2], rgb_interp[3], maxColorValue = 1)
+}
+
+# Vectorized function to calculate relative luminance for a set of colors
+calculate_luminance <- function(hex_colors) {
+  # Convert hex colors to RGB matrix (3×n matrix)
+  rgb_matrix <- grDevices::col2rgb(hex_colors) / 255
+
+  # Apply WCAG gamma correction (vectorized)
+  rgb_linear <- ifelse(rgb_matrix <= 0.03928,
+                       rgb_matrix / 12.92,
+                       ((rgb_matrix + 0.055) / 1.055)^2.4)
+
+  # Calculate luminance (vectorized dot product)
+  luminance <- 0.2126 * rgb_linear[1,] + 0.7152 * rgb_linear[2,] + 0.0722 * rgb_linear[3,]
+
+  return(luminance)
+}
+
+# Create contrast ratio matrix from hex color codes (vectorized)
+create_contrast_matrix <- function(hex_codes) {
+  n <- length(hex_codes)
+
+  # Pre-calculate all luminance values
+  luminance_values <- calculate_luminance(hex_codes)
+
+  # Create matrices for vectorized calculation
+  L1 <- matrix(luminance_values, nrow = n, ncol = n, byrow = TRUE)
+  L2 <- matrix(luminance_values, nrow = n, ncol = n, byrow = FALSE)
+
+  # Ensure L1 is always the higher luminance
+  L_higher <- pmax(L1, L2)
+  L_lower <- pmin(L1, L2)
+
+  # Calculate contrast ratios (vectorized)
+  contrast_matrix <- (L_higher + 0.05) / (L_lower + 0.05)
+
+  # Set row and column names
+  rownames(contrast_matrix) <- hex_codes
+  colnames(contrast_matrix) <- hex_codes
+
+  return(contrast_matrix)
+}
+
+# Function to create and plot color legend
+plot_color_legend <- function(position, legend_codes, title) {
+  legend(
+    position,
+    legend = legend_codes,
+    fill   = legend_codes,
+    border = "white",
+    cex    = 0.8,
+    title  = title,
+    box.lwd = 0
+  )
+}
+
+#=============================================
+# MAIN PROCESS
+#=============================================
+
+# 1. Read image
 img <- readJPEG(image_path)
-# img is an array [height, width, 3]
-
-# ---- Vectorized reshape to data frame of RGB ----
 dimensions <- dim(img)
-h <- dimensions[1]; w <- dimensions[2]
+h <- dimensions[1]
+w <- dimensions[2]
+
+# 2. Convert image to data frame of RGB values
 px_df <- data.frame(
   R = as.vector(img[,,1]),
   G = as.vector(img[,,2]),
   B = as.vector(img[,,3])
 )
 
-# ---- Iterative K-means ----
+# 3. Iterative K-means clustering
 prev_km <- NULL
+final_km <- NULL
+
 for (k in 2:max_k) {
-  set.seed(123)
+  set.seed(123) # For reproducibility
   km <- kmeans(px_df, centers = k)
   centroids <- km$centers  # k x 3 matrix of RGB centroids
 
-  # Compare newest centroid to all others via a full distance matrix
+  # Compare newest centroid to all others via distance matrix
   dists <- dist(centroids)
   print(dists)
   min_dist <- min(dists)
 
   if (min_dist < distance_thresh) {
-    message(sprintf("Stopping at k = %d (min dist = %.3f < threshold = %.3f)", k, min_dist, distance_thresh))
-    km <- prev_km
-    final_km <- km
+    message(sprintf("Stopping at k = %d (min dist = %.3f < threshold = %.3f)",
+                    k, min_dist, distance_thresh))
+    final_km <- prev_km
     break
   }
 
@@ -61,130 +139,111 @@ for (k in 2:max_k) {
   prev_km <- km
 }
 
-# ---- Step 3: Reconstruct and Plot Quantized Image ----
+# 4. Reconstruct quantized image
+pixel_colors <- final_km$centers[final_km$cluster, ]  # matrix (h*w) × 3
 
-# 1. Extract the centroid colors for each pixel
-#    final_km$cluster is a vector of length (h*w) giving the cluster ID of each pixel
-#    final_km$centers is a k×3 matrix of RGB values (in [0,1])
-pixel_colors <- final_km$centers[ final_km$cluster, ]  # matrix (h*w) × 3
-
-# 2. Reshape into an array [h, w, 3]
 quant_img <- array(NA, dim = c(h, w, 3))
-quant_img[ , , 1] <- matrix(pixel_colors[,1], nrow = h, ncol = w, byrow = FALSE)
-quant_img[ , , 2] <- matrix(pixel_colors[,2], nrow = h, ncol = w, byrow = FALSE)
-quant_img[ , , 3] <- matrix(pixel_colors[,3], nrow = h, ncol = w, byrow = FALSE)
+quant_img[, , 1] <- matrix(pixel_colors[,1], nrow = h, ncol = w, byrow = FALSE)
+quant_img[, , 2] <- matrix(pixel_colors[,2], nrow = h, ncol = w, byrow = FALSE)
+quant_img[, , 3] <- matrix(pixel_colors[,3], nrow = h, ncol = w, byrow = FALSE)
 
-# ---- After reconstructing `quant_img` and plotting it ----
-
-# Compute hex codes for each centroid
+# 5. Compute hex codes for each centroid
 centroids <- final_km$centers
 hex_codes <- apply(centroids, 1, function(rgb) {
   grDevices::rgb(rgb[1], rgb[2], rgb[3], maxColorValue = 1)
 })
 
-# Plot the quantized image
-plot(1:2, type = "n", xlab = "", ylab = "", axes = FALSE)
-rasterImage(quant_img, 1, 1, 2, 2, interpolate = FALSE)
+#=============================================
+# COLOR ANALYSIS
+#=============================================
 
-# ---- Size‐based ordering ----
+# 1. Size-based ordering
+cluster_ids   <- final_km$cluster
+cluster_sizes <- table(cluster_ids)
+ordered_size  <- as.integer(names(sort(cluster_sizes, decreasing = TRUE)))
 
-# 1. Get cluster sizes
-cluster_ids      <- final_km$cluster
-cluster_sizes    <- table(cluster_ids)
-
-# 2. Order cluster indices by decreasing size
-ordered_size     <- as.integer(names(sort(cluster_sizes, decreasing = TRUE)))
-
-# 3. Reorder centroids and generate hex codes
-centroids_size   <- final_km$centers[ordered_size, , drop = FALSE]
-hex_codes_size   <- apply(centroids_size, 1, function(rgb) {
+centroids_size <- final_km$centers[ordered_size, , drop = FALSE]
+hex_codes_size <- apply(centroids_size, 1, function(rgb) {
   grDevices::rgb(rgb[1], rgb[2], rgb[3], maxColorValue = 1)
 })
 
-# Now you have:
-# - cluster_sizes             : table of counts per cluster
-# - ordered_size              : integer vector of cluster IDs sorted by size
-# - centroids_size            : matrix of RGB centroids in size order
-# - hex_codes_size            : hex strings in size order
-
-
-# ---- Brightness‐based ordering ----
-
-# 1. Compute brightness (luminance) for each original centroid
-# https://stackoverflow.com/questions/596216/formula-to-determine-perceived-brightness-of-rgb-color
-brightness_vals   <- apply(final_km$centers, 1, function(rgb) {
+# 2. Brightness-based ordering
+brightness_vals <- apply(final_km$centers, 1, function(rgb) {
   0.2126 * rgb[1] + 0.7152 * rgb[2] + 0.0722 * rgb[3]
 })
 
-# 2. Order cluster indices by increasing brightness
 ordered_bright   <- order(brightness_vals)
-
-# 3. Reorder centroids and generate hex codes
 centroids_bright <- final_km$centers[ordered_bright, , drop = FALSE]
 hex_codes_bright <- apply(centroids_bright, 1, function(rgb) {
   grDevices::rgb(rgb[1], rgb[2], rgb[3], maxColorValue = 1)
 })
 
-# Now you have:
-# - brightness_vals            : numeric vector of luminance per cluster
-# - ordered_bright             : integer vector of cluster IDs sorted by brightness
-# - centroids_bright           : matrix of RGB centroids in brightness order
-# - hex_codes_bright           : hex strings in brightness order
+#=============================================
+# VISUALIZATION
+#=============================================
 
-# ---- Plot image ----
+# 1. Plot the quantized image
 plot(1:2, type = "n", xlab = "", ylab = "", axes = FALSE)
 rasterImage(quant_img, 1, 1, 2, 2, interpolate = FALSE)
 
-# ---- Add ordered legend (boxes) ----
-legend(
-  "topright",
-  legend = hex_codes_size,
-  fill   = hex_codes_size,
-  border = "white",
-  cex    = 0.8,
-  title  = "Cluster Colors (size)",
-  box.lwd = 0                 # remove legend box border
-)
+# 2. Add color legends
+plot_color_legend("topright", hex_codes_size, "Cluster Colors (size)")
+plot_color_legend("topleft", hex_codes_bright, "Cluster Colors (brightness)")
 
-# ---- Add ordered legend (boxes) ----
-legend(
-  "topleft",
-  legend = hex_codes_bright,
-  fill   = hex_codes_bright,
-  border = "white",
-  cex    = 0.8,
-  title  = "Cluster Colors (brightness)",
-  box.lwd = 0                 # remove legend box border
-)
+# 3. Generate contrast matrix
+contrast_matrix <- create_contrast_matrix(hex_codes_bright)
 
-# would be better to interpolate CIELAB I think? idk if it's invariant. but anyway i lazy
-interpolate_hex <- function(hex1, hex2, t) {
-  rgb1 <- grDevices::col2rgb(hex1) / 255
-  rgb2 <- grDevices::col2rgb(hex2) / 255
-  rgb_interp <- (1 - t) * rgb1 + t * rgb2
-  grDevices::rgb(rgb_interp[1], rgb_interp[2], rgb_interp[3], maxColorValue = 1)
-}
+# 4. Visualize contrast matrix
+df <- melt(contrast_matrix, varnames = c("hex1", "hex2"), value.name = "contrast")
 
-# ---- Print summaries ----
+p <- ggplot(df, aes(x = hex1, y = hex2, fill = contrast)) +
+  geom_tile() +
+  geom_text(aes(label = round(contrast, 1)), color = "black", size = 3) +
+  scale_fill_steps(
+    name = "Contrast Ratio",
+    breaks = c(1.2, 3, 4.5, 7),
+    low = "white",
+    high = "steelblue"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(
+      angle = 45,
+      hjust = 1,
+      colour = setNames(as.character(unique(df$hex1)), unique(df$hex1))[levels(df$hex1)]
+    ),
+    axis.text.y = element_text(
+      colour = setNames(as.character(unique(df$hex2)), unique(df$hex2))[levels(df$hex2)]
+    ),
+    panel.grid = element_blank()
+  ) +
+  labs(x = NULL, y = NULL)
 
-# 1. Sizes → largest to smallest
-sizes_sorted <- cluster_sizes[ as.character(ordered_size) ]
+print(p)
+
+#=============================================
+# RESULTS SUMMARY
+#=============================================
+
+# 1. Color clusters by size (largest to smallest)
+sizes_sorted <- cluster_sizes[as.character(ordered_size)]
 names(sizes_sorted) <- hex_codes_size
 
-# 2. Brightness → darkest to brightest
-bright_sorted <- brightness_vals[ ordered_bright ]
-names(bright_sorted) <- hex_codes_bright
-
-# ---- Print them ----
-cat("Cluster sizes (largest → smallest), labeled by hex:\n")
+cat("\nCluster sizes (largest → smallest), labeled by hex:\n")
 print(sizes_sorted)
+
+# 2. Color clusters by brightness (darkest to brightest)
+bright_sorted <- brightness_vals[ordered_bright]
+names(bright_sorted) <- hex_codes_bright
 
 cat("\nBrightness (darkest → brightest), labeled by hex:\n")
 print(bright_sorted)
 
-# Example usage
-interpolate_hex("#1B2525", "#3C4543", 0.5) # The Baby button color
-interpolate_hex("#F49862", "#EC8F30", 0.5) # Scout_oj background color
-interpolate_hex("#C57916", "#EC8F30", 0.4) # Scout_oj button color
-interpolate_hex("#C57916", "#EC8F30", 0.7) # Scout button color
-interpolate_hex("#C57916", "#EC8F30", 0.3) # Scout button hover color
+# 3. Example color interpolations
+cat("\nExample color interpolations:\n")
+cat("Baby button color:", interpolate_hex("#1B2525", "#3C4543", 0.5), "\n")
+cat("Scout_oj background:", interpolate_hex("#F49862", "#EC8F30", 0.5), "\n")
+cat("Scout_oj button:", interpolate_hex("#C57916", "#EC8F30", 0.4), "\n")
+cat("Scout button:", interpolate_hex("#C57916", "#EC8F30", 0.7), "\n")
+cat("Scout button hover:", interpolate_hex("#C57916", "#EC8F30", 0.3), "\n")
+cat("Scout button hover alt:", interpolate_hex("#F6AF9E", "#F49862", 0.25), "\n")
