@@ -11,6 +11,7 @@ const SongSorter = (function() {
     let completedComparisons = 0;
     let decisionHistory = [];
     let compareQueue = [];
+    let lastDecisionTimestamp = null; // Track the timestamp of the last decision
     
     // Cache DOM elements
     const DOM = {
@@ -32,6 +33,7 @@ const SongSorter = (function() {
       completedComparisons = 0;
       decisionHistory = [];
       compareQueue = [];
+      lastDecisionTimestamp = null; // Reset the timestamp
       
       // Create a copy of the songs array
       let songsToSort = [...songs];
@@ -185,8 +187,8 @@ const SongSorter = (function() {
     /**
      * Update the best and worst case estimates based on user selection for merge sort
      * @param {boolean} selectedLeft - Whether the left item was selected
-     * @param {number} leftIndexFromRight - Index of the left item in its list
-     * @param {number} rightIndexFromRight - Index of the right item in its list
+     * @param {number} leftIndexFromRight - Index of the left item in its list from the right
+     * @param {number} rightIndexFromRight - Index of the right item in its list from the right
      */
     function updateMergeSortEstimates(selectedLeft, leftIndexFromRight, rightIndexFromRight) {
       // If indexes are equal, no change needed
@@ -581,14 +583,37 @@ const SongSorter = (function() {
      */
     function recordPreference(chosen, rejected) {
       completedComparisons++;
+      
+      // Get current timestamp
+      const now = new Date();
+      
+      // Calculate time since last decision
+      let elapsedTime = null;
+      let elapsedTimeFormatted = null;
+      if (lastDecisionTimestamp) {
+        elapsedTime = now - lastDecisionTimestamp;
+        // Format time as minutes:seconds
+        const totalSeconds = Math.floor(elapsedTime / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        elapsedTimeFormatted = `${minutes}m:${seconds.toString().padStart(2, '0')}s`;
+      }
+      
+      // Update the last decision timestamp
+      lastDecisionTimestamp = now;      
+
+      // Log the timestamps to console
+      console.log(`${formatLocalTime(now)} | Time: ${(elapsedTimeFormatted !== null) ? elapsedTimeFormatted : " N/A  "} | Comparison #${completedComparisons}: ${chosen} > ${rejected}`);
+
+      // Add decision to history with timestamps
       decisionHistory.push({
         comparison: completedComparisons,
         chosen: chosen,
-        rejected: rejected
+        rejected: rejected,
+        elapsedTime: elapsedTime
       });
-      console.log(`Comparison #${completedComparisons}: Chose ${chosen} > ${rejected}`);
     }
-    
+
     /**
      * Handle when the user selects an option
      * @param {boolean} selectedLeft - Whether the left option was selected
@@ -675,3 +700,21 @@ const SongSorter = (function() {
       return SongSorter.getDecisionHistory();
     }
   });
+
+      /**
+     * Format the timestamp in local time: YYYY-MM-DD hh:mm:ss AM/PM
+     * @param {Date} date - The date to format
+     * @returns {string} Formatted date string
+     */
+    function formatLocalTime(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = date.getHours();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const hour12 = hours % 12 || 12; // Convert 0 to 12
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      
+      return `${year}-${month}-${day} ${hour12}:${minutes}:${seconds} ${ampm}`;
+    }
