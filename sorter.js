@@ -740,16 +740,54 @@ const SongSorter = (function() {
         type: 'import'
       });
     }
-    
-    // External API
-    return {
-      startSorting: startSorting,
-      handleOption: handleOption,
-      getDecisionHistory: getDecisionHistory,
-      addImportedDecision: addImportedDecision
-    };
-  })();
-  
+
+    /**
+     * Check if the current displayed comparison can be automatically decided
+     * This should be called after importing decisions
+     */
+    function checkCurrentComparison() {
+      // If there's no queue or sorter interface, do nothing
+      if (!compareQueue || compareQueue.length === 0) {
+        return;
+      }
+      
+      // Get the current comparison
+      const currentComparison = compareQueue[0];
+      const songA = currentComparison.songA;
+      const songB = currentComparison.songB;
+      
+      // Check if we now know the preference after importing
+      const pref = getKnownPreference(songA, songB);
+      
+      // If we know the preference, automatically select it
+      if (pref.selectedLeft !== null) {
+        console.log(`After import, we now know: ${(pref.selectedLeft) ? `${songA} > ${songB}` : `${songB} > ${songA}`}`);
+        
+        // Remove from queue
+        compareQueue.shift();
+
+        // Resolve with the known preference
+        currentComparison.resolve(pref.selectedLeft);
+        
+        // Show next comparison if any
+        if (compareQueue.length > 0) {
+          setTimeout(() => {
+            showComparison();
+          }, 0);
+        }
+      }
+    }    
+
+  // External API
+  return {
+    startSorting: startSorting,
+    handleOption: handleOption,
+    getDecisionHistory: getDecisionHistory,
+    addImportedDecision: addImportedDecision,
+    checkCurrentComparison: checkCurrentComparison
+  };
+})();
+
 /**
  * Check if we already know which song is preferred
  * @param {const} songA - left choice
@@ -818,24 +856,29 @@ function inferTransitivePreferences() {
   return allPreferences;
 }
 
-  // Export the decision history for access by other modules
-  function getDecisionHistory() {
+// Function to check current comparison after importing decisions
+function checkCurrentComparison() {
+  SongSorter.checkCurrentComparison();
+}
+
+// Export the decision history for access by other modules
+function getDecisionHistory() {
+  return SongSorter.getDecisionHistory();
+}
+
+// Define global handleOption function to handle button clicks
+function handleOption(selectedLeft) {
+  SongSorter.handleOption(selectedLeft);
+}
+
+// Define single unified startSorting function
+function startSorting(songs, shuffle = false, useMergeInsertion = false) {
+  return SongSorter.startSorting(songs, shuffle, useMergeInsertion);
+}
+
+// Make sure we don't need to redefine global decisionHistory
+Object.defineProperty(window, 'decisionHistory', {
+  get: function() {
     return SongSorter.getDecisionHistory();
   }
-  
-  // Define global handleOption function to handle button clicks
-  function handleOption(selectedLeft) {
-    SongSorter.handleOption(selectedLeft);
-  }
-  
-  // Define single unified startSorting function
-  function startSorting(songs, shuffle = false, useMergeInsertion = false) {
-    return SongSorter.startSorting(songs, shuffle, useMergeInsertion);
-  }
-  
-  // Make sure we don't need to redefine global decisionHistory
-  Object.defineProperty(window, 'decisionHistory', {
-    get: function() {
-      return SongSorter.getDecisionHistory();
-    }
-  });
+});

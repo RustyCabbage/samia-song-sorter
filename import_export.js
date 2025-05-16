@@ -37,7 +37,6 @@ function setupClipboardEventListeners() {
       closeImportModal();
     } else if (e.key === 'Enter' && e.ctrlKey) {
       processImportedDecisions();
-      closeImportModal();
     }
   });
 }
@@ -56,9 +55,9 @@ function copyToClipboard(type, currentSongList) {
     textToCopy = `My ${listName} Song Ranking:\n\n${rankedSongs.join('\n')}`;
     successMessage = "Ranking copied to clipboard!";
   } else if (type === 'decisions') {
-    const decisionsText = decisionHistory.map((decision, index) => 
-      `${index + 1}. ${decision.chosen} > ${decision.rejected}`
-    );
+    const decisionsText = decisionHistory
+      .filter(decision => decision.type !== 'infer')
+      .map((decision, idx) => `${idx + 1}. ${decision.chosen} > ${decision.rejected}`);
     textToCopy = `My Partial ${listName} Decision History:\n\n${decisionsText.join('\n')}`;
     successMessage = "Decisions copied to clipboard!"
   } else if (type === 'history') {
@@ -108,6 +107,7 @@ function processImportedDecisions() {
   
   if (!text) {
     showNotification("No decisions to import", false);
+    closeImportModal();
     return;
   }
   
@@ -120,19 +120,22 @@ function processImportedDecisions() {
       return;
     }
     
-    // Infer decisions
-    
     // Add the decisions to the decision history
     const decisionLog = importDecisions(parsedDecisions);
     
-    // Close the modal
-    closeImportModal();
+    // Check if the current comparison can now be decided automatically
+    if (typeof SongSorter.checkCurrentComparison === 'function') {
+      SongSorter.checkCurrentComparison();
+    }
     
     // Show success message
     showNotification(`Successfully imported ${parsedDecisions.length} decisions: ${decisionLog.addedCount} added, ${decisionLog.skippedCount} skipped, ${decisionLog.conflictCount} conflicts, ${decisionLog.outOfScopeCount} out of scope`, true, 5000);
   } catch (error) {
     showNotification("Error parsing decisions: " + error.message, false);
   }
+
+  // Close the modal
+  closeImportModal();
 }
 
 // Parse imported decisions from text
@@ -216,11 +219,6 @@ function importDecisions(decisions) {
     existingDecisions.set(key, true);
     existingDecisions.set(reverseKey, false);
     addedCount++;
-  }
-  
-  // Update the progress display if there are current comparisons in progress
-  if (typeof updateProgressDisplay === 'function') {
-    updateProgressDisplay();
   }
   
   // Log stats to console
