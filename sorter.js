@@ -162,30 +162,35 @@ const SongSorter = (function() {
         const songA = left[leftIndex];
         const songB = right[rightIndex];
         
-        let selectedLeft = null;
         const pref = getKnownPreference(songA, songB);
-        if (pref !== null) {
-          console.log(`Known comparison: ${(pref === 'left') ? songA : songB} > ${(pref === 'left') ? songB : songA}`);
-          selectedLeft = (pref === 'left') ? true : false;
-        } else {
+        let selectedLeft = pref.selectedLeft;
+        let type = pref.type;
+        
+        if (pref.selectedLeft === null) {
           // Need user input for this comparison
           selectedLeft = await requestUserComparison(
           songA, songB, 
           left.length - (leftIndex + 1), 
           right.length - (rightIndex + 1)
           );
+          type = 'decision';
+        } else {
+          console.log(`Known comparison: ${(pref.selectedLeft) ? `${songA} > ${songB}` : `${songB} > ${songA}`}`);
         }
+
+        // Process the user's choice
+        const chosen = selectedLeft ? songA : songB;
+        const rejected = selectedLeft ? songB : songA;
 
         // Process the user's choice
         if (selectedLeft) {
           merged.push(songA);
           leftIndex++;
-          recordPreference(songA, songB);
         } else {
           merged.push(songB);
           rightIndex++;
-          recordPreference(songB, songA);
         }
+        recordPreference(chosen, rejected, type);
       }
       
       return merged;
@@ -343,24 +348,29 @@ const SongSorter = (function() {
       // Step 2: Compare elements in each pair (larger element first)
       const orderedPairs = new Map();
       for (const pair of pairs) {
-        let selectedLeft = null;
-        const pref = getKnownPreference(pair[0], pair[1]);
-        if (pref !== null) {
-          console.log(`Known comparison: ${(pref === 'left') ? pair[0] : pair[1]} > ${(pref === 'left') ? pair[1] : pair[0]}`);
-          selectedLeft = (pref === 'left') ? true : false;
-        } else {
+        const songA = pair[0];
+        const songB = pair[1];
+        
+        const pref = getKnownPreference(songA, songB);
+        let selectedLeft = pref.selectedLeft;
+        let type = pref.type;
+        
+        if (pref.selectedLeft === null) {
           // Need user input for this comparison
-          selectedLeft = await requestUserComparison(pair[0], pair[1]);
+          selectedLeft = await requestUserComparison(songA, songB);
+          type = 'decision';
+        } else {
+          console.log(`Known comparison: ${(pref.selectedLeft) ? `${songA} > ${songB}` : `${songB} > ${songA}`}`);
         }
         
         // Process the user's choice
-        const chosen = selectedLeft ? pair[0] : pair[1];
-        const rejected = selectedLeft ? pair[1] : pair[0];
+        const chosen = selectedLeft ? songA : songB;
+        const rejected = selectedLeft ? songB : songA;
         
         orderedPairs.set(chosen, rejected);
         
         // Record the preference
-        recordPreference(chosen, rejected);
+        recordPreference(chosen, rejected, type);
       }
       
       // Step 3: Recursively sort the larger elements
@@ -469,19 +479,24 @@ const SongSorter = (function() {
       while (left <= right) {
         const mid = Math.floor((left + right) / 2);
         
-        let selectedLeft = null;
-        const pref = getKnownPreference(arr[mid], elem);
-        if (pref !== null) {
-          console.log(`Known comparison: ${(pref === 'left') ? arr[mid] : elem} > ${(pref === 'left') ? elem : arr[mid]}`);
-          selectedLeft = (pref === 'left') ? true : false;
-        } else {
+        const songA = arr[mid];
+        const songB = elem;
+        
+        const pref = getKnownPreference(songA, songB);
+        let selectedLeft = pref.selectedLeft;
+        let type = pref.type;
+        
+        if (pref.selectedLeft === null) {
           // Need user input for this comparison
-          selectedLeft = await requestUserComparison(arr[mid], elem);
+          selectedLeft = await requestUserComparison(songA, songB);
+          type = 'decision';
+        } else {
+          console.log(`Known comparison: ${(pref.selectedLeft) ? `${songA} > ${songB}` : `${songB} > ${songA}`}`);
         }
         
         // Process the user's choice
-        const chosen = selectedLeft ? arr[mid] : elem;
-        const rejected = selectedLeft ? elem : arr[mid];
+        const chosen = selectedLeft ? songA : songB;
+        const rejected = selectedLeft ? songB : songA;
         
         if (selectedLeft) {
           right = mid - 1;
@@ -490,7 +505,7 @@ const SongSorter = (function() {
         }
         
         // Record the preference
-        recordPreference(chosen, rejected);
+        recordPreference(chosen, rejected, type);
         
         // Update the estimates based on the selection
         if (keepUpdating) {
@@ -601,8 +616,9 @@ const SongSorter = (function() {
      * Record a user preference
      * @param {*} chosen - The chosen option
      * @param {*} rejected - The rejected option
+     * @param {String} type - type: decision, import, infer, 
      */
-    function recordPreference(chosen, rejected) {
+    function recordPreference(chosen, rejected, type='decision') {
       completedComparisons++;
       
       // Get current timestamp
@@ -632,7 +648,7 @@ const SongSorter = (function() {
         chosen: chosen,
         rejected: rejected,
         elapsedTime: elapsedTime,
-        imported: false
+        type: type
       });
     }
 
@@ -713,14 +729,22 @@ const SongSorter = (function() {
       // Get all preferences (direct and transitive)
       const allPreferences = inferTransitivePreferences();
       
+      let selectedLeft = null;
       for (const pref of allPreferences) {
         if (pref.chosen === songA && pref.rejected === songB) {
-          return 'left';
+          selectedLeft = true;
+          break;
         } else if (pref.chosen === songB && pref.rejected === songA) {
-          return 'right';
+          selectedLeft = false;
+          break;
         }
       }
-      return null; // No known preference
+      
+      const preference = {
+        selectedLeft: selectedLeft,
+        type: 'infer'
+      }
+      return preference;
     }
 
     /**
@@ -744,7 +768,7 @@ const SongSorter = (function() {
                 chosen: pref1.chosen,
                 rejected: pref2.rejected,
                 elapsedTime: null,
-                imported: false
+                type: 'infer',
               };
               
               // Check if this preference is already known
@@ -777,11 +801,11 @@ const SongSorter = (function() {
      */
     function addImportedDecision(decision) {
       decisionHistory.push({
-        comparison: null,
+        comparison: "X",
         chosen: decision.chosen,
         rejected: decision.rejected,
         elapsedTime: null,
-        imported: true
+        type: 'import'
       });
     }
     

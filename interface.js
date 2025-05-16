@@ -36,7 +36,6 @@ const state = {
   currentSongList: null,
   shouldShuffle: true,
   shouldMergeInsert: true,
-  notificationTimeout: null,
   themeCache: {} // Cache for theme CSS calculations
 };
 
@@ -57,6 +56,13 @@ function initializeApp() {
   
   // Set up event listeners
   setupEventListeners();
+  
+  // Initialize the clipboard manager
+  if (window.ClipboardManager) {
+    ClipboardManager.initialize(DOM);
+  } else {
+    console.error("ClipboardManager not loaded");
+  }
 }
 
 // Apply theme to the document
@@ -152,10 +158,10 @@ function setupEventListeners() {
         DOM.btnB.blur();
         break;
       case 'copyDecisionsButton':
-        copyToClipboard('decisions');
+        ClipboardManager.copyToClipboard('decisions', state.currentSongList);
         break;
       case 'importDecisionsButton':
-        openImportModal();
+        ClipboardManager.openImportModal();
         break;
     }
   });
@@ -166,35 +172,14 @@ function setupEventListeners() {
     
     switch(target.id) {
       case 'copyButton':
-        copyToClipboard('ranking');
+        ClipboardManager.copyToClipboard('ranking', state.currentSongList);
         break;
       case 'copyHistoryButton':
-        copyToClipboard('history');
+        ClipboardManager.copyToClipboard('history', state.currentSongList);
         break;
       case 'restartButton':
         resetInterface(state);
         break;
-    }
-  });
-  
-  // Set up modal event listeners
-  DOM.closeModal.addEventListener('click', closeImportModal);
-  DOM.cancelImport.addEventListener('click', closeImportModal);
-  DOM.confirmImport.addEventListener('click', processImportedDecisions);
-  
-  // Close modal when clicking outside it
-  window.addEventListener('click', (e) => {
-    if (e.target === DOM.importModal) {
-      closeImportModal();
-    }
-  });
-  
-  // Add keyboard event listeners for modal
-  DOM.importModal.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      closeImportModal();
-    } else if (e.key === 'Enter' && e.ctrlKey) {
-      processImportedDecisions();
     }
   });
 }
@@ -237,8 +222,10 @@ function showResult(finalSorted) {
   
   // Add each decision to the history table
   decisionHistory.forEach((decision, index) => {
-    const row = createHistoryRow(decision, index + 1);
-    historyFragment.appendChild(row);
+    if (decision.type !== 'infer') {
+      const row = createHistoryRow(decision);
+      historyFragment.appendChild(row);
+    }
   });
   
   // Append fragments to DOM
@@ -250,11 +237,11 @@ function showResult(finalSorted) {
 }
 
 // Create a history row element
-function createHistoryRow(decision, index) {
+function createHistoryRow(decision) {
   const row = document.createElement("tr");
   
   const comparisonCell = document.createElement("td");
-  comparisonCell.textContent = index;
+  comparisonCell.textContent = decision.comparison;
   
   const chosenCell = document.createElement("td");
   chosenCell.textContent = decision.chosen;
@@ -269,195 +256,21 @@ function createHistoryRow(decision, index) {
   return row;
 }
 
-// Universal copy function
-function copyToClipboard(type) {
-  const listName = state.currentSongList.name;
-  let textToCopy;
-  let successMessage;
-  
-  if (type === 'ranking') {
-    // Format ranking
-    const rankedSongs = Array.from(DOM.resultList.children).map((li, index) => 
-      `${index + 1}. ${li.textContent}`
-    );
-    textToCopy = `My ${listName} Song Ranking:\n\n${rankedSongs.join('\n')}`;
-    successMessage = "Ranking copied to clipboard!";
-  } else if (type === 'decisions') {
-    const decisionsText = decisionHistory.map((decision, index) => 
-      `${index + 1}. "${decision.chosen}" > "${decision.rejected}"`
-    );
-    textToCopy = `My Partial ${listName} Decision History:\n\n${decisionsText.join('\n')}`;
-    successMessage = "Decisions copied to clipboard!"
-  } else if (type === 'history') {
-    // Format history
-    const historyRows = Array.from(DOM.decisionHistoryBody.querySelectorAll('tr'));
-    const historyText = historyRows.map(row => {
-      const cells = row.querySelectorAll('td');
-      return `${cells[0].textContent}. "${cells[1].textContent}" > "${cells[2].textContent}"`;
-    });
-    textToCopy = `My ${listName} Decision History:\n\n${historyText.join('\n')}`;
-    successMessage = "History copied to clipboard!";
-  }
-  
-  // Use the Clipboard API
-  navigator.clipboard.writeText(textToCopy)
-    .then(() => showNotification(successMessage, true))
-    .catch(err => {
-      showNotification("Copy failed. Please try again.", false);
-      console.error('Failed to copy text:', err);
-    });
-}
-
-// Show a notification banner
-function showNotification(message, isSuccess = true) {
-  // Clear any existing timeout
-  if (state.notificationTimeout) {
-    clearTimeout(state.notificationTimeout);
-  }
-  
-  // Set text and styling
-  DOM.copyStatus.textContent = message;
-  DOM.copyStatus.classList.remove('success', 'error');
-  DOM.copyStatus.classList.add(isSuccess ? 'success' : 'error');
-  
-  // Show the banner
-  DOM.copyStatus.classList.add('visible');
-  
-  // Hide after delay
-  state.notificationTimeout = setTimeout(() => {
-    DOM.copyStatus.classList.remove('visible');
-  }, 3000);
-}
-
 // Reset the interface to selection mode
 function resetInterface(state) {
   showInterface("selection");
 }
 
-// Process imported decisions
-function processImportedDecisions() {
-  const text = DOM.importTextarea.value.trim();
-  
-  if (!text) {
-    showNotification("No decisions to import", false);
-    return;
-  }
-  
-  try {
-    // Parse the imported decisions
-    const decisions = parseImportedDecisions(text);
-    
-    if (decisions.length === 0) {
-      showNotification("No valid decisions found", false);
-      return;
-    }
-    
-    // Add the decisions to the decision history
-    importDecisions(decisions);
-    
-    // Close the modal
-    closeImportModal();
-    
-    // Show success message
-    showNotification(`Successfully imported ${decisions.length} decisions!`, true);
-  } catch (error) {
-    showNotification("Error parsing decisions: " + error.message, false);
-  }
-}
-
-// Parse imported decisions from text
-function parseImportedDecisions(text) {
-  const decisions = [];
-  const lines = text.split('\n');
-  
-  // Get only the lines with decision data (format: "X. Song A > Song B")
-  const decisionLines = lines.filter(line => line.match(/^\d+\.\s+.+\s+>\s+.+$/));
-  
-  for (const line of decisionLines) {
-    // Extract the song names using regex
-    const match = line.match(/^\d+\.\s+(?:"([^"]+)"|([^>]+))\s+>\s+(?:"([^"]+)"|(.+))$/);
-    
-    if (match) {
-      // If the song names are in quotes, use those, otherwise use the unquoted versions
-      const chosen = match[1] || match[2].trim();
-      const rejected = match[3] || match[4].trim();
-      
-      if (chosen && rejected) {
-        decisions.push({ chosen, rejected });
-      }
-    }
-  }
-  
-  return decisions;
-}
-
-// Open import modal
-function openImportModal() {
-  DOM.importModal.style.display = 'block';
-  DOM.importTextarea.value = '';
-  setTimeout(() => DOM.importTextarea.focus(), 100);
-}
-
-// Close import modal
-function closeImportModal() {
-  DOM.importModal.style.display = 'none';
-  DOM.importTextarea.value = '';
-}
-
-// Import decisions into the decision history
-function importDecisions(decisions) {
-  // Get the current decision history from the sorter
-  const currentHistory = getDecisionHistory();
-  
-  // Check for duplicates or conflicts
-  const existingDecisions = new Map();
-  currentHistory.forEach(decision => {
-    const key = `${decision.chosen}-${decision.rejected}`;
-    existingDecisions.set(key, true);
-    
-    // Also check for conflicts (reversed decisions)
-    const reverseKey = `${decision.rejected}-${decision.chosen}`;
-    existingDecisions.set(reverseKey, false);
-  });
-  
-  let addedCount = 0;
-  let skippedCount = 0;
-  let conflictCount = 0;
-  
-  // Process each imported decision
-  for (const decision of decisions) {
-    const key = `${decision.chosen}-${decision.rejected}`;
-    const reverseKey = `${decision.rejected}-${decision.chosen}`;
-    
-    // Skip if we already have this exact decision
-    if (existingDecisions.get(key) === true) {
-      skippedCount++;
-      continue;
-    }
-    
-    // Skip if we have a conflicting decision
-    if (existingDecisions.get(reverseKey) === true) {
-      conflictCount++;
-      continue;
-    }
-    
-    // Add the decision to the history using the SongSorter API
-    SongSorter.addImportedDecision(decision);
-    
-    // Mark as added for future checks
-    existingDecisions.set(key, true);
-    existingDecisions.set(reverseKey, false);
-    addedCount++;
-  }
-  
-  // Update the progress display if there are current comparisons in progress
-  if (typeof updateProgressDisplay === 'function') {
-    updateProgressDisplay();
-  }
-  
-  // Log stats to console
-  console.log(`Import summary: ${addedCount} added, ${skippedCount} skipped, ${conflictCount} conflicts`);
-}
-
 // Initialize when the DOM is fully loaded
 document.addEventListener("DOMContentLoaded", initializeApp);
+
+// Export functions needed by the clipboard manager
+window.getDecisionHistory = function() {
+  return decisionHistory || [];
+};
+
+window.updateProgressDisplay = function() {
+  if (typeof updateProgress === 'function') {
+    updateProgress();
+  }
+};
