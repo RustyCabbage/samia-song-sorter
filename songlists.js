@@ -75,10 +75,10 @@ const THEMES = {
     buttonTextColor: "#C6BCBD"
   },
   scout: {
-    backgroundColor: "#F49862",
+    backgroundColor: "#EC8F30",
     textColor: "#102512",
-    buttonColor: "#E08828",
-    buttonHoverColor: "#D1801E",
+    buttonColor: "#F6AF9E",
+    buttonHoverColor: "#F6A98F",
     buttonTextColor: "#102512"    
   },  
   scout_pink: {
@@ -212,7 +212,7 @@ function initializeSongLists() {
     new SongList("bloodless", "Bloodless", SONG_COLLECTIONS.bloodless, THEMES.bloodless),
     new SongList("honey", "Honey", SONG_COLLECTIONS.honey, THEMES.honey),
     new SongList("theBaby", "The Baby", SONG_COLLECTIONS.theBaby, THEMES.theBaby),
-    new SongList("discography", "Full Discography", discographyList, THEMES.scout_og)
+    new SongList("discography", "Full Discography", discographyList, THEMES.scout)
   ].forEach(list => songListRepo.addList(list));
   
   return songListRepo;
