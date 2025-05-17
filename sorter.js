@@ -70,20 +70,6 @@ const SongSorter = (function () {
     return result;
   }
 
-  /**
-   * Shuffle an array using the Fisher-Yates algorithm
-   * @param {Array} array - Array to shuffle
-   * @returns {Array} - Shuffled array
-   */
-  function shuffleArray(array) {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  }
-
   /******************************************
    * MERGE SORT IMPLEMENTATION
    ******************************************/
@@ -747,6 +733,20 @@ const SongSorter = (function () {
 })();
 
 /**
+ * Shuffle an array using the Fisher-Yates algorithm
+ * @param {Array} array - Array to shuffle
+ * @returns {Array} - Shuffled array
+ */
+function shuffleArray(array) {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+/**
  * Format the timestamp in local time: YYYY-MM-DD hh:mm:ss AM/PM
  * @param {Date} date - The date to format
  * @returns {string} Formatted date string
@@ -768,11 +768,12 @@ function formatLocalTime(date) {
  * Check if we already know which song is preferred
  * @param {*} songA - left choice
  * @param {*} songB - right choice
+ * @param {Array} history - Decision history array to work with
  * @returns {*} preference - selectedLeft (boolean), type ('infer', 'decision', 'import')
  */
-function getKnownPreference(songA, songB) {
+function getKnownPreference(songA, songB, history = decisionHistory) {
   // Get all preferences (direct and transitive)
-  const allPreferences = inferTransitivePreferences();
+  const allPreferences = inferTransitivePreferences(history);
 
   let selectedLeft = null;
   for (const pref of allPreferences) {
@@ -793,11 +794,11 @@ function getKnownPreference(songA, songB) {
 
 /**
  * Infer preferences based on transitivity (A > B and B > C implies A > C)
- * Takes global variable {Array} decisionHistory
- * @returns {Array} - list of direct decisions + transitive preferences
+ * @param {Array} history - Decision history array to work with
+ * @returns {Array} - List of direct decisions + transitive preferences
  */
-function inferTransitivePreferences() {
-  const allPreferences = [...decisionHistory];
+function inferTransitivePreferences(history = decisionHistory) {
+  const allPreferences = [...history];
 
   // Keep adding transitive preferences until no more can be found
   let added = true;
