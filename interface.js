@@ -23,7 +23,7 @@ const DOM = {
   copyHistoryButton: document.getElementById("copyHistoryButton"),
   copyStatus: document.getElementById("copyStatus"),
   restartButton: document.getElementById("restartButton"),
-  
+
   importModal: document.getElementById("importModal"),
   importTextarea: document.getElementById("importTextarea"),
   closeModal: document.getElementById("closeModal"),
@@ -42,16 +42,16 @@ const state = {
 // Initialize the application
 function initializeApp() {
   state.currentSongList = songListRepo.getList("bloodless");
-  
+
   applyTheme();
   applySongCount();
 
   showInterface("selection");
 
   populateListSelector();
-  
+
   setupEventListeners();
-  
+
   if (window.ClipboardManager) {
     ClipboardManager.initialize();
   } else {
@@ -62,14 +62,20 @@ function initializeApp() {
 // Apply theme to the document
 function applyTheme() {
   const themeId = state.currentSongList.id;
-  
+
   // Only calculate and apply theme if it changed
   if (state.currentThemeId !== themeId) {
     state.currentThemeId = themeId;
-    
+
     if (!state.themeCache[themeId]) {
-      const { backgroundColor, textColor, buttonColor, buttonHoverColor, buttonTextColor } = state.currentSongList._theme;
-      
+      const {
+        backgroundColor,
+        textColor,
+        buttonColor,
+        buttonHoverColor,
+        buttonTextColor
+      } = state.currentSongList._theme;
+
       state.themeCache[themeId] = {
         '--background-color': backgroundColor,
         '--text-color': textColor,
@@ -78,11 +84,11 @@ function applyTheme() {
         '--button-text-color': buttonTextColor
       };
     }
-    
+
     // Apply cached theme settings
     const root = document.documentElement.style;
     const theme = state.themeCache[themeId];
-    
+
     for (const [property, value] of Object.entries(theme)) {
       root.setProperty(property, value);
     }
@@ -95,16 +101,16 @@ function applySongCount() {
 
 function populateListSelector() {
   const lists = songListRepo.getAllLists();
-  
+
   const fragment = document.createDocumentFragment();
-  
+
   lists.forEach(list => {
     const option = document.createElement("option");
     option.value = list.id;
     option.textContent = list.name;
     fragment.appendChild(option);
   });
-  
+
   DOM.listSelector.appendChild(fragment);
 }
 
@@ -117,8 +123,8 @@ function setupEventListeners() {
 
   DOM.selectionInterface.addEventListener('change', (e) => {
     const target = e.target;
-    
-    switch(target.id) {
+
+    switch (target.id) {
       case 'listSelector':
         state.currentSongList = songListRepo.getList(target.value);
         applyTheme();
@@ -132,11 +138,11 @@ function setupEventListeners() {
         break;
     }
   });
-    
+
   DOM.sortingInterface.addEventListener('click', (e) => {
     const target = e.target;
-    
-    switch(target.id) {
+
+    switch (target.id) {
       case 'btnA':
         handleOption(true);
         DOM.btnA.blur();
@@ -153,11 +159,11 @@ function setupEventListeners() {
         break;
     }
   });
-  
+
   DOM.resultsInterface.addEventListener('click', (e) => {
     const target = e.target;
-    
-    switch(target.id) {
+
+    switch (target.id) {
       case 'copyButton':
         ClipboardManager.copyToClipboard('ranking', state.currentSongList);
         break;
@@ -165,7 +171,7 @@ function setupEventListeners() {
         ClipboardManager.copyToClipboard('history', state.currentSongList);
         break;
       case 'restartButton':
-        resetInterface(state);
+        resetInterface();
         break;
     }
   });
@@ -179,70 +185,64 @@ function showInterface(type) {
 
 function startSortingProcess() {
   showInterface("sorting");
-  
+
   console.log(`Starting sorting with ${state.shouldMergeInsert ? 'merge-insertion' : 'merge'} algorithm`);
   startSorting(state.currentSongList.songs, state.shouldShuffle, state.shouldMergeInsert);
 }
 
 function showResult(finalSorted) {
   DOM.listName.textContent = state.currentSongList.name;
-  
+
   DOM.resultList.innerHTML = '';
   DOM.decisionHistoryBody.innerHTML = '';
-  
+
   const resultsFragment = document.createDocumentFragment();
   const historyFragment = document.createDocumentFragment();
-  
-  finalSorted.forEach((song, index) => {
+
+  finalSorted.forEach((song) => {
     const li = document.createElement("li");
     li.textContent = song;
     resultsFragment.appendChild(li);
   });
-  
-  decisionHistory.forEach((decision, index) => {
+
+  decisionHistory.forEach((decision) => {
     if (decision.type !== 'infer') {
       const row = createHistoryRow(decision);
       historyFragment.appendChild(row);
     }
   });
-  
+
   DOM.resultList.appendChild(resultsFragment);
   DOM.decisionHistoryBody.appendChild(historyFragment);
-  
+
   showInterface("results");
 }
 
 function createHistoryRow(decision) {
   const row = document.createElement("tr");
-  
+
   const comparisonCell = document.createElement("td");
   comparisonCell.textContent = decision.comparison;
-  
+
   const chosenCell = document.createElement("td");
   chosenCell.textContent = decision.chosen;
   chosenCell.className = "chosen";
-  
+
   const rejectedCell = document.createElement("td");
   rejectedCell.textContent = decision.rejected;
   rejectedCell.className = "rejected";
-  
+
   row.append(comparisonCell, chosenCell, rejectedCell);
-  
+
   return row;
 }
 
-function resetInterface(state) {
+function resetInterface() {
   showInterface("selection");
 }
 
 document.addEventListener("DOMContentLoaded", initializeApp);
 
-window.getDecisionHistory = function() {
+window.getDecisionHistory = function () {
   return decisionHistory || [];
-};
-
-window.updateProgressDisplay = function() {
-  if (typeof updateProgress === 'function') {
-    updateProgress();
-  }
 };

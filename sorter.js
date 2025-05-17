@@ -4,7 +4,7 @@
  */
 
 // Create a self-executing function to contain all the logic and avoid global variable pollution
-const SongSorter = (function() {
+const SongSorter = (function () {
     // Private variables for tracking the sorting process
     let worstCaseTotalComparisons = 0;
     let bestCaseTotalComparisons = 0;
@@ -12,15 +12,15 @@ const SongSorter = (function() {
     let decisionHistory = [];
     let compareQueue = [];
     let lastDecisionTimestamp = null; // Track the timestamp of the last decision
-    
+
     // Cache DOM elements
     const DOM = {
-      progress: document.getElementById("progress"),
-      comparison: document.getElementById("comparison"),
-      btnA: document.getElementById("btnA"),
-      btnB: document.getElementById("btnB")
+        progress: document.getElementById("progress"),
+        comparison: document.getElementById("comparison"),
+        btnA: document.getElementById("btnA"),
+        btnB: document.getElementById("btnB")
     };
-    
+
     /**
      * Initialize the sorting process with the selected algorithm
      * @param {Array} songs - Array of songs to sort
@@ -29,112 +29,112 @@ const SongSorter = (function() {
      * @returns {Promise<Array>} - Promise that resolves to the sorted array
      */
     async function startSorting(songs, shuffle = false, useMergeInsertion = false) {
-      // Reset all state variables
-      completedComparisons = 0;
-      decisionHistory = [];
-      compareQueue = [];
-      lastDecisionTimestamp = null; // Reset the timestamp
-      
-      // Create a copy of the songs array
-      let songsToSort = [...songs];
-      
-      // Shuffle if requested
-      if (shuffle) {
-        songsToSort = shuffleArray(songsToSort);
-      }
-      
-      let result;
-      
-      // Choose the algorithm based on the parameter
-      if (useMergeInsertion) {
-        //console.log("Using merge-insertion sort algorithm");
-        worstCaseTotalComparisons = getWorstCaseMergeInsertion(songsToSort.length);
-        bestCaseTotalComparisons = getBestCaseMergeInsertion(songsToSort.length);
-        result = await mergeInsertionSort(songsToSort);
-        // The merge insertion algorithm returns the array in reverse order
-        result = result.reverse();
-      } else {
-        //console.log("Using merge sort algorithm");
-        // Start with each song as a separate list
-        const lists = songsToSort.map(song => [song]);
-        
-        // Calculate the estimated number of comparisons
-        worstCaseTotalComparisons = songsToSort.length * Math.ceil(Math.log2(songsToSort.length)) - 
-                                    2 ** Math.ceil(Math.log2(songsToSort.length)) + 1;
-        bestCaseTotalComparisons = sumOfSmallerListsInMerges(songsToSort.length);
-        
-        result = await mergeSort(lists);
-      }
+        // Reset all state variables
+        completedComparisons = 0;
+        decisionHistory = [];
+        compareQueue = [];
+        lastDecisionTimestamp = null; // Reset the timestamp
 
-      showResult(result);
-      return result;
+        // Create a copy of the song array
+        let songsToSort = [...songs];
+
+        // Shuffle if requested
+        if (shuffle) {
+            songsToSort = shuffleArray(songsToSort);
+        }
+
+        let result;
+
+        // Choose the algorithm based on the parameter
+        if (useMergeInsertion) {
+            //console.log("Using merge-insertion sort algorithm");
+            worstCaseTotalComparisons = getWorstCaseMergeInsertion(songsToSort.length);
+            bestCaseTotalComparisons = getBestCaseMergeInsertion(songsToSort.length);
+            result = await mergeInsertionSort(songsToSort);
+            // The merge insertion algorithm returns the array in reverse order
+            result = result.reverse();
+        } else {
+            //console.log("Using merge sort algorithm");
+            // Start with each song as a separate list
+            const lists = songsToSort.map(song => [song]);
+
+            // Calculate the estimated number of comparisons
+            worstCaseTotalComparisons = songsToSort.length * Math.ceil(Math.log2(songsToSort.length)) -
+                2 ** Math.ceil(Math.log2(songsToSort.length)) + 1;
+            bestCaseTotalComparisons = sumOfSmallerListsInMerges(songsToSort.length);
+
+            result = await mergeSort(lists);
+        }
+
+        showResult(result);
+        return result;
     }
-    
+
     /**
      * Shuffle an array using the Fisher-Yates algorithm
      * @param {Array} array - Array to shuffle
      * @returns {Array} - Shuffled array
      */
     function shuffleArray(array) {
-      const shuffled = [...array];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      return shuffled;
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
     }
-    
+
     /******************************************
      * MERGE SORT IMPLEMENTATION
      ******************************************/
-    
+
     /**
      * Calculate the sum of the sizes of the smaller list in each merge step
      * @param {number} n - The number of elements in the list
      * @returns {number} - The sum of the sizes of the smaller list in each merge step
      */
     function sumOfSmallerListsInMerges(n) {
-      let total = 0;
-      for (let size = 1; size < n; size *= 2) {
-        // number of full-size merges of two sublists of length `size`
-        const fullMerges = Math.floor(n / (2 * size));
-        // leftover elements after those full merges
-        const rem = n % (2 * size);
-        // in the final (possibly partial) merge, we contribute any excess beyond `size`
-        const partial = Math.max(0, rem - size);
-        total += size * fullMerges + partial;
-      }
-      return total;
+        let total = 0;
+        for (let size = 1; size < n; size *= 2) {
+            // number of full-size merges of two sublists of length `size`
+            const fullMerges = Math.floor(n / (2 * size));
+            // leftover elements after those full merges
+            const rem = n % (2 * size);
+            // in the final (possibly partial) merge, we contribute any excess beyond `size`
+            const partial = Math.max(0, rem - size);
+            total += size * fullMerges + partial;
+        }
+        return total;
     }
-    
+
     /**
      * Main merge sort function
      * @param {Array} lists - Array of arrays to merge sort
      * @returns {Promise<Array>} - Promise that resolves to the sorted array
      */
     async function mergeSort(lists) {
-      // Base case: if there's only one list, we're done
-      if (lists.length <= 1) {
-        return lists[0] || [];
-      }
-      
-      // Create pairs of lists to merge
-      const mergedLists = [];
-      for (let i = 0; i < lists.length; i += 2) {
-        if (i + 1 < lists.length) {
-          // Merge two lists
-          const mergedList = await merge(lists[i], lists[i + 1]);
-          mergedLists.push(mergedList);
-        } else {
-          // Odd number of lists, this one gets placed at the front
-          mergedLists.unshift(lists[i]);
+        // Base case: if there's only one list, we're done
+        if (lists.length <= 1) {
+            return lists[0] || [];
         }
-      }
-      
-      // Continue to the next level of merge sort
-      return mergeSort(mergedLists);
+
+        // Create pairs of lists to merge
+        const mergedLists = [];
+        for (let i = 0; i < lists.length; i += 2) {
+            if (i + 1 < lists.length) {
+                // Merge two lists
+                const mergedList = await merge(lists[i], lists[i + 1]);
+                mergedLists.push(mergedList);
+            } else {
+                // Odd number of lists, this one gets placed at the front
+                mergedLists.unshift(lists[i]);
+            }
+        }
+
+        // Continue to the next level of merge sort
+        return mergeSort(mergedLists);
     }
-    
+
     /**
      * Merge two sorted lists with user input
      * @param {Array} left - Left array
@@ -142,60 +142,42 @@ const SongSorter = (function() {
      * @returns {Promise<Array>} - Promise that resolves to the merged array
      */
     async function merge(left, right) {
-      const merged = [];
-      let leftIndex = 0;
-      let rightIndex = 0;
-      
-      while (leftIndex < left.length || rightIndex < right.length) {
-        // If one list is exhausted, add all items from the other
-        if (leftIndex >= left.length) {
-          merged.push(...right.slice(rightIndex));
-          break;
-        }
-        
-        if (rightIndex >= right.length) {
-          merged.push(...left.slice(leftIndex));
-          break;
-        }
-        
-        // Get the next items to compare
-        const songA = left[leftIndex];
-        const songB = right[rightIndex];
-        
-        const pref = getKnownPreference(songA, songB);
-        let selectedLeft = pref.selectedLeft;
-        let type = pref.type;
-        
-        if (pref.selectedLeft === null) {
-          // Need user input for this comparison
-          selectedLeft = await requestUserComparison(
-          songA, songB, 
-          left.length - (leftIndex + 1), 
-          right.length - (rightIndex + 1)
-          );
-          type = 'decision';
-        } else {
-          console.log(`Known comparison: ${(pref.selectedLeft) ? `${songA} > ${songB}` : `${songB} > ${songA}`}`);
+        const merged = [];
+        let leftIndex = 0;
+        let rightIndex = 0;
+
+        while (leftIndex < left.length || rightIndex < right.length) {
+            // If one list is exhausted, add all items from the other
+            if (leftIndex >= left.length) {
+                merged.push(...right.slice(rightIndex));
+                break;
+            }
+
+            if (rightIndex >= right.length) {
+                merged.push(...left.slice(leftIndex));
+                break;
+            }
+
+            // Get the next items to compare
+            const songA = left[leftIndex];
+            const songB = right[rightIndex];
+
+            const pref = await doComparison(songA, songB, left.length - (leftIndex + 1), right.length - (rightIndex + 1));
+
+            // Process the user's choice
+            if (pref.selectedLeft) {
+                merged.push(songA);
+                leftIndex++;
+            } else {
+                merged.push(songB);
+                rightIndex++;
+            }
+            recordPreference(pref.chosen, pref.rejected, pref.type);
         }
 
-        // Process the user's choice
-        const chosen = selectedLeft ? songA : songB;
-        const rejected = selectedLeft ? songB : songA;
-
-        // Process the user's choice
-        if (selectedLeft) {
-          merged.push(songA);
-          leftIndex++;
-        } else {
-          merged.push(songB);
-          rightIndex++;
-        }
-        recordPreference(chosen, rejected, type);
-      }
-      
-      return merged;
+        return merged;
     }
-    
+
     /**
      * Update the best and worst case estimates based on user selection for merge sort
      * @param {boolean} selectedLeft - Whether the left item was selected
@@ -203,129 +185,129 @@ const SongSorter = (function() {
      * @param {number} rightIndexFromRight - Index of the right item in its list from the right
      */
     function updateMergeSortEstimates(selectedLeft, leftIndexFromRight, rightIndexFromRight) {
-      // If indexes are equal, no change needed
-      if (leftIndexFromRight === rightIndexFromRight) {
-        return;
-      }
-      
-      // If indexes are unequal:
-      if (selectedLeft) {
-        // Selected left item
-        if (leftIndexFromRight > rightIndexFromRight) {
-          // Selected higher index - increase min estimate
-          bestCaseTotalComparisons++;
-        } else if (leftIndexFromRight === 0 && rightIndexFromRight > 0) {
-          // Selected 0 index when other is > 0 - decrease max estimate
-          worstCaseTotalComparisons -= rightIndexFromRight;
+        // If indexes are equal, no change needed
+        if (leftIndexFromRight === rightIndexFromRight) {
+            return;
         }
-      } else {
-        // Selected right item
-        if (rightIndexFromRight > leftIndexFromRight) {
-          // Selected higher index - increase min estimate
-          bestCaseTotalComparisons++;
-        } else if (rightIndexFromRight === 0 && leftIndexFromRight > 0) {
-          // Selected 0 index when other is > 0 - decrease max estimate
-          worstCaseTotalComparisons -= leftIndexFromRight;
+
+        // If indexes are unequal:
+        if (selectedLeft) {
+            // Selected left item
+            if (leftIndexFromRight > rightIndexFromRight) {
+                // Selected higher index - increase min estimate
+                bestCaseTotalComparisons++;
+            } else if (leftIndexFromRight === 0 && rightIndexFromRight > 0) {
+                // Selected 0 index when other is > 0 - decrease max estimate
+                worstCaseTotalComparisons -= rightIndexFromRight;
+            }
+        } else {
+            // Selected right item
+            if (rightIndexFromRight > leftIndexFromRight) {
+                // Selected higher index - increase min estimate
+                bestCaseTotalComparisons++;
+            } else if (rightIndexFromRight === 0 && leftIndexFromRight > 0) {
+                // Selected 0 index when other is > 0 - decrease max estimate
+                worstCaseTotalComparisons -= leftIndexFromRight;
+            }
         }
-      }
     }
-    
+
     /******************************************
      * MERGE INSERTION SORT IMPLEMENTATION
      ******************************************/
-    
+
     /**
      * Calculate the best case number of comparisons for merge-insertion sort
      * @param {number} n - Number of elements
      * @returns {number} - Best case number of comparisons
      */
     function getBestCaseMergeInsertion(n) {
-      return F(n) + G(n);
+        return F(n) + G(n);
     }
-    
+
     /**
      * Computes F(n) = F(⌊n/2⌋) + ⌊n/2⌋
      * @param {number} n - Number of elements
      * @returns {number} - Number of merge comparisons
      */
     function F(n) {
-      let total = 0;
-      while (n > 1) {
-        n = Math.floor(n / 2);
-        total += n;
-      }
-      return total;
+        let total = 0;
+        while (n > 1) {
+            n = Math.floor(n / 2);
+            total += n;
+        }
+        return total;
     }
-    
+
     /**
      * Calculate the number of insertion comparisons in the best case
      * @param {number} n - Number of elements
      * @returns {number} - Number of insertion comparisons
      */
     function G(n) {
-      if (n <= 2) {
-        return 0; // no insertions necessary for n<=2
-      }
-      
-      // Get number of insertions
-      const numInsertions = Math.floor((n - 1) / 2); 
-      
-      // Decompose number of insertions into consecutive Jacobsthal differences
-      const decomposition = calculateInsertionGroups(numInsertions);
-      
-      let numComparisons = 0;
-      for (let i = 0; i < decomposition.length; i++) {
-        numComparisons += decomposition[i] * (i + 1);
-      }
-      
-      // Add the number of full groups
-      numComparisons +=
-        (decomposition.slice(-2).reduce((a, b) => a + b, 0) === 2 ** decomposition.length)
-          ? decomposition.length 
-          : (decomposition.length - 1);
-          
-      return G(Math.floor(n / 2)) + numComparisons;
+        if (n <= 2) {
+            return 0; // no insertions necessary for n<=2
+        }
+
+        // Get number of insertions
+        const numInsertions = Math.floor((n - 1) / 2);
+
+        // Decompose number of insertions into consecutive Jacobsthal differences
+        const decomposition = calculateInsertionGroups(numInsertions);
+
+        let numComparisons = 0;
+        for (let i = 0; i < decomposition.length; i++) {
+            numComparisons += decomposition[i] * (i + 1);
+        }
+
+        // Add the number of full groups
+        numComparisons +=
+            (decomposition.slice(-2).reduce((a, b) => a + b, 0) === 2 ** decomposition.length)
+                ? decomposition.length
+                : (decomposition.length - 1);
+
+        return G(Math.floor(n / 2)) + numComparisons;
     }
-    
+
     /**
      * Calculate the worst case number of comparisons for merge-insertion sort
      * @param {number} n - Number of elements
      * @returns {number} - Worst case number of comparisons
      */
     function getWorstCaseMergeInsertion(n) {
-      const z = (3 * n) / 4;
-      const term1 = n * Math.ceil(Math.log2(z));
-      const term2 = Math.floor(2 ** Math.floor(Math.log2(8 * z)) / 3);
-      const term3 = Math.floor(Math.log2(8 * z) / 2);
-      return term1 - term2 + term3;
+        const z = (3 * n) / 4;
+        const term1 = n * Math.ceil(Math.log2(z));
+        const term2 = Math.floor(2 ** Math.floor(Math.log2(8 * z)) / 3);
+        const term3 = Math.floor(Math.log2(8 * z) / 2);
+        return term1 - term2 + term3;
     }
-    
+
     /**
      * Calculate the insertion groups for the Ford-Johnson algorithm
      * @param {number} numElements - Number of elements to group
      * @returns {Array} - Array of group sizes
      */
     function calculateInsertionGroups(numElements) {
-      const groups = [];
-      let remainingElements = numElements;
-      
-      // Calculate Jacobsthal numbers for determining group sizes
-      let a = 1, b = 1;
-      while (remainingElements > 0) {
-        // Next Jacobsthal number
-        const next = b + 2 * a;
-        a = b;
-        b = next;
-        
-        // Group size = difference between consecutive Jacobsthal numbers
-        const groupSize = Math.min(b - a, remainingElements);
-        groups.push(groupSize);
-        remainingElements -= groupSize;
-      }
-      
-      return groups;
+        const groups = [];
+        let remainingElements = numElements;
+
+        // Calculate Jacobsthal numbers for determining group sizes
+        let a = 1, b = 1;
+        while (remainingElements > 0) {
+            // Next Jacobsthal number
+            const next = b + 2 * a;
+            a = b;
+            b = next;
+
+            // Group size = difference between consecutive Jacobsthal numbers
+            const groupSize = Math.min(b - a, remainingElements);
+            groups.push(groupSize);
+            remainingElements -= groupSize;
+        }
+
+        return groups;
     }
-    
+
     /**
      * Main merge-insertion sort function
      * @param {Array} arr - Array to sort
@@ -333,113 +315,97 @@ const SongSorter = (function() {
      * @returns {Promise<Array>} - Promise that resolves to the sorted array
      */
     async function mergeInsertionSort(arr, depth = 0) {
-      // Base case: array of length 1
-      if (arr.length <= 1) {
-        return arr;
-      }
-      
-      // Step 1: Create floor(n/2) pairs
-      const pairs = [];
-      for (let i = 0; i < arr.length - 1; i += 2) {
-        pairs.push([arr[i], arr[i + 1]]);
-      }
-      const unpaired = arr.length % 2 === 1 ? arr[arr.length - 1] : null;
-      
-      // Step 2: Compare elements in each pair (larger element first)
-      const orderedPairs = new Map();
-      for (const pair of pairs) {
-        const songA = pair[0];
-        const songB = pair[1];
-        
-        const pref = getKnownPreference(songA, songB);
-        let selectedLeft = pref.selectedLeft;
-        let type = pref.type;
-        
-        if (pref.selectedLeft === null) {
-          // Need user input for this comparison
-          selectedLeft = await requestUserComparison(songA, songB);
-          type = 'decision';
-        } else {
-          console.log(`Known comparison: ${(pref.selectedLeft) ? `${songA} > ${songB}` : `${songB} > ${songA}`}`);
+        // Base case: array of length 1
+        if (arr.length <= 1) {
+            return arr;
         }
-        
-        // Process the user's choice
-        const chosen = selectedLeft ? songA : songB;
-        const rejected = selectedLeft ? songB : songA;
-        
-        orderedPairs.set(chosen, rejected);
-        
-        // Record the preference
-        recordPreference(chosen, rejected, type);
-      }
-      
-      // Step 3: Recursively sort the larger elements
-      const largerElements = Array.from(orderedPairs.keys());
-      const sortedLargerElements = await mergeInsertionSort(largerElements, depth + 1);
-      
-      // Prepare the result array with sorted larger elements
-      const result = [...sortedLargerElements];  
-      
-      // Step 4: Insert the element paired with the smallest element in S  
-      result.unshift(orderedPairs.get(result[0]));
-      
-      // Step 5: Insertion
-      // Step 5.1: Collect remaining smaller elements + unpaired element if it exists
-      const remainingElements = [];
-      for (let i = 1; i < sortedLargerElements.length; i++) {
-        const smallerElement = orderedPairs.get(sortedLargerElements[i]);
-        remainingElements.push(smallerElement);
-      }
-      
-      // Add unpaired element if it exists
-      if (unpaired !== null) {
-        remainingElements.push(unpaired);
-      }
-      
-      // If there are no elements to insert, we can stop here
-      if (remainingElements.length === 0) {
+
+        // Step 1: Create floor(n/2) pairs
+        const pairs = [];
+        for (let i = 0; i < arr.length - 1; i += 2) {
+            pairs.push([arr[i], arr[i + 1]]);
+        }
+        const unpaired = arr.length % 2 === 1 ? arr[arr.length - 1] : null;
+
+        // Step 2: Compare elements in each pair (larger element first)
+        const orderedPairs = new Map();
+        for (const pair of pairs) {
+
+            const pref = await doComparison(pair[0], pair[1]);
+
+            orderedPairs.set(pref.chosen, pref.rejected);
+
+            // Record the preference
+            recordPreference(pref.chosen, pref.rejected, pref.type);
+        }
+
+        // Step 3: Recursively sort the larger elements
+        const largerElements = Array.from(orderedPairs.keys());
+        const sortedLargerElements = await mergeInsertionSort(largerElements, depth + 1);
+
+        // Prepare the result array with sorted larger elements
+        const result = [...sortedLargerElements];
+
+        // Step 4: Insert the element paired with the smallest element in S
+        result.unshift(orderedPairs.get(result[0]));
+
+        // Step 5: Insertion
+        // Step 5.1: Collect remaining smaller elements + unpaired element if it exists
+        const remainingElements = [];
+        for (let i = 1; i < sortedLargerElements.length; i++) {
+            const smallerElement = orderedPairs.get(sortedLargerElements[i]);
+            remainingElements.push(smallerElement);
+        }
+
+        // Add unpaired element if it exists
+        if (unpaired !== null) {
+            remainingElements.push(unpaired);
+        }
+
+        // If there are no elements to insert, we can stop here
+        if (remainingElements.length === 0) {
+            return result;
+        }
+
+        // Step 5.2: Calculate the special insertion groups
+        const insertionGroups = calculateInsertionGroups(remainingElements.length);
+
+        // Step 5.3: Reorder elements according to the Ford-Johnson sequence
+        const reorderedElements = reorderForInsertion(remainingElements, insertionGroups);
+
+        // Create a reverse map to get the index of the larger element
+        const orderedPairsReversed = new Map();
+        orderedPairs.forEach((value, key) => {
+            orderedPairsReversed.set(value, key);
+        });
+
+        // Step 5.4: Insert each element using binary search
+        let groupIndex = 0;
+        let currentGroupCount = 0;
+
+        for (const elem of reorderedElements) {
+            currentGroupCount++;
+            const isLastInGroup = currentGroupCount === insertionGroups[groupIndex];
+
+            let subsequenceOfS = [...result]; // default case for unpaired element
+            const largerElement = orderedPairsReversed.get(elem);
+            if (largerElement !== undefined) {
+                const index = result.indexOf(largerElement);
+                subsequenceOfS = result.slice(0, index); // get elements of S up to the larger element
+            }
+
+            const index = await getInsertionIndex(subsequenceOfS, elem, isLastInGroup);
+            result.splice(index, 0, elem);
+
+            if (isLastInGroup) {
+                groupIndex++;
+                currentGroupCount = 0;
+            }
+        }
+
         return result;
-      }
-      
-      // Step 5.2: Calculate the special insertion groups
-      const insertionGroups = calculateInsertionGroups(remainingElements.length);
-      
-      // Step 5.3: Reorder elements according to the Ford-Johnson sequence
-      const reorderedElements = reorderForInsertion(remainingElements, insertionGroups);
-      
-      // Create a reverse map to get the index of the larger element
-      const orderedPairsReversed = new Map();
-      orderedPairs.forEach((value, key) => {
-        orderedPairsReversed.set(value, key);
-      });
-      
-      // Step 5.4: Insert each element using binary search
-      let groupIndex = 0;
-      let currentGroupCount = 0;
-      
-      for (const elem of reorderedElements) {
-        currentGroupCount++;
-        const isLastInGroup = currentGroupCount === insertionGroups[groupIndex];
-        
-        let subsequenceOfS = [...result]; // default case for unpaired element
-        const largerElement = orderedPairsReversed.get(elem);
-        if (largerElement !== undefined) {
-          const index = result.indexOf(largerElement);
-          subsequenceOfS = result.slice(0, index); // get elements of S up to the larger element
-        }
-        
-        const index = await getInsertionIndex(subsequenceOfS, elem, isLastInGroup);
-        result.splice(index, 0, elem);
-        
-        if (isLastInGroup) {
-          groupIndex++;
-          currentGroupCount = 0;
-        }
-      }
-      
-      return result;
     }
-    
+
     /**
      * Reorder elements for insertion according to the Ford-Johnson sequence
      * @param {Array} elements - Elements to reorder
@@ -447,22 +413,22 @@ const SongSorter = (function() {
      * @returns {Array} - Reordered elements
      */
     function reorderForInsertion(elements, groups) {
-      const result = [];
-      let startIndex = 0;
-      
-      // Process each group
-      for (const groupSize of groups) {
-        // Get elements for this group
-        const group = elements.slice(startIndex, startIndex + groupSize);
-        
-        // Add group elements to result
-        result.push(...group.reverse());
-        startIndex += groupSize;
-      }
-      
-      return result;
+        const result = [];
+        let startIndex = 0;
+
+        // Process each group
+        for (const groupSize of groups) {
+            // Get elements for this group
+            const group = elements.slice(startIndex, startIndex + groupSize);
+
+            // Add group elements to result
+            result.push(...group.reverse());
+            startIndex += groupSize;
+        }
+
+        return result;
     }
-    
+
     /**
      * Get insertion index through binary search
      * @param {Array} arr - The sorted array
@@ -471,50 +437,33 @@ const SongSorter = (function() {
      * @returns {number} - Index to insert at
      */
     async function getInsertionIndex(arr, elem, isLastInGroup) {
-      let left = 0;
-      let right = arr.length - 1;
-      let keepUpdating = true;
-      
-      // Find insertion point using binary search
-      while (left <= right) {
-        const mid = Math.floor((left + right) / 2);
-        
-        const songA = arr[mid];
-        const songB = elem;
-        
-        const pref = getKnownPreference(songA, songB);
-        let selectedLeft = pref.selectedLeft;
-        let type = pref.type;
-        
-        if (pref.selectedLeft === null) {
-          // Need user input for this comparison
-          selectedLeft = await requestUserComparison(songA, songB);
-          type = 'decision';
-        } else {
-          console.log(`Known comparison: ${(pref.selectedLeft) ? `${songA} > ${songB}` : `${songB} > ${songA}`}`);
+        let left = 0;
+        let right = arr.length - 1;
+        let keepUpdating = true;
+
+        // Find the insertion point using binary search
+        while (left <= right) {
+            const mid = Math.floor((left + right) / 2);
+
+            const pref = await doComparison(arr[mid], elem);
+
+            if (pref.selectedLeft) {
+                right = mid - 1;
+            } else {
+                left = mid + 1;
+            }
+
+            // Record the preference
+            recordPreference(pref.chosen, pref.rejected, pref.type);
+
+            // Update the estimates based on the selection
+            if (keepUpdating) {
+                keepUpdating = updateMergeInsertionEstimates(pref.selectedLeft, arr.length, left, right, isLastInGroup);
+            }
         }
-        
-        // Process the user's choice
-        const chosen = selectedLeft ? songA : songB;
-        const rejected = selectedLeft ? songB : songA;
-        
-        if (selectedLeft) {
-          right = mid - 1;
-        } else {
-          left = mid + 1;
-        }
-        
-        // Record the preference
-        recordPreference(chosen, rejected, type);
-        
-        // Update the estimates based on the selection
-        if (keepUpdating) {
-          keepUpdating = updateMergeInsertionEstimates(selectedLeft, arr.length, left, right, isLastInGroup);
-        }
-      }
-      return left;
+        return left;
     }
-    
+
     /**
      * Update estimates for merge-insertion sort
      * @param {boolean} selectedLeft - Whether the left option was selected
@@ -525,44 +474,44 @@ const SongSorter = (function() {
      * @returns {boolean} - Whether to keep updating
      */
     function updateMergeInsertionEstimates(selectedLeft, insertionLength, left, right, isLastInGroup) {
-      let keepUpdating = true;
-      
-      // The best case occurs by going right if the subsequence size is of the form m=2^k-1
-      // i.e. 1,3,7,15,31,63, etc.
-      // and going left otherwise.
-      const shouldGoRight = Number.isInteger(Math.log2(insertionLength + 1));
-      
-      if (shouldGoRight && !isLastInGroup) {
-        if (selectedLeft) {
-          bestCaseTotalComparisons++;
-          keepUpdating = false;
+        let keepUpdating = true;
+
+        // The best case occurs by going right if the subsequence size is of the form m=2^k-1
+        // i.e. 1,3,7,15,31,63, etc.
+        // and going left otherwise.
+        const shouldGoRight = Number.isInteger(Math.log2(insertionLength + 1));
+
+        if (shouldGoRight && !isLastInGroup) {
+            if (selectedLeft) {
+                bestCaseTotalComparisons++;
+                keepUpdating = false;
+            }
         }
-      }
-      
-      if (!shouldGoRight) {
-        if (!selectedLeft) {
-          bestCaseTotalComparisons++;
-          keepUpdating = false;
-        } else if (left === right) {
-          // If left === right then there's only 1 choice
-          worstCaseTotalComparisons--;
-          keepUpdating = false;
-        } else if (left > right) {
-          // If the loop is broken and they went left the whole time
-          worstCaseTotalComparisons--;
-          keepUpdating = false;
+
+        if (!shouldGoRight) {
+            if (!selectedLeft) {
+                bestCaseTotalComparisons++;
+                keepUpdating = false;
+            } else if (left === right) {
+                // If left === right then there's only 1 choice
+                worstCaseTotalComparisons--;
+                keepUpdating = false;
+            } else if (left > right) {
+                // If the loop is broken and they went left the whole time
+                worstCaseTotalComparisons--;
+                keepUpdating = false;
+            }
         }
-      }
-      
-      bestCaseTotalComparisons = Math.min(bestCaseTotalComparisons, worstCaseTotalComparisons);
-      
-      return keepUpdating;
+
+        bestCaseTotalComparisons = Math.min(bestCaseTotalComparisons, worstCaseTotalComparisons);
+
+        return keepUpdating;
     }
-    
+
     /******************************************
      * SHARED UTILITY FUNCTIONS
      ******************************************/
-    
+
     /**
      * Request user comparison between two songs
      * @param {string} songA - First song to compare
@@ -572,84 +521,101 @@ const SongSorter = (function() {
      * @returns {Promise<boolean>} - Promise that resolves to true if left was selected
      */
     function requestUserComparison(songA, songB, leftIndexFromRight = 0, rightIndexFromRight = 0) {
-      return new Promise(resolve => {
-        // Create comparison object with the resolver included
-        const comparison = {
-          songA: songA,
-          songB: songB,
-          leftIndexFromRight: leftIndexFromRight,
-          rightIndexFromRight: rightIndexFromRight,
-          resolve: resolve
-        };
-        
-        // Add to queue
-        compareQueue.push(comparison);
-        
-        // If this is the only comparison in the queue, show it
-        if (compareQueue.length === 1) {
-          // Use setTimeout to ensure UI updates properly
-          setTimeout(() => {
-            showComparison();
-          }, 0);
-        }
-      });
+        return new Promise(resolve => {
+            // Create comparison object with the resolver included
+            const comparison = {
+                songA: songA,
+                songB: songB,
+                leftIndexFromRight: leftIndexFromRight,
+                rightIndexFromRight: rightIndexFromRight,
+                resolve: resolve
+            };
+
+            // Add to queue
+            compareQueue.push(comparison);
+
+            // If this is the only comparison in the queue, show it
+            if (compareQueue.length === 1) {
+                // Use setTimeout to ensure UI updates properly
+                setTimeout(() => {
+                    showComparison();
+                }, 0);
+            }
+        });
     }
-    
+
     /**
      * Display a comparison for the user
      */
     function showComparison() {
-      if (compareQueue.length === 0) return;
-      
-      // Shows the first element from compareQueue
-      const comparison = compareQueue[0];
-      
-      // Update the UI
-      DOM.btnA.textContent = comparison.songA;
-      DOM.btnB.textContent = comparison.songB;
-      
-      // Update progress information
-      updateProgressDisplay();
+        if (compareQueue.length === 0) return;
+
+        // Shows the first element from compareQueue
+        const comparison = compareQueue[0];
+
+        // Update the UI
+        DOM.btnA.textContent = comparison.songA;
+        DOM.btnB.textContent = comparison.songB;
+
+        // Update progress information
+        updateProgressDisplay();
     }
-    
+
     /**
      * Record a user preference
      * @param {*} chosen - The chosen option
      * @param {*} rejected - The rejected option
-     * @param {String} type - type: decision, import, infer, 
+     * @param {String} type - type: decision, import, infer,
      */
-    function recordPreference(chosen, rejected, type='decision') {
-      completedComparisons++;
-      
-      // Get current timestamp
-      const now = new Date();
-      
-      // Calculate time since last decision
-      let elapsedTime = null;
-      let elapsedTimeFormatted = " N/A  ";
-      if (lastDecisionTimestamp) {
-        elapsedTime = now - lastDecisionTimestamp;
-        // Format time as minutes:seconds
-        const totalSeconds = Math.floor(elapsedTime / 1000);
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        elapsedTimeFormatted = `${minutes}m:${seconds.toString().padStart(2, '0')}s`;
-      }
-      
-      // Update the last decision timestamp
-      lastDecisionTimestamp = now;      
+    function recordPreference(chosen, rejected, type = 'decision') {
+        completedComparisons++;
 
-      // Log the timestamps to console
-      console.log(`${formatLocalTime(now)} | Time: ${elapsedTimeFormatted} | Comparison #${completedComparisons}: ${chosen} > ${rejected}`);
+        // Get current timestamp
+        const now = new Date();
 
-      // Add decision to history with timestamps
-      decisionHistory.push({
-        comparison: completedComparisons,
-        chosen: chosen,
-        rejected: rejected,
-        elapsedTime: elapsedTime,
-        type: type
-      });
+        // Calculate time since last decision
+        let elapsedTime = null;
+        let elapsedTimeFormatted = " N/A  ";
+        if (lastDecisionTimestamp) {
+            elapsedTime = now - lastDecisionTimestamp;
+            // Format time as minutes:seconds
+            const totalSeconds = Math.floor(elapsedTime / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            elapsedTimeFormatted = `${minutes}m:${seconds.toString().padStart(2, '0')}s`;
+        }
+
+        // Update the last decision timestamp
+        lastDecisionTimestamp = now;
+
+        // Log the timestamps to console
+        console.log(`${formatLocalTime(now)} | Time: ${elapsedTimeFormatted} | Comparison #${completedComparisons}: ${chosen} > ${rejected}`);
+
+        // Add decision to history with timestamps
+        decisionHistory.push({
+            comparison: completedComparisons,
+            chosen: chosen,
+            rejected: rejected,
+            elapsedTime: elapsedTime,
+            type: type
+        });
+    }
+
+    /**
+     * Update the progress display
+     */
+    function updateProgressDisplay() {
+        // Calculate progress percentage
+        const progressPercentage =
+            Math.round((completedComparisons / bestCaseTotalComparisons) * 100);
+
+        DOM.progress.textContent =
+            `Progress: ${progressPercentage}% sorted`;
+
+        // Update the comparison count display
+        DOM.comparison.textContent = (bestCaseTotalComparisons === worstCaseTotalComparisons) ?
+            `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons}` :
+            `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons} to ${worstCaseTotalComparisons}`;
     }
 
     /**
@@ -657,88 +623,78 @@ const SongSorter = (function() {
      * @param {boolean} selectedLeft - Whether the left option was selected
      */
     function handleOption(selectedLeft) {
-      if (compareQueue.length === 0) return;
-      
-      // Get the current comparison with its own resolver
-      const comparison = compareQueue.shift();
-      
-      // Update the estimates based on the selection
-      // Only for merge sort; merge-insertion updates in getInsertionIndex
-      if (!state.shouldMergeInsert) {
-        updateMergeSortEstimates(
-          selectedLeft, 
-          comparison.leftIndexFromRight, 
-          comparison.rightIndexFromRight
-        );
-      }
-      
-      // Resolve the promise with the user's choice
-      comparison.resolve(selectedLeft);
-      
-      // If there are more comparisons in the queue, show the next one
-      if (compareQueue.length > 0) {
-        // Wait a moment before showing the next comparison
-        setTimeout(() => {
-          showComparison();
-        }, 0);
-      }
-    }
-    
-    /**
-     * Update the progress display
-     */
-    function updateProgressDisplay() {
-      // Calculate progress percentage
-      const progressPercentage = 
-        Math.round((completedComparisons / bestCaseTotalComparisons) * 100);
-      
-      DOM.progress.textContent = 
-        `Progress: ${progressPercentage}% sorted`;
-      
-      // Update the comparison count display
-      DOM.comparison.textContent = (bestCaseTotalComparisons === worstCaseTotalComparisons) ?
-        `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons}` :
-        `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons} to ${worstCaseTotalComparisons}`;
+        if (compareQueue.length === 0) return;
+
+        // Get the current comparison with its own resolver
+        const comparison = compareQueue.shift();
+
+        // Update the estimates based on the selection
+        // Only for merge sort; merge-insertion updates in getInsertionIndex
+        if (!state.shouldMergeInsert) {
+            updateMergeSortEstimates(
+                selectedLeft,
+                comparison.leftIndexFromRight,
+                comparison.rightIndexFromRight
+            );
+        }
+
+        // Resolve the promise with the user's choice
+        comparison.resolve(selectedLeft);
+
+        // If there are more comparisons in the queue, show the next one
+        if (compareQueue.length > 0) {
+            // Wait a moment before showing the next comparison
+            setTimeout(() => {
+                showComparison();
+            }, 0);
+        }
     }
 
-    /**
-     * Format the timestamp in local time: YYYY-MM-DD hh:mm:ss AM/PM
-     * @param {Date} date - The date to format
-     * @returns {string} Formatted date string
-     */
-    function formatLocalTime(date) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = date.getHours();
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      const hour12 = hours % 12 || 12; // Convert 0 to 12
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      const seconds = String(date.getSeconds()).padStart(2, '0');
+    async function doComparison(songA, songB, leftIndexFromRight = 0, rightIndexFromRight = 0) {
+        const pref = getKnownPreference(songA, songB);
+        let selectedLeft = pref.selectedLeft;
+        let type = pref.type;
 
-    return `${year}-${month}-${day} ${hour12}:${minutes}:${seconds} ${ampm}`;
+        if (pref.selectedLeft === null) {
+            // Need user input for this comparison
+            selectedLeft = await requestUserComparison(songA, songB, leftIndexFromRight, rightIndexFromRight);
+            type = 'decision';
+        } else {
+            console.log(`Known comparison: ${(pref.selectedLeft) ? `${songA} > ${songB}` : `${songB} > ${songA}`}`);
+        }
+
+        // Process the user's choice
+        const chosen = selectedLeft ? songA : songB;
+        const rejected = selectedLeft ? songB : songA;
+
+        return {
+            selectedLeft: selectedLeft,
+            chosen: chosen,
+            rejected: rejected,
+            type: type
+        }
     }
-        
+
     /**
      * Get the history of decisions
      * @returns {Array} - Array of decision objects
      */
     function getDecisionHistory() {
-      return decisionHistory;
+        return decisionHistory;
     }
-    
+
     /**
      * Add an imported decision to the decision history
      * @param {object} decision - The decision to add
      */
     function addImportedDecision(decision) {
-      decisionHistory.push({
-        comparison: "X",
-        chosen: decision.chosen,
-        rejected: decision.rejected,
-        elapsedTime: null,
-        type: 'import'
-      });
+        decisionHistory.push({
+            comparison: "X",
+            chosen: decision.chosen,
+            rejected: decision.rejected,
+            elapsedTime: null,
+            type: 'import'
+        });
     }
 
     /**
@@ -746,139 +702,151 @@ const SongSorter = (function() {
      * This should be called after importing decisions
      */
     function checkCurrentComparison() {
-      // If there's no queue or sorter interface, do nothing
-      if (!compareQueue || compareQueue.length === 0) {
-        return;
-      }
-      
-      // Get the current comparison
-      const currentComparison = compareQueue[0];
-      const songA = currentComparison.songA;
-      const songB = currentComparison.songB;
-      
-      // Check if we now know the preference after importing
-      const pref = getKnownPreference(songA, songB);
-      
-      // If we know the preference, automatically select it
-      if (pref.selectedLeft !== null) {
-        console.log(`After import, we now know: ${(pref.selectedLeft) ? `${songA} > ${songB}` : `${songB} > ${songA}`}`);
-        
-        // Remove from queue
-        compareQueue.shift();
-
-        // Resolve with the known preference
-        currentComparison.resolve(pref.selectedLeft);
-        
-        // Show next comparison if any
-        if (compareQueue.length > 0) {
-          setTimeout(() => {
-            showComparison();
-          }, 0);
+        // If there's no queue or sorter interface, do nothing
+        if (!compareQueue || compareQueue.length === 0) {
+            return;
         }
-      }
-    }    
 
-  // External API
-  return {
-    startSorting: startSorting,
-    handleOption: handleOption,
-    getDecisionHistory: getDecisionHistory,
-    addImportedDecision: addImportedDecision,
-    checkCurrentComparison: checkCurrentComparison
-  };
+        // Get the current comparison
+        const currentComparison = compareQueue[0];
+        const songA = currentComparison.songA;
+        const songB = currentComparison.songB;
+
+        // Check if we now know the preference after importing
+        const pref = getKnownPreference(songA, songB);
+
+        // If we know the preference, automatically select it
+        if (pref.selectedLeft !== null) {
+            console.log(`After import, we now know: ${(pref.selectedLeft) ? `${songA} > ${songB}` : `${songB} > ${songA}`}`);
+
+            // Remove from queue
+            compareQueue.shift();
+
+            // Resolve with the known preference
+            currentComparison.resolve(pref.selectedLeft);
+
+            // Show next comparison if any
+            if (compareQueue.length > 0) {
+                setTimeout(() => {
+                    showComparison();
+                }, 0);
+            }
+        }
+    }
+
+    // External API
+    return {
+        startSorting: startSorting,
+        handleOption: handleOption,
+        getDecisionHistory: getDecisionHistory,
+        addImportedDecision: addImportedDecision,
+        checkCurrentComparison: checkCurrentComparison
+    };
 })();
 
 /**
+ * Format the timestamp in local time: YYYY-MM-DD hh:mm:ss AM/PM
+ * @param {Date} date - The date to format
+ * @returns {string} Formatted date string
+ */
+function formatLocalTime(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = date.getHours();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const hour12 = hours % 12 || 12; // Convert 0 to 12
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hour12}:${minutes}:${seconds} ${ampm}`;
+}
+
+/**
  * Check if we already know which song is preferred
- * @param {const} songA - left choice
- * @param {const} songB - right choice 
- * @returns {string} result - "left", "right" or null
- */ 
+ * @param {*} songA - left choice
+ * @param {*} songB - right choice
+ * @returns {*} preference - selectedLeft (boolean), type ('infer', 'decision', 'import')
+ */
 function getKnownPreference(songA, songB) {
-  // Get all preferences (direct and transitive)
-  const allPreferences = inferTransitivePreferences();
-  
-  let selectedLeft = null;
-  for (const pref of allPreferences) {
-    if (pref.chosen === songA && pref.rejected === songB) {
-      selectedLeft = true;
-      break;
-    } else if (pref.chosen === songB && pref.rejected === songA) {
-      selectedLeft = false;
-      break;
+    // Get all preferences (direct and transitive)
+    const allPreferences = inferTransitivePreferences();
+
+    let selectedLeft = null;
+    for (const pref of allPreferences) {
+        if (pref.chosen === songA && pref.rejected === songB) {
+            selectedLeft = true;
+            break;
+        } else if (pref.chosen === songB && pref.rejected === songA) {
+            selectedLeft = false;
+            break;
+        }
     }
-  }
-  
-  const preference = {
-    selectedLeft: selectedLeft,
-    type: 'infer'
-  }
-  return preference;
+
+    return {
+        selectedLeft: selectedLeft,
+        type: 'infer'
+    };
 }
 
 /**
  * Infer preferences based on transitivity (A > B and B > C implies A > C)
  * Takes global variable {Array} decisionHistory
  * @returns {Array} - list of direct decisions + transitive preferences
- */ 
+ */
 function inferTransitivePreferences() {
-  const allPreferences = [...decisionHistory];
-  
-  // Keep adding transitive preferences until no more can be found
-  let added = true;
-  while (added) {
-    added = false;
-    for (const pref1 of allPreferences) {
-      for (const pref2 of allPreferences) {
-        // If A > B and B > C, then A > C
-        if (pref1.rejected === pref2.chosen) {
-          const newPref = {
-            comparison: null,
-            chosen: pref1.chosen,
-            rejected: pref2.rejected,
-            elapsedTime: null,
-            type: 'infer',
-          };
-          
-          // Check if this preference is already known
-          // If not, add it to the list of preferences and rerun the loop
-          const alreadyKnown = allPreferences.some(p => 
-            p.chosen === newPref.chosen && p.rejected === newPref.rejected
-          );
-          if (!alreadyKnown) {
-            allPreferences.push(newPref);
-            added = true;
-          }
-        }
-      }
-    }
-  }
-  return allPreferences;
-}
+    const allPreferences = [...decisionHistory];
 
-// Function to check current comparison after importing decisions
-function checkCurrentComparison() {
-  SongSorter.checkCurrentComparison();
+    // Keep adding transitive preferences until no more can be found
+    let added = true;
+    while (added) {
+        added = false;
+        for (const pref1 of allPreferences) {
+            for (const pref2 of allPreferences) {
+                // If A > B and B > C, then A > C
+                if (pref1.rejected === pref2.chosen) {
+                    const newPref = {
+                        comparison: null,
+                        chosen: pref1.chosen,
+                        rejected: pref2.rejected,
+                        elapsedTime: null,
+                        type: 'infer',
+                    };
+
+                    // Check if this preference is already known
+                    // If not, add it to the list of preferences and rerun the loop
+                    const alreadyKnown = allPreferences.some(p =>
+                        p.chosen === newPref.chosen && p.rejected === newPref.rejected
+                    );
+                    if (!alreadyKnown) {
+                        allPreferences.push(newPref);
+                        added = true;
+                    }
+                }
+            }
+        }
+    }
+    return allPreferences;
 }
 
 // Export the decision history for access by other modules
 function getDecisionHistory() {
-  return SongSorter.getDecisionHistory();
+    return SongSorter.getDecisionHistory();
 }
 
 // Define global handleOption function to handle button clicks
 function handleOption(selectedLeft) {
-  SongSorter.handleOption(selectedLeft);
+    SongSorter.handleOption(selectedLeft);
 }
 
 // Define single unified startSorting function
 function startSorting(songs, shuffle = false, useMergeInsertion = false) {
-  return SongSorter.startSorting(songs, shuffle, useMergeInsertion);
+    return SongSorter.startSorting(songs, shuffle, useMergeInsertion);
 }
 
 // Make sure we don't need to redefine global decisionHistory
 Object.defineProperty(window, 'decisionHistory', {
-  get: function() {
-    return SongSorter.getDecisionHistory();
-  }
+    get: function () {
+        return SongSorter.getDecisionHistory();
+    }
 });
