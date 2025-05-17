@@ -116,7 +116,7 @@
 /* Copy status banner */
 .copy-status-banner {
   position: fixed;
-  bottom: -10em;
+  bottom: -8em;
   left: 0; right: 0;
   color: var(--button-text-color);
   background-color: var(--button-hover-color);
@@ -124,7 +124,7 @@
   padding: 0.75em;
   font-weight: bold;
   z-index: 1000;
-  transition: bottom calc(var(--transition-speed)*2.5) ease-in-out;
+  transition: bottom calc(var(--transition-speed)*2) ease-in-out;
   border-top: 0.25em solid green;
   opacity: 0.9;
 }

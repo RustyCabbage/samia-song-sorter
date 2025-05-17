@@ -41,25 +41,19 @@ const state = {
 
 // Initialize the application
 function initializeApp() {
-  // Set default song list
   state.currentSongList = songListRepo.getList("bloodless");
   
-  // Apply theme and song count
   applyTheme();
   applySongCount();
 
-  // Hide the sorting and results interface initially, show only the selection UI
   showInterface("selection");
 
-  // Populate the list selector dropdown
   populateListSelector();
   
-  // Set up event listeners
   setupEventListeners();
   
-  // Initialize the clipboard manager
   if (window.ClipboardManager) {
-    ClipboardManager.initialize(DOM);
+    ClipboardManager.initialize();
   } else {
     console.error("ClipboardManager not loaded");
   }
@@ -95,16 +89,13 @@ function applyTheme() {
   }
 }
 
-// Update song count display
 function applySongCount() {
   DOM.songCount.textContent = `${state.currentSongList.songCount} songs`;
 }
 
-// Populate the list selector dropdown
 function populateListSelector() {
   const lists = songListRepo.getAllLists();
   
-  // Use document fragment for better performance
   const fragment = document.createDocumentFragment();
   
   lists.forEach(list => {
@@ -117,16 +108,13 @@ function populateListSelector() {
   DOM.listSelector.appendChild(fragment);
 }
 
-// Set up all event listeners
 function setupEventListeners() {
   DOM.selectionInterface.addEventListener('click', (e) => {
-    // Handle button click
     if (e.target.id === 'startButton') {
       startSortingProcess();
     }
   });
 
-  // Handle changes to form controls in the selection interface
   DOM.selectionInterface.addEventListener('change', (e) => {
     const target = e.target;
     
@@ -166,7 +154,6 @@ function setupEventListeners() {
     }
   });
   
-  // Refactored results interface event handler with switch statement
   DOM.resultsInterface.addEventListener('click', (e) => {
     const target = e.target;
     
@@ -184,43 +171,34 @@ function setupEventListeners() {
   });
 }
 
-// Helper function to show the appropriate interface
 function showInterface(type) {
   DOM.selectionInterface.hidden = type !== "selection";
   DOM.sortingInterface.hidden = type !== "sorting";
   DOM.resultsInterface.hidden = type !== "results";
 }
 
-// Start the sorting process
 function startSortingProcess() {
   showInterface("sorting");
   
-  // Start the sorting using the unified function
   console.log(`Starting sorting with ${state.shouldMergeInsert ? 'merge-insertion' : 'merge'} algorithm`);
   startSorting(state.currentSongList.songs, state.shouldShuffle, state.shouldMergeInsert);
 }
 
-// Render and display results
 function showResult(finalSorted) {
-  // Set the list name in the results title
   DOM.listName.textContent = state.currentSongList.name;
   
-  // Clear previous results
   DOM.resultList.innerHTML = '';
   DOM.decisionHistoryBody.innerHTML = '';
   
-  // Create fragments for better performance
   const resultsFragment = document.createDocumentFragment();
   const historyFragment = document.createDocumentFragment();
   
-  // Add each song to the result list
   finalSorted.forEach((song, index) => {
     const li = document.createElement("li");
     li.textContent = song;
     resultsFragment.appendChild(li);
   });
   
-  // Add each decision to the history table
   decisionHistory.forEach((decision, index) => {
     if (decision.type !== 'infer') {
       const row = createHistoryRow(decision);
@@ -228,15 +206,12 @@ function showResult(finalSorted) {
     }
   });
   
-  // Append fragments to DOM
   DOM.resultList.appendChild(resultsFragment);
   DOM.decisionHistoryBody.appendChild(historyFragment);
   
-  // Show results interface
   showInterface("results");
 }
 
-// Create a history row element
 function createHistoryRow(decision) {
   const row = document.createElement("tr");
   
@@ -256,15 +231,12 @@ function createHistoryRow(decision) {
   return row;
 }
 
-// Reset the interface to selection mode
 function resetInterface(state) {
   showInterface("selection");
 }
 
-// Initialize when the DOM is fully loaded
 document.addEventListener("DOMContentLoaded", initializeApp);
 
-// Export functions needed by the clipboard manager
 window.getDecisionHistory = function() {
   return decisionHistory || [];
 };
