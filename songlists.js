@@ -6,16 +6,29 @@ class SongList {
     this._id = id;
     this._name = name;
     this._songs = [...songs]; // Create a copy to avoid direct reference
-    this._theme = theme; // Store theme reference directly
+    this._theme = theme; // Store theme references directly
     this._songCount = songs.length; // Pre-calculate song count
   }
-  
+
   // Getters
-  get id() { return this._id; }
-  get name() { return this._name; }
-  get songs() { return [...this._songs]; } // Return a copy to prevent direct modification
-  get theme() { return this._theme; }
-  get songCount() { return this._songCount; }
+  get id() {
+    return this._id;
+  }
+
+  get name() {
+    return this._name;
+  }
+
+  get songs() {
+    return [...this._songs];
+  } // Return a copy to prevent direct modification
+  get theme() {
+    return this._theme;
+  }
+
+  get songCount() {
+    return this._songCount;
+  }
 }
 
 // Repository for all song lists
@@ -24,30 +37,30 @@ class SongListRepository {
     this._lists = new Map(); // Use Map instead of Object for better performance with key-value pairs
     this._listCache = null;
   }
-  
+
   addList(songList) {
     if (!(songList instanceof SongList)) {
       throw new Error('Must be a SongList instance');
     }
-    
+
     this._lists.set(songList.id, songList);
     this._listCache = null;
   }
-  
+
   getList(id) {
     return this._lists.get(id) || null;
   }
-  
+
   getAllLists() {
     if (this._listCache) {
       return this._listCache;
     }
-    
+
     this._listCache = Array.from(this._lists.entries()).map(([id, list]) => ({
       id,
       name: list.name
     }));
-    
+
     return this._listCache;
   }
 }
@@ -79,14 +92,14 @@ const THEMES = {
     textColor: "#102512",
     buttonColor: "#F6AF9E",
     buttonHoverColor: "#F6A98F",
-    buttonTextColor: "#102512"    
-  },  
+    buttonTextColor: "#102512"
+  },
   scout_pink: {
     backgroundColor: "#FBB19D", // or F6AF9E
     textColor: "#102512",
     buttonColor: "#EC8F30",
     buttonHoverColor: "#D58220",
-    buttonTextColor: "#102512"    
+    buttonTextColor: "#102512"
   },
   scout_oj: {
     backgroundColor: "#F09349",
@@ -132,7 +145,7 @@ const SONG_COLLECTIONS = {
     "Never Said",
     "Gotta Have You"
   ]),
-  
+
   theBaby: Object.freeze([
     "Pool",
     "Fit N Full",
@@ -146,14 +159,14 @@ const SONG_COLLECTIONS = {
     "Minnesota",
     "Is There Something In The Movies?"
   ]),
-  
+
   scout: Object.freeze([
     "As You Are",
     "Show Up",
     "Elephant",
     "The Promise"
   ]),
-  
+
   honey: Object.freeze([
     "Kill Her Freak Out",
     "Charm You",
@@ -167,7 +180,7 @@ const SONG_COLLECTIONS = {
     "Amelia",
     "Dream Song"
   ]),
-  
+
   bloodless: Object.freeze([
     "Biscuits Intro",
     "Bovine Excision",
@@ -206,7 +219,7 @@ const discographyList = [
 // Initialize the repository with song lists
 function initializeSongLists() {
   const songListRepo = new SongListRepository();
-  
+
   // Create and add SongList instances all at once
   [
     new SongList("bloodless", "Bloodless", SONG_COLLECTIONS.bloodless, THEMES.bloodless),
@@ -214,7 +227,7 @@ function initializeSongLists() {
     new SongList("theBaby", "The Baby", SONG_COLLECTIONS.theBaby, THEMES.theBaby),
     new SongList("discography", "Full Discography", discographyList, THEMES.scout)
   ].forEach(list => songListRepo.addList(list));
-  
+
   return songListRepo;
 }
 

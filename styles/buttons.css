@@ -1,0 +1,186 @@
+/* Core button look */
+.button {
+  background-color: var(--button-color);
+  color: var(--button-text-color);
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: background-color var(--transition-speed) ease;
+}
+
+.button:hover {
+  background-color: var(--button-hover-color);
+}
+
+/* Optional hover‑scale */
+.scale-hover:hover {
+  transform: scale(1.05);
+}
+
+/* Variants */
+.action-button {
+  padding: 1em 2em;
+  margin: 1.5em 0;
+}
+
+.choice-button {
+  padding: 0.5em;
+  width: 50%;
+  min-height: 4em;
+  margin: 0 1.5em;
+}
+
+.small-button {
+  padding: 0.5em 1em;
+  margin: 0;
+}
+
+.choice-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  margin: 3em 0;
+}
+
+/* Selection interface basics */
+.select-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.slider-label {
+  font-size: 0.875em;
+  opacity: 0.9;
+}
+
+.song-list-select {
+  padding: 0.75em;
+  margin-bottom: 0.5em;
+  width: 100%;
+  max-width: 60%;
+}
+
+/* Sliders */
+.slider-container {
+  margin: 1em auto;
+}
+
+/* Toggle‑rows */
+.toggle-row {
+  display: flex;
+  margin-bottom: 0.5em;
+  width: 100%;
+  text-align: left;
+}
+
+.switch {
+  position: relative;
+  height: 1.125em;
+  width: 2.25em;
+  margin-right: 0.75em;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--button-color);
+  border-radius: 2em;
+  transition: background-color var(--transition-speed) ease;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 0.875em;
+  width: 0.875em;
+  bottom: 0.125em;
+  left: 0.25em;
+  background-color: var(--button-text-color);
+  transition: transform var(--transition-speed) ease;
+  border-radius: 50%;
+}
+
+.switch input:checked + .slider {
+  background-color: var(--button-hover-color);
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(0.875em);
+}
+
+/* Copy‑text links */
+.sorting-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+  margin-top: 1em;
+}
+
+.copy-text {
+  text-decoration: underline;
+  font-size: 0.75em;
+  cursor: pointer;
+  text-align: center;
+  margin: 0 0 0.5em 0;
+  opacity: 0.9;
+  display: inline-block;
+  transition: color var(--transition-speed) ease;
+}
+
+.copy-text:hover {
+  color: var(--button-hover-color);
+}
+
+.copy-text:active {
+  color: var(--button-color);
+}
+
+/* Copy status banner */
+.copy-status-banner {
+  position: fixed;
+  bottom: -8em;
+  left: 0;
+  right: 0;
+  color: var(--button-text-color);
+  background-color: var(--button-hover-color);
+  text-align: center;
+  padding: 0.75em;
+  font-weight: bold;
+  z-index: 1000;
+  transition: bottom calc(var(--transition-speed) * 2) ease-in-out;
+  border-top: 0.25em solid green;
+  opacity: 0.9;
+}
+
+.copy-status-banner.visible {
+  bottom: 0;
+}
+
+.copy-status-banner.success {
+  border-top-color: green;
+}
+
+.copy-status-banner.error {
+  border-top-color: red;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .choice-button:hover,
+  .choice-button:focus,
+  .choice-button:active {
+    background-color: var(--button-color);
+    transform: none !important;
+  }
+}
