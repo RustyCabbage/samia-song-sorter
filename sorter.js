@@ -741,10 +741,28 @@ function formatLocalTime(date) {
  * @returns {*} preference - selectedLeft (boolean), type ('infer', 'decision', 'import')
  */
 function getKnownPreference(songA, songB, history = decisionHistory) {
-  // Get all preferences (direct and transitive)
+  let selectedLeft = null;
+
+  // Check if this preference is already directly known
+  for (const { chosen, rejected } of history) {
+    if (chosen === songA && rejected === songB) {
+      selectedLeft = true;
+      break;
+    } else if (chosen === songB && rejected === songA) {
+      selectedLeft = false;
+      break;
+    }
+  }
+  if (selectedLeft !== null) {
+    return {
+      selectedLeft,
+      type: 'infer'
+    };
+  }
+
+  // Else infer transitive preferences in O(N^3) and try again
   const allPreferences = inferTransitivePreferences(history);
 
-  let selectedLeft = null;
   for (const pref of allPreferences) {
     if (pref.chosen === songA && pref.rejected === songB) {
       selectedLeft = true;
@@ -755,7 +773,7 @@ function getKnownPreference(songA, songB, history = decisionHistory) {
     }
   }
   return {
-    selectedLeft: selectedLeft,
+    selectedLeft,
     type: 'infer'
   };
 }
@@ -766,34 +784,60 @@ function getKnownPreference(songA, songB, history = decisionHistory) {
  * @returns {Array} - List of direct decisions + transitive preferences
  */
 function inferTransitivePreferences(history = decisionHistory) {
-  const allPreferences = [...history];
+  // A. Gather all distinct nodes and build adjacency in one pass
+  const graph = new Map();       // item → Set of items it beats
+  const allNodes = new Set();    // to collect every item
 
-  // Keep adding transitive preferences until no more can be found
-  let added = true;
-  while (added) {
-    added = false;
-    for (const pref1 of allPreferences) {
-      for (const pref2 of allPreferences) {
-        // If A > B and B > C, then A > C
-        if (pref1.rejected === pref2.chosen) {
-          const newPref = {
-            comparison: null,
-            chosen: pref1.chosen,
-            rejected: pref2.rejected,
-            elapsedTime: null,
-            type: 'infer',
-          };
+  for (const { chosen, rejected } of history) {
+    allNodes.add(chosen);
+    allNodes.add(rejected);
 
-          // Check if this preference is already known
-          // If not, add it to the list of preferences and rerun the loop
-          const alreadyKnown = allPreferences.some(p =>
-            p.chosen === newPref.chosen && p.rejected === newPref.rejected
-          );
-          if (!alreadyKnown) {
-            allPreferences.push(newPref);
-            added = true;
+    if (!graph.has(chosen)) {
+      graph.set(chosen, new Set());
+    }
+    graph.get(chosen).add(rejected);
+  }
+
+  // B. Ensure every node is in the graph (even if it has no outgoing edges)
+  for (const node of allNodes) {
+    if (!graph.has(node)) {
+      graph.set(node, new Set());
+    }
+  }
+
+  // Perform transitive closure
+  const nodes = Array.from(allNodes);
+  for (const k of nodes) {
+    for (const i of nodes) {
+      if (graph.get(i).has(k)) {
+        for (const j of nodes) {
+          if (graph.get(k).has(j)) {
+            graph.get(i).add(j);
           }
         }
+      }
+    }
+  }
+
+  // Convert back to preference objects
+  const allPreferences = [...history];
+
+  // Add transitive preferences
+  for (const [chosen, rejectedSet] of graph.entries()) {
+    for (const rejected of rejectedSet) {
+      // Check if this is already a direct preference
+      const isDirect = history.some(pref =>
+        pref.chosen === chosen && pref.rejected === rejected
+      );
+
+      if (!isDirect) {
+        allPreferences.push({
+          comparison: null,
+          chosen: chosen,
+          rejected: rejected,
+          elapsedTime: null,
+          type: 'infer',
+        });
       }
     }
   }
