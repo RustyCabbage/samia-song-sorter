@@ -62,7 +62,7 @@
   background-color: var(--background-color);
   border-radius: var(--border-radius);
   padding: 1.5em;
-  max-width: 450px;
+  max-width: 500px;
   max-height: 80vh;
   overflow-y: auto;
 }

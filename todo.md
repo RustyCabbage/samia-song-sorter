@@ -14,10 +14,9 @@
 	- only within a recusion level? idk how this affects the algorithm
 - Show decision history during sorting 
 	- shows in the console idk if it's something worth doing
-- Import decision history mid sort
-	- probably have to store shuffle seed when exporting
 - restart button mid sort
 	- probably have to store shuffle seed
+		theres no way to do math.random with seeds in js apparently so im just going to ignore this for now
 	- lazy implementation to take you to the list selection interface is very simple, but I don't see how it's much better than just refreshing the page
 
 ##### probably never
