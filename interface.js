@@ -33,10 +33,7 @@ const DOM = {
 
 // State management
 const state = {
-  currentSongList: null,
-  shouldShuffle: true,
-  shouldMergeInsert: true,
-  themeCache: {} // Cache for theme CSS calculations
+  currentSongList: null, shouldShuffle: true, shouldMergeInsert: true, themeCache: {} // Cache for theme CSS calculations
 };
 
 // Initialize the application
@@ -69,11 +66,7 @@ function applyTheme() {
 
     if (!state.themeCache[themeId]) {
       const {
-        backgroundColor,
-        textColor,
-        buttonColor,
-        buttonHoverColor,
-        buttonTextColor
+        backgroundColor, textColor, buttonColor, buttonHoverColor, buttonTextColor
       } = state.currentSongList._theme;
 
       state.themeCache[themeId] = {

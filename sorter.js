@@ -47,8 +47,7 @@ const SongSorter = (function () {
       result = result.reverse();
     } else {
       // Start with each song as a separate list
-      worstCaseTotalComparisons = songsToSort.length * Math.ceil(Math.log2(songsToSort.length)) -
-        2 ** Math.ceil(Math.log2(songsToSort.length)) + 1;
+      worstCaseTotalComparisons = songsToSort.length * Math.ceil(Math.log2(songsToSort.length)) - 2 ** Math.ceil(Math.log2(songsToSort.length)) + 1;
       bestCaseTotalComparisons = sumOfSmallerListsInMerges(songsToSort.length);
 
       const lists = songsToSort.map(song => [song]);
@@ -133,12 +132,7 @@ const SongSorter = (function () {
       const songA = left[leftIndex];
       const songB = right[rightIndex];
 
-      const pref = await doComparison(
-        songA,
-        songB,
-        left.length - (leftIndex + 1),
-        right.length - (rightIndex + 1)
-      );
+      const pref = await doComparison(songA, songB, left.length - (leftIndex + 1), right.length - (rightIndex + 1));
 
       if (pref.selectedLeft) {
         merged.push(songA);
@@ -235,10 +229,7 @@ const SongSorter = (function () {
     }
 
     // Add the number of full groups
-    numComparisons +=
-      (decomposition.slice(-2).reduce((a, b) => a + b, 0) === 2 ** decomposition.length)
-        ? decomposition.length
-        : (decomposition.length - 1);
+    numComparisons += (decomposition.slice(-2).reduce((a, b) => a + b, 0) === 2 ** decomposition.length) ? decomposition.length : (decomposition.length - 1);
 
     return G(Math.floor(n / 2)) + numComparisons;
   }
@@ -424,13 +415,7 @@ const SongSorter = (function () {
 
       // Update the estimates based on the selection
       if (keepUpdating) {
-        keepUpdating = updateMergeInsertionEstimates(
-          pref.selectedLeft,
-          arr.length,
-          left,
-          right,
-          isLastInGroup
-        );
+        keepUpdating = updateMergeInsertionEstimates(pref.selectedLeft, arr.length, left, right, isLastInGroup);
       }
     }
     return left;
@@ -501,10 +486,7 @@ const SongSorter = (function () {
     const rejected = pref.selectedLeft ? songB : songA;
 
     return {
-      selectedLeft: pref.selectedLeft,
-      chosen: chosen,
-      rejected: rejected,
-      type: pref.type
+      selectedLeft: pref.selectedLeft, chosen: chosen, rejected: rejected, type: pref.type
     }
   }
 
@@ -567,11 +549,7 @@ const SongSorter = (function () {
     // Update the estimates based on the selection
     // Only for merge sort; merge-insertion updates in getInsertionIndex
     if (!state.shouldMergeInsert) {
-      updateMergeSortEstimates(
-        selectedLeft,
-        comparison.leftIndexFromRight,
-        comparison.rightIndexFromRight
-      );
+      updateMergeSortEstimates(selectedLeft, comparison.leftIndexFromRight, comparison.rightIndexFromRight);
     }
 
     // Resolve the promise with the user's choice
@@ -615,11 +593,7 @@ const SongSorter = (function () {
 
     // Add to history
     decisionHistory.push({
-      comparison: completedComparisons,
-      chosen: chosen,
-      rejected: rejected,
-      elapsedTime: elapsedTime,
-      type: type
+      comparison: completedComparisons, chosen: chosen, rejected: rejected, elapsedTime: elapsedTime, type: type
     });
   }
 
@@ -628,14 +602,11 @@ const SongSorter = (function () {
    */
   function updateProgressDisplay() {
     // Calculate progress percentage
-    const progressPercentage =
-      Math.round((completedComparisons / bestCaseTotalComparisons) * 100);
+    const progressPercentage = Math.round((completedComparisons / bestCaseTotalComparisons) * 100);
 
     DOM.progress.textContent = `Progress: ${progressPercentage}% sorted`;
 
-    const comparisonText = (bestCaseTotalComparisons === worstCaseTotalComparisons) ?
-      `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons}` :
-      `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons} to ${worstCaseTotalComparisons}`;
+    const comparisonText = (bestCaseTotalComparisons === worstCaseTotalComparisons) ? `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons}` : `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons} to ${worstCaseTotalComparisons}`;
 
     if (DOM.comparison.textContent !== comparisonText) {
       DOM.comparison.textContent = comparisonText;
@@ -648,11 +619,7 @@ const SongSorter = (function () {
    */
   function addImportedDecision(decision) {
     decisionHistory.push({
-      comparison: "X",
-      chosen: decision.chosen,
-      rejected: decision.rejected,
-      elapsedTime: null,
-      type: 'import'
+      comparison: "X", chosen: decision.chosen, rejected: decision.rejected, elapsedTime: null, type: 'import'
     });
   }
 
@@ -693,11 +660,7 @@ const SongSorter = (function () {
 
   // Return the public API
   return {
-    startSorting,
-    handleOption,
-    getDecisionHistory: () => decisionHistory,
-    addImportedDecision,
-    checkCurrentComparison
+    startSorting, handleOption, getDecisionHistory: () => decisionHistory, addImportedDecision, checkCurrentComparison
   };
 })();
 
@@ -744,7 +707,7 @@ function getKnownPreference(songA, songB, history = decisionHistory) {
   let selectedLeft = null;
 
   // Check if this preference is already directly known
-  for (const { chosen, rejected } of history) {
+  for (const {chosen, rejected} of history) {
     if (chosen === songA && rejected === songB) {
       selectedLeft = true;
       break;
@@ -755,8 +718,7 @@ function getKnownPreference(songA, songB, history = decisionHistory) {
   }
   if (selectedLeft !== null) {
     return {
-      selectedLeft,
-      type: 'infer'
+      selectedLeft, type: 'infer'
     };
   }
 
@@ -773,8 +735,7 @@ function getKnownPreference(songA, songB, history = decisionHistory) {
     }
   }
   return {
-    selectedLeft,
-    type: 'infer'
+    selectedLeft, type: 'infer'
   };
 }
 
@@ -788,7 +749,7 @@ function inferTransitivePreferences(history = decisionHistory) {
   const graph = new Map();       // item → Set of items it beats
   const allNodes = new Set();    // to collect every item
 
-  for (const { chosen, rejected } of history) {
+  for (const {chosen, rejected} of history) {
     allNodes.add(chosen);
     allNodes.add(rejected);
 
@@ -826,17 +787,11 @@ function inferTransitivePreferences(history = decisionHistory) {
   for (const [chosen, rejectedSet] of graph.entries()) {
     for (const rejected of rejectedSet) {
       // Check if this is already a direct preference
-      const isDirect = history.some(pref =>
-        pref.chosen === chosen && pref.rejected === rejected
-      );
+      const isDirect = history.some(pref => pref.chosen === chosen && pref.rejected === rejected);
 
       if (!isDirect) {
         allPreferences.push({
-          comparison: null,
-          chosen: chosen,
-          rejected: rejected,
-          elapsedTime: null,
-          type: 'infer',
+          comparison: null, chosen: chosen, rejected: rejected, elapsedTime: null, type: 'infer',
         });
       }
     }

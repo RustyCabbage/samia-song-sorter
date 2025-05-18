@@ -124,10 +124,7 @@ const ClipboardManager = (function () {
       }
 
       // Show success message
-      showNotification(
-        `Imported ${parsedDecisions.length} decisions: ${addedCount} added, ${skippedCount} skipped, ${conflictCount} conflicts, ${outOfScopeCount} out of scope`,
-        true, 5000
-      );
+      showNotification(`Imported ${parsedDecisions.length} decisions: ${addedCount} added, ${skippedCount} skipped, ${conflictCount} conflicts, ${outOfScopeCount} out of scope`, true, 5000);
     } catch (error) {
       showNotification("Error parsing decisions: " + error.message, false);
     }
@@ -162,10 +159,7 @@ const ClipboardManager = (function () {
 
         if (chosen && rejected) {
           decisions.push({
-            comparison: 'X',
-            chosen,
-            rejected,
-            type: 'import'
+            comparison: 'X', chosen, rejected, type: 'import'
           });
         }
       }
@@ -206,8 +200,7 @@ const ClipboardManager = (function () {
     // Process each imported decision
     for (const decision of decisions) {
       // Check if songs are in the current list
-      if (!currentSongList.songs.includes(decision.chosen) ||
-        !currentSongList.songs.includes(decision.rejected)) {
+      if (!currentSongList.songs.includes(decision.chosen) || !currentSongList.songs.includes(decision.rejected)) {
         outOfScopeCount++;
         continue;
       }
@@ -237,10 +230,7 @@ const ClipboardManager = (function () {
 
     // Return the stat object directly
     return {
-      addedCount,
-      skippedCount,
-      conflictCount,
-      outOfScopeCount
+      addedCount, skippedCount, conflictCount, outOfScopeCount
     };
   }
 
@@ -252,7 +242,7 @@ const ClipboardManager = (function () {
    * @param {Array} originalHistory - The original decision history to clean
    * @returns {Array} - Cleaned decision history with only essential decisions
    */
-  function cleanDecisionHistory(originalHistory=getDecisionHistory()) {
+  function cleanDecisionHistory(originalHistory = getDecisionHistory()) {
     // Create a deep copy of the history to avoid modifying the original
     let history = JSON.parse(JSON.stringify(originalHistory));
     let loop = true;
@@ -351,8 +341,7 @@ const ClipboardManager = (function () {
   // Public API
   return {
     initialize: setupEventListeners, // Directly expose setupEventListeners as initialize
-    copyToClipboard,
-    openImportModal
+    copyToClipboard, openImportModal
   };
 })();
 
