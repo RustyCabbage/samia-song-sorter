@@ -12,12 +12,11 @@
 	- was not easily possible with previous implementation, idk about now that i use async/await
 - skip button
 	- only within a recusion level? idk how this affects the algorithm
-- Show decision history during sorting 
-	- shows in the console idk if it's something worth doing
+
 - restart button mid sort
-	- probably have to store shuffle seed
-		theres no way to do math.random with seeds in js apparently so im just going to ignore this for now
 	- lazy implementation to take you to the list selection interface is very simple, but I don't see how it's much better than just refreshing the page
+	- otherwise probably have to store shuffle seed
+		- theres no immediate way to do math.random with seeds in js apparently so im just going to ignore this for now
 
 ##### probably never
 - tie buttons
@@ -25,3 +24,5 @@
 - Use Atkinson Hyperlegible instead of Arial
 	- https://fonts.google.com/specimen/Atkinson+Hyperlegible
 	- I don't like the way it looks ._.
+- Show decision history during sorting 
+	- copy button makes this redundant
