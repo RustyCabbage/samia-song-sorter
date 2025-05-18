@@ -51,16 +51,13 @@ const ClipboardManager = (function () {
         const headerText = isPartial ? `Partial ${listName} Decision History` : `${listName} Decision History`;
 
         // it's not always helpful to get a clean decision history since transitive relationships may affect out-of-scope decisions if comparing across lists.
-        //const history = isPartial ? cleanDecisionHistory(getDecisionHistory()) : getDecisionHistory();
+        //const hist = isPartial ? cleanDecisionHistory(getDecisionHistory()) : getDecisionHistory();
+        const hist = getDecisionHistory();
 
         // Build the decision text based on the decisionHistory array
-        const decisionsText = [];
-        for (let i = 0, idx = 1; i < history.length; i++) {
-          const decision = history[i];
-          if (decision.type !== 'infer') {
-            decisionsText.push(`${idx++}. ${decision.chosen} > ${decision.rejected}`);
-          }
-        }
+        const decisionsText = hist
+          .filter(d => d.type !== 'infer')
+          .map((d, i) => `${i + 1}. ${d.chosen} > ${d.rejected}`);
 
         textToCopy = `My ${headerText}:\n\n${decisionsText.join('\n')}`;
         successMessage = `${isPartial ? "Preferences" : "History"} copied to clipboard!`;
