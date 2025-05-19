@@ -51,7 +51,7 @@ const ClipboardManager = (function () {
         const headerText = isPartial ? `Partial ${listName} Decision History` : `${listName} Decision History`;
 
         // I don't know if we always want to return the transitive reduction of the history
-        const hist = isPartial ? computeTransitiveReduction(getDecisionHistory()) : getDecisionHistory();
+        const hist = isPartial ? topologicalSortPreferences(computeTransitiveReduction(getDecisionHistory())) : getDecisionHistory();
         //const hist = getDecisionHistory();
 
         // Build the decision text based on the decisionHistory array
@@ -200,8 +200,6 @@ const ClipboardManager = (function () {
     console.log(transitiveReduction.length, "decisions in transitive reduction");
 
     let cleanedCount = decisions.length - transitiveReduction.length;
-    console.log(`Cleaned ${cleanedCount} inferences`);
-
     // Process each imported decision
     for (const decision of transitiveReduction) {
       // Check if songs are in the current list. This is not needed but is kept in case we want to disable the transitive reduction functionality
@@ -234,8 +232,9 @@ const ClipboardManager = (function () {
     }
 
     // Show a notification & log stats to console
-    showNotification(`Imported ${decisions.length} decisions: ${addedCount} added, ${skippedCount} skipped, ${conflictCount} conflicts, ${cleanedCount} cleaned`, true, 5000)
-    console.log(`Imported ${decisions.length} decisions: ${addedCount} added, ${skippedCount} skipped, ${conflictCount} conflicts, ${cleanedCount} cleaned`);
+    const notificationText = `Imported ${decisions.length} decisions: ${addedCount} added, ${skippedCount} skipped, ${conflictCount} conflicts, ${cleanedCount} cleaned`;
+    showNotification(notificationText, true, 5000)
+    console.log(notificationText);
     // Return the stat object directly
     return {
       addedCount, skippedCount, conflictCount, cleanedCount

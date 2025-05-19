@@ -898,6 +898,160 @@ function computeTransitiveReduction(history = decisionHistory, isTransitiveClosu
 }
 
 /**
+ * Topologically sort the preferences returned by the transitive reduction
+ * @param {Array} preferences - List of preferences (e.g., from computeTransitiveReduction)
+ * @returns {Array} - Topologically sorted list of preferences
+ */
+function topologicalSortPreferences(preferences) {
+  // Build a graph representation where:
+  // - Nodes are individual items
+  // - Edges represent preferences (chosen → rejected)
+  const graph = new Map(); // Map of item → Set of items it beats
+  const inDegree = new Map(); // Map of item → number of items that beat it
+  const allNodes = new Set(); // All unique items
+
+  // Initialize the graph and collect all nodes
+  for (const pref of preferences) {
+    const {chosen, rejected} = pref;
+    allNodes.add(chosen);
+    allNodes.add(rejected);
+
+    if (!graph.has(chosen)) {
+      graph.set(chosen, new Set());
+    }
+    graph.get(chosen).add(rejected);
+
+    // Initialize in-degree counts
+    if (!inDegree.has(chosen)) {
+      inDegree.set(chosen, 0);
+    }
+    if (!inDegree.has(rejected)) {
+      inDegree.set(rejected, 0);
+    }
+  }
+  // Calculate in-degrees for all nodes
+  for (const [node, edges] of graph.entries()) {
+    for (const target of edges) {
+      inDegree.set(target, inDegree.get(target) + 1);
+    }
+  }
+  // Queue for nodes with no incoming edges (in-degree = 0)
+  const queue = [];
+  for (const node of allNodes) {
+    if (inDegree.get(node) === 0) {
+      queue.push(node);
+    }
+  }
+  // Perform topological sort on the items
+  const sortedItems = [];
+  while (queue.length > 0) {
+    const node = queue.shift();
+    sortedItems.push(node);
+
+    // For each neighbor, decrement in-degree and enqueue if in-degree becomes 0
+    if (graph.has(node)) {
+      for (const neighbor of graph.get(node)) {
+        inDegree.set(neighbor, inDegree.get(neighbor) - 1);
+        if (inDegree.get(neighbor) === 0) {
+          queue.push(neighbor);
+        }
+      }
+    }
+  }
+  // If the number of visited nodes doesn't match the total nodes,
+  // there's a cycle in the graph (which shouldn't happen with valid preferences)
+  if (sortedItems.length !== allNodes.size) {
+    console.warn("Warning: Preference graph contains cycles!");
+  }
+  // Now, sort the preferences based on the topological order of items
+  // For each preference, we'll assign a priority based on the positions of chosen and rejected items
+  const sortedPreferences = [...preferences];
+  sortedPreferences.sort((a, b) => {
+    const posA_chosen = sortedItems.indexOf(a.chosen);
+    const posB_chosen = sortedItems.indexOf(b.chosen);
+
+    // If the chosen items are different, sort by their position
+    if (posA_chosen !== posB_chosen) {
+      return posA_chosen - posB_chosen;
+    }
+
+    // If the chosen items are the same, sort by the position of the rejected items
+    const posA_rejected = sortedItems.indexOf(a.rejected);
+    const posB_rejected = sortedItems.indexOf(b.rejected);
+    return posA_rejected - posB_rejected;
+  });
+
+  return sortedPreferences;
+}
+
+/**
+ * Topologically sort the items based on the reduced comparison graph
+ * @param {Array} preferences - Array of preference objects (from computeTransitiveReduction)
+ * @returns {Array} - Array of items in topological order (best to worst)
+ */
+function topologicalSortItems(preferences) {
+  // Build directed graph from preferences
+  const graph = new Map();
+  const allNodes = new Set();
+
+  // Add all nodes and edges to the graph
+  for (const {chosen, rejected} of preferences) {
+    allNodes.add(chosen);
+    allNodes.add(rejected);
+
+    if (!graph.has(chosen)) {
+      graph.set(chosen, new Set());
+    }
+    graph.get(chosen).add(rejected);
+  }
+  // Ensure all nodes are in the graph (even with no outgoing edges)
+  for (const node of allNodes) {
+    if (!graph.has(node)) {
+      graph.set(node, new Set());
+    }
+  }
+  // Calculate in-degree for each node (how many edges point to it)
+  const inDegree = new Map();
+  for (const node of allNodes) {
+    inDegree.set(node, 0);
+  }
+
+  for (const [node, edges] of graph.entries()) {
+    for (const target of edges) {
+      inDegree.set(target, inDegree.get(target) + 1);
+    }
+  }
+  // Queue of nodes with no incoming edges (in-degree of 0)
+  const queue = [];
+  for (const [node, degree] of inDegree.entries()) {
+    if (degree === 0) {
+      queue.push(node);
+    }
+  }
+  // Result array for topologically sorted nodes
+  const result = [];
+
+  // Process the queue
+  while (queue.length > 0) {
+    const node = queue.shift();
+    result.push(node);
+
+    // For each neighbor, reduce in-degree and check if it becomes 0
+    for (const neighbor of graph.get(node)) {
+      inDegree.set(neighbor, inDegree.get(neighbor) - 1);
+      if (inDegree.get(neighbor) === 0) {
+        queue.push(neighbor);
+      }
+    }
+  }
+  // If we didn't visit all nodes, there's a cycle
+  if (result.length !== allNodes.size) {
+    console.warn("Graph contains a cycle, topological sort is incomplete");
+  }
+  return result;
+}
+
+/**
  * Helper function to visualize the graph structure (useful for debugging)
  * @param {Map} graph - Graph represented as adjacency list
  * @returns {String} - Text representation of the graph
