@@ -723,7 +723,7 @@ function getKnownPreference(songA, songB, history = decisionHistory) {
   }
 
   // Else infer transitive preferences in O(N^3) and try again
-  const allPreferences = inferTransitivePreferences(history);
+  const allPreferences = computeTransitiveClosure(history);
 
   for (const pref of allPreferences) {
     if (pref.chosen === songA && pref.rejected === songB) {
@@ -741,10 +741,11 @@ function getKnownPreference(songA, songB, history = decisionHistory) {
 
 /**
  * Infer preferences based on transitivity (A > B and B > C implies A > C)
+ * This uses the Floyd-Warshall algorithm to find the transitive closure of the comparisons
  * @param {Array} history - Decision history array to work with
  * @returns {Array} - List of direct decisions + transitive preferences
  */
-function inferTransitivePreferences(history = decisionHistory) {
+function computeTransitiveClosure(history = decisionHistory) {
   // A. Gather all distinct nodes and build adjacency in one pass
   const graph = new Map();       // item → Set of items it beats
   const allNodes = new Set();    // to collect every item
@@ -797,6 +798,116 @@ function inferTransitivePreferences(history = decisionHistory) {
     }
   }
   return allPreferences;
+}
+
+/**
+ * Compute the transitive reduction of the comparison graph
+ * @param {Array} history - Decision history array to work with
+ * @param isTransitiveClosure - Whether the input is a transitive closure (i.e., already computed)
+ * @returns {Array} - Minimal set of comparisons that preserve the same ordering
+ */
+function computeTransitiveReduction(history = decisionHistory, isTransitiveClosure = false) {
+  // Get the transitive closure first
+  let transitiveClosure = (isTransitiveClosure) ? history : computeTransitiveClosure(history);
+
+  // Extract direct edges from original history
+  const directGraph = new Map();
+  const allNodes = new Set();
+
+  for (const {chosen, rejected} of history) {
+    allNodes.add(chosen);
+    allNodes.add(rejected);
+
+    if (!directGraph.has(chosen)) {
+      directGraph.set(chosen, new Set());
+    }
+    directGraph.get(chosen).add(rejected);
+  }
+
+  // Ensure every node is in the graph
+  for (const node of allNodes) {
+    if (!directGraph.has(node)) {
+      directGraph.set(node, new Set());
+    }
+  }
+  //console.log(visualizeGraph(directGraph));
+
+  // Build the transitive closure graph (Map of node → Set of all nodes it beats)
+  const transitiveClosureGraph = new Map();
+
+  for (const {chosen, rejected} of transitiveClosure) {
+    if (!transitiveClosureGraph.has(chosen)) {
+      transitiveClosureGraph.set(chosen, new Set());
+    }
+    transitiveClosureGraph.get(chosen).add(rejected);
+  }
+
+  // Ensure all nodes are in the transitive closure graph
+  const nodes = Array.from(allNodes);
+  for (const node of nodes) {
+    if (!transitiveClosureGraph.has(node)) {
+      transitiveClosureGraph.set(node, new Set());
+    }
+  }
+  //console.log(visualizeGraph(transitiveClosureGraph));
+
+  // Now compute the transitive reduction
+  const reductionGraph = new Map();
+
+  // Initialize with direct edges
+  for (const node of nodes) {
+    reductionGraph.set(node, new Set([...directGraph.get(node)]));
+  }
+
+  // Remove redundant edges
+  for (const i of nodes) {
+    for (const j of Array.from(reductionGraph.get(i))) {
+      // For each edge i->j, check if there's an indirect path
+      let hasIndirectPath = false;
+
+      for (const k of nodes) {
+        // If there's a path i->k->j (without going through the direct i->j edge),
+        // then the direct edge i->j is redundant
+        if (k !== i && k !== j && transitiveClosureGraph.get(i).has(k) && transitiveClosureGraph.get(k).has(j)) {
+          hasIndirectPath = true;
+          break;
+        }
+      }
+
+      if (hasIndirectPath) {
+        reductionGraph.get(i).delete(j);
+      }
+    }
+  }
+  //console.log(visualizeGraph(reductionGraph));
+
+  // Convert back to preference objects
+  const reducedPreferences = [];
+
+  // Add only the edges in the transitive reduction
+  for (const [chosen, rejectedSet] of reductionGraph.entries()) {
+    for (const rejected of rejectedSet) {
+      // Find the original comparison
+      const originalComparison = history.find(pref => pref.chosen === chosen && pref.rejected === rejected);
+      // Since we're only removing edges from the direct graph,
+      // every edge in the reduction must exist in the original history
+      reducedPreferences.push(originalComparison);
+    }
+  }
+  return reducedPreferences;
+}
+
+/**
+ * Helper function to visualize the graph structure (useful for debugging)
+ * @param {Map} graph - Graph represented as adjacency list
+ * @returns {String} - Text representation of the graph
+ */
+function visualizeGraph(graph) {
+  let result = '';
+  for (const [node, edges] of graph.entries()) {
+    result += `${node} -> ${Array.from(edges).join(', ')}\n`;
+  }
+  return result;
 }
 
 // Export the decision history for access by other modules

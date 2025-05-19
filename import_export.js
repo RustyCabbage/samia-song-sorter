@@ -50,9 +50,9 @@ const ClipboardManager = (function () {
         const isPartial = type === 'decisions';
         const headerText = isPartial ? `Partial ${listName} Decision History` : `${listName} Decision History`;
 
-        // it's not always helpful to get a clean decision history since transitive relationships may affect out-of-scope decisions if comparing across lists.
-        //const hist = isPartial ? cleanDecisionHistory(getDecisionHistory()) : getDecisionHistory();
-        const hist = getDecisionHistory();
+        // I don't know if we always want to return the transitive reduction of the history
+        const hist = isPartial ? computeTransitiveReduction(getDecisionHistory()) : getDecisionHistory();
+        //const hist = getDecisionHistory();
 
         // Build the decision text based on the decisionHistory array
         const decisionsText = hist
@@ -116,15 +116,12 @@ const ClipboardManager = (function () {
       }
 
       // Add the decisions to the decision history
-      const {addedCount, skippedCount, conflictCount, outOfScopeCount} = importDecisions(parsedDecisions);
+      importDecisions(parsedDecisions);
 
       // Check if the current comparison can now be decided automatically
       if (typeof SongSorter.checkCurrentComparison === 'function') {
         SongSorter.checkCurrentComparison();
       }
-
-      // Show success message
-      showNotification(`Imported ${parsedDecisions.length} decisions: ${addedCount} added, ${skippedCount} skipped, ${conflictCount} conflicts, ${outOfScopeCount} out of scope`, true, 5000);
     } catch (error) {
       showNotification("Error parsing decisions: " + error.message, false);
     }
@@ -133,7 +130,7 @@ const ClipboardManager = (function () {
     closeImportModal();
   }
 
-  // Parse imported decisions from text with regex optimization
+  // Parse imported decisions from the text with regex optimization
   function parseImportedDecisions(text) {
     // Pre-compile the regex for better performance
     const lineRegex = /^(X|\d)+\.\s+.+\s+>\s+.+$/;
@@ -177,12 +174,6 @@ const ClipboardManager = (function () {
     const existingDecisions = new Set();
     const conflictingDecisions = new Set();
 
-    /* Cleaning decisions is not necessarily desirable
-    const cleanDecisions = cleanDecisionHistory(decisions);
-    let inferCount = decisions.length - cleanDecisions.length;
-    console.log(`Cleaned ${inferCount} inferences`);
-     */
-
     currentHistory.forEach(decision => {
       const key = `${decision.chosen}|${decision.rejected}`;
       existingDecisions.add(key);
@@ -195,13 +186,27 @@ const ClipboardManager = (function () {
     let addedCount = 0;
     let skippedCount = 0;
     let conflictCount = 0;
-    let outOfScopeCount = 0;
+
+    // First, get transitive closure of the decision history
+    const transitiveClosure = computeTransitiveClosure(decisions);
+    console.log(transitiveClosure.length, "decisions in transitive closure");
+
+    // Filter out any decisions that are out of scope
+    const filteredTransitiveClosure = transitiveClosure.filter(decision => currentSongList.songs.includes(decision.chosen) && currentSongList.songs.includes(decision.rejected));
+    console.log(filteredTransitiveClosure.length, "decisions in filtered transitive closure");
+
+    // Compute the transitive reduction of the filtered history
+    const transitiveReduction = computeTransitiveReduction(filteredTransitiveClosure, true);
+    console.log(transitiveReduction.length, "decisions in transitive reduction");
+
+    let cleanedCount = decisions.length - transitiveReduction.length;
+    console.log(`Cleaned ${cleanedCount} inferences`);
 
     // Process each imported decision
-    for (const decision of decisions) {
-      // Check if songs are in the current list
+    for (const decision of transitiveReduction) {
+      // Check if songs are in the current list. This is not needed but is kept in case we want to disable the transitive reduction functionality
       if (!currentSongList.songs.includes(decision.chosen) || !currentSongList.songs.includes(decision.rejected)) {
-        outOfScopeCount++;
+        cleanedCount++;
         continue;
       }
 
@@ -228,98 +233,13 @@ const ClipboardManager = (function () {
       addedCount++;
     }
 
+    // Show a notification & log stats to console
+    showNotification(`Imported ${decisions.length} decisions: ${addedCount} added, ${skippedCount} skipped, ${conflictCount} conflicts, ${cleanedCount} cleaned`, true, 5000)
+    console.log(`Imported ${decisions.length} decisions: ${addedCount} added, ${skippedCount} skipped, ${conflictCount} conflicts, ${cleanedCount} cleaned`);
     // Return the stat object directly
     return {
-      addedCount, skippedCount, conflictCount, outOfScopeCount
+      addedCount, skippedCount, conflictCount, cleanedCount
     };
-  }
-
-  /**
-   * Clean the decision history by removing redundant decisions
-   * A decision is redundant if it can be inferred from other decisions
-   * through transitivity (A > B and B > C implies A > C)
-   * <<<Unused for now because it's not necessarily desirable behavior and also it's a bit slow>>>
-   * @param {Array} originalHistory - The original decision history to clean
-   * @returns {Array} - Cleaned decision history with only essential decisions
-   */
-  function cleanDecisionHistory(originalHistory = getDecisionHistory()) {
-    // Create a deep copy of the history to avoid modifying the original
-    let history = JSON.parse(JSON.stringify(originalHistory));
-    let loop = true;
-
-    while (loop) {
-      loop = false;
-      // Create a new array to hold the essential decisions
-      const forwardHistory = [];
-
-      // First pass: Forward iteration (keep earlier decisions, remove later redundant ones)
-      for (let i = 0; i < history.length; i++) {
-        const decision = history[i];
-
-        // Skip decisions that are already marked as inferred
-        if (decision.type === 'infer') {
-          continue;
-        }
-
-        // Create a temporary history of all decisions up to but not including this one
-        const tempHistory = [...forwardHistory];
-
-        // Check if this decision can be inferred from previous decisions
-        const knownPref = getKnownPreference(decision.chosen, decision.rejected, tempHistory);
-
-        // If we can't infer this decision from previous ones, it's essential
-        if (knownPref.selectedLeft === null) {
-          forwardHistory.push(decision);
-        }
-      }
-
-      // Second pass: Backward iteration (check if earlier decisions are made redundant by later ones)
-      const backwardHistory = [];
-
-      // Process the cleaned history in reverse order
-      for (let i = forwardHistory.length - 1; i >= 0; i--) {
-        const decision = forwardHistory[i];
-
-        // Create a history excluding this decision but including all later ones
-        const laterDecisions = [...backwardHistory];
-
-        // Check if this decision can be inferred from later essential decisions
-        const knownPref = getKnownPreference(decision.chosen, decision.rejected, laterDecisions);
-
-        // If we can't infer this decision from later ones, it's truly essential
-        if (knownPref.selectedLeft === null) {
-          // Add it to the beginning of the array to maintain original order
-          backwardHistory.unshift(decision);
-        }
-      }
-
-      if (backwardHistory.length !== history.length) {
-        loop = true;
-        history = shuffleArray(backwardHistory);
-      }
-    }
-
-    // Sort the final history to match the original comparison order, except imports which are alphabetical
-    history.sort((a, b) => {
-      const isAX = a.comparison === "X";
-      const isBX = b.comparison === "X";
-
-      if (isAX && isBX) {
-        // If both are "X", sort by chosen, then rejected
-        if (a.chosen !== b.chosen) {
-          return a.chosen.localeCompare(b.chosen);
-        }
-        return a.rejected.localeCompare(b.rejected);
-      }
-
-      if (isAX) return 1; // "X" should come after numbers
-      if (isBX) return -1;
-
-      // Otherwise sort numerically by comparison
-      return a.comparison - b.comparison;
-    });
-
-    return history;
   }
 
   // Modal management functions
