@@ -192,11 +192,11 @@ const SongSorter = (function () {
    * @returns {Promise<Array>} - Promise that resolves to the sorted array
    */
   async function mergeInsertionSort(arr, depth = 0) {
-    const indent = '  '.repeat(depth);
-    console.log(`${indent}Recursion depth ${depth} - Input array: [${arr}]`);
+    //const indent = '  '.repeat(depth);
+    //.log(`${indent}Recursion depth ${depth} - Input array: [${arr}]`);
     if (arr.length <= 1) {
-      console.log(`${indent}Only one element. Sort complete: [${arr}]`);
-      console.log(`${indent}<<<Exiting depth ${depth}>>>`);
+      //console.log(`${indent}Only one element. Sort complete: [${arr}]`);
+      //console.log(`${indent}<<<Exiting depth ${depth}>>>`);
       return arr;
     }
 
@@ -213,15 +213,14 @@ const SongSorter = (function () {
     for (const pair of pairs) {
       const pref = await doComparison(pair[0], pair[1]);
       orderedPairs.set(pref.chosen, pref.rejected);
-      recordPreference(pref.chosen, pref.rejected, pref.type, indent);
+      recordPreference(pref.chosen, pref.rejected, pref.type);
     }
-    console.log(
+    /* console.log(
       `${indent}Pairs: [`
-
       + pairs.map(pair => `(${pair[0]}:${pair[1]})`).join(", ")
-
       + "]"
     );
+    /**/
 
     // Step 3: Recursively sort the larger elements
     const largerElements = Array.from(orderedPairs.keys());
@@ -232,7 +231,7 @@ const SongSorter = (function () {
 
     // Step 4: Insert the element paired with the smallest element in S
     result.unshift(orderedPairs.get(result[0]));
-    console.log(`${indent}Inserted smallest paired element. S: [${result}]`);
+    //console.log(`${indent}Inserted smallest paired with sorted largest elements. S: [${result}]`);
 
     // Step 5: Insertion
     // Step 5.1: Collect remaining smaller elements + unpaired element if it exists
@@ -249,18 +248,18 @@ const SongSorter = (function () {
 
     // If there are no elements to insert, we can stop here
     if (remainingElements.length === 0) {
-      console.log(`${indent}No elements to insert. Sort complete: [${result}]`);
+      //console.log(`${indent}No elements to insert. Sort complete: [${result}]`);
       return result;
     }
-    console.log(`${indent}Remaining elements (${remainingElements.length}): [${remainingElements}]`);
+    //console.log(`${indent}Remaining elements (${remainingElements.length}): [${remainingElements}]`);
 
     // Step 5.2: Calculate the insertion groups
     const insertionGroups = calculateInsertionGroups(remainingElements.length);
-    console.log(`${indent}Insertion Groups: [${insertionGroups}]`);
+    //console.log(`${indent}Insertion Groups: [${insertionGroups}]`);
 
     // Step 5.3: Reorder elements according to the Ford-Johnson sequence
     const reorderedElements = reorderForInsertion(remainingElements, insertionGroups);
-    console.log(`${indent}Reordered elements (${reorderedElements.length}): [${reorderedElements}]`);
+    //console.log(`${indent}Reordered elements (${reorderedElements.length}): [${reorderedElements}]`);
 
     // Create a reverse map to get the index of the larger element
     const orderedPairsReversed = new Map();
@@ -283,8 +282,8 @@ const SongSorter = (function () {
         subsequenceOfS = result.slice(0, index); // get elements of S up to the larger element
       }
 
-      const index = await getInsertionIndex(subsequenceOfS, elem, isLastInGroup, indent);
-      console.log(`${indent}Updated S: [${result}]`);
+      const index = await getInsertionIndex(subsequenceOfS, elem, isLastInGroup);
+      //console.log(`${indent}Updated S: [${result}]`);
       result.splice(index, 0, elem);
 
       if (isLastInGroup) {
@@ -292,7 +291,7 @@ const SongSorter = (function () {
         currentGroupCount = 0;
       }
     }
-    console.log(`${indent}Sorted list: [${result}]`);
+    //console.log(`${indent}Sorted list: [${result}]`);
     return result;
   }
 
@@ -363,7 +362,7 @@ const SongSorter = (function () {
    * @param {boolean} isLastInGroup - Whether this is the last element in the group
    * @returns {number} - Index to insert at
    */
-  async function getInsertionIndex(arr, elem, isLastInGroup, indent) {
+  async function getInsertionIndex(arr, elem, isLastInGroup) {
     let left = 0;
     let right = arr.length - 1;
     let keepUpdating = true;
@@ -371,17 +370,15 @@ const SongSorter = (function () {
     // Find the insertion point using binary search
     while (left <= right) {
       const mid = Math.floor((left + right) / 2);
-      console.log(`${indent}Left: ${left}, Mid: ${mid}, Right: ${right}`);
-      console.log(`${indent}Inserting ${elem} into ${right - left + 1} elements: [${arr.slice(left, right + 1)}]`);
 
       const pref = await doComparison(arr[mid], elem);
 
       // Record the preference
-      recordPreference(pref.chosen, pref.rejected, pref.type, indent);
+      recordPreference(pref.chosen, pref.rejected, pref.type);
 
       // Update the estimates based on the selection
       if (keepUpdating) {
-        keepUpdating = updateMergeInsertionEstimates(pref.selectedLeft, arr.length, left, mid, right, isLastInGroup, indent);
+        keepUpdating = updateMergeInsertionEstimates(pref.selectedLeft, arr.length, left, mid, right, isLastInGroup);
       }
 
       if (pref.selectedLeft) {
@@ -401,10 +398,9 @@ const SongSorter = (function () {
    * @param {number} mid - middle value
    * @param {number} right - Right index
    * @param {boolean} isLastInGroup - Whether this is the last element in a group
-   * @param indent
    * @returns {boolean} - Whether to keep updating
    */
-  function updateMergeInsertionEstimates(selectedLeft, insertionLength, left, mid, right, isLastInGroup, indent) {
+  function updateMergeInsertionEstimates(selectedLeft, insertionLength, left, mid, right, isLastInGroup) {
     let keepUpdating = true;
 
     // The best case occurs by going right if the subsequence size is of the form m=2^k-1
@@ -419,7 +415,7 @@ const SongSorter = (function () {
     // 4. Should go left & right-left is odd
     if (!shouldGoLeft && !isLastInGroup) {
       if (selectedLeft) {
-        console.log(`${indent}Updating estimate: needed to go right, went left`);
+        //console.log(`${indent}Updating estimate: needed to go right, went left`);
         bestCaseTotalComparisons++;
         keepUpdating = false;
         return keepUpdating;
@@ -430,7 +426,7 @@ const SongSorter = (function () {
         if ((right - left) % 2 !== 0) {
           // but if (right - left) is odd and you're now inserting into a (power of 2)-1, you dun messed up
           if (Number.isInteger(Math.log2(right - mid + 1))) {
-            console.log(`${indent}Updating estimate: needed to go left, went right`);
+            //.log(`${indent}Updating estimate: needed to go left, went right`);
             bestCaseTotalComparisons++;
             keepUpdating = false;
             return keepUpdating;
@@ -445,7 +441,6 @@ const SongSorter = (function () {
       }
       if (left >= right) {
         // greater than or equal to because if they are equal then you have a binary choice that doesn't matter
-        console.log(`${indent}Updating estimate: did the correct choices yay`);
         worstCaseTotalComparisons--;
         keepUpdating = false;
       }
@@ -598,7 +593,7 @@ const SongSorter = (function () {
    * @param {*} rejected - The rejected option
    * @param {String} type - type: decision, import, infer,
    */
-  function recordPreference(chosen, rejected, type = 'decision', indent) {
+  function recordPreference(chosen, rejected, type = 'decision') {
     completedComparisons++;
 
     const now = new Date();
@@ -620,8 +615,7 @@ const SongSorter = (function () {
     lastDecisionTimestamp = now;
 
     // Log user decisions to console
-    console.log(`${indent}Comparison #${completedComparisons}: Chose ${chosen} > ${rejected}`);
-    //console.log(`${formatLocalTime(now)} | Time: ${elapsedTimeFormatted} | Comparison #${completedComparisons}: ${chosen} > ${rejected}`);
+    console.log(`${formatLocalTime(now)} | Time: ${elapsedTimeFormatted} | Comparison #${completedComparisons}: ${chosen} > ${rejected}`);
 
     // Add to history
     decisionHistory.push({
