@@ -155,7 +155,7 @@ function positionTooltip(tooltip, tooltipText) {
 
   // Calculate tooltip position relative to viewport
   const tooltipRect = tooltip.getBoundingClientRect();
-  const viewportWidth = window.innerWidth;
+  const viewportWidth = window.innerWidth-50;
 
   // Calculate which third of the screen the tooltip is in
   const positionRatio = tooltipRect.left / viewportWidth;
