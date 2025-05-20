@@ -14,6 +14,7 @@ const DOM = {
   btnB: document.getElementById("btnB"),
   copyDecisionsButton: document.getElementById("copyDecisionsButton"),
   importDecisionsButton: document.getElementById("importDecisionsButton"),
+  cleanPrefsToggle: document.getElementById("cleanPrefsToggle"),
 
   resultsInterface: document.getElementById("resultsInterface"),
   resultList: document.getElementById("resultList"),
@@ -22,6 +23,7 @@ const DOM = {
   copyButton: document.getElementById("copyButton"),
   copyHistoryButton: document.getElementById("copyHistoryButton"),
   copyStatus: document.getElementById("copyStatus"),
+  resultsCleanPrefsToggle: document.getElementById("resultsCleanPrefsToggle"),
   restartButton: document.getElementById("restartButton"),
 
   importModal: document.getElementById("importModal"),
@@ -220,6 +222,7 @@ function setupEventListeners() {
     switch (target.id) {
       case 'cleanPrefsToggle':
         state.cleanPrefs = target.checked;
+        DOM.resultsCleanPrefsToggle.checked = state.cleanPrefs;
         break;
       case 'shuffleToggle':
         state.shouldShuffle = target.checked;
@@ -247,11 +250,23 @@ function setupEventListeners() {
   });
 }
 
+DOM.resultsInterface.addEventListener('change', (e) => {
+  const target = e.target;
+
+  switch (target.id) {
+    case 'resultsCleanPrefsToggle':
+      state.cleanPrefs = target.checked;
+      DOM.cleanPrefsToggle.checked = state.cleanPrefs;
+      break;
+  }
+});
+
 function showInterface(type) {
   DOM.selectionInterface.hidden = type !== "selection";
   DOM.sortingInterface.hidden = type !== "sorting";
   DOM.resultsInterface.hidden = type !== "results";
 
+  syncCleanPrefsToggles();
   requestAnimationFrame(repositionAllTooltips);
 }
 
@@ -318,3 +333,8 @@ document.addEventListener("DOMContentLoaded", initializeApp);
 window.getDecisionHistory = function () {
   return decisionHistory || [];
 };
+
+function syncCleanPrefsToggles() {
+  DOM.cleanPrefsToggle.checked = state.cleanPrefs;
+  DOM.resultsCleanPrefsToggle.checked = state.cleanPrefs;
+}

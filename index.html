@@ -119,6 +119,20 @@
       </div>
       <p id="copyHistoryButton" class="copy-text">Copy history to clipboard</p>
     </div>
+    <div class="toggle-row">
+      <label class="switch">
+        <input type="checkbox" id="resultsCleanPrefsToggle" class="slider-toggle">
+        <span class="slider"></span>
+      </label>
+      <label for="resultsCleanPrefsToggle" id="resultsCleanPrefsLabel" class="slider-label">
+        Import/export clean preferences<span class="tooltip">[?]
+          <span class="tooltip-text">
+            <div>Removes any redundant preferences when importing/exporting.</div>
+            <div>For example, if given A>B, A>C, B>C then A>C is redundant.</div>
+          </span>
+        </span>
+      </label>
+    </div>
     <button id="restartButton" class="button action-button scale-hover">Rank Another List</button>
   </section>
 </main>
