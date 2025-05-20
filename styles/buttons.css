@@ -32,8 +32,8 @@
 
 .choice-button {
   padding: 0.5em;
-  min-width: 10em;
-  max-width: 10em;
+  min-width: 12em;
+  max-width: 12em;
   min-height: 4em;
   margin: 0 2em;
 }
@@ -70,9 +70,9 @@
 /* Toggle‑rows */
 .toggle-row {
   display: flex;
-  margin-bottom: 0.5em;
-  width: 100%;
+  margin: 0.5em;
   text-align: left;
+  padding: 0 2em;
 }
 
 .switch {
@@ -181,7 +181,7 @@
 @media (max-width: 450px) {
   .choice-buttons {
     justify-content: space-evenly;
-    margin: 3em 0em;
+    margin: 3em 0;
   }
 
   .choice-button {

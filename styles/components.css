@@ -1,4 +1,3 @@
-/* Tooltips */
 .tooltip {
   position: relative;
   cursor: help;
@@ -12,8 +11,8 @@
   opacity: 0;
   position: absolute;
   top: 125%;
-  right: 0;
-  width: 250px;
+  width: 250px; /* Fixed width */
+  max-width: 80vw; /* Limit to 80% of viewport width */
   background-color: var(--button-color);
   color: var(--button-text-color);
   line-height: 1.5;
@@ -22,21 +21,64 @@
   padding: 0.5em 0.75em;
   transition: opacity var(--transition-speed) ease;
   z-index: 1;
+  text-align: justify;
+  word-wrap: break-word;
+  pointer-events: none; /* Prevent tooltip from capturing mouse events */
+
+  /* Default position (centered) */
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-.tooltip-text::after {
-  position: absolute;
+/* Arrow for tooltip */
+.tooltip-text:before {
   content: "";
+  position: absolute;
   bottom: 100%;
-  right: 0.125em;
   border-width: 5px;
   border-style: solid;
   border-color: transparent transparent var(--button-hover-color) transparent;
+
+  /* Default position (centered) */
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Left-aligned tooltip */
+.tooltip-text.position-left {
+  left: 0;
+  transform: none;
+}
+
+.tooltip-text.position-left:before {
+  left: 10px;
+  transform: none;
+}
+
+/* Right-aligned tooltip */
+.tooltip-text.position-right {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+.tooltip-text.position-right:before {
+  left: auto;
+  right: 10px;
+  transform: none;
 }
 
 .tooltip:hover .tooltip-text {
   visibility: visible;
   opacity: 1;
+}
+
+/* Allow hover on mobile */
+@media (hover: none) {
+  .tooltip:active .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+  }
 }
 
 /* Modals */

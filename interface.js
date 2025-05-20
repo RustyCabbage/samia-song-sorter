@@ -33,7 +33,7 @@ const DOM = {
 
 // State management
 const state = {
-  currentSongList: null, shouldShuffle: true, shouldMergeInsert: true, themeCache: {} // Cache for theme CSS calculations
+  currentSongList: null, shouldShuffle: true, shouldMergeInsert: true, cleanPrefs: false, themeCache: {} // Cache for theme CSS calculations
 };
 
 // Initialize the application
@@ -48,6 +48,9 @@ function initializeApp() {
   populateListSelector();
 
   setupEventListeners();
+
+  // Initialize tooltips
+  setupTooltips();
 
   if (window.ClipboardManager) {
     ClipboardManager.initialize();
@@ -107,6 +110,64 @@ function populateListSelector() {
   DOM.listSelector.appendChild(fragment);
 }
 
+// Setup tooltips to ensure they don't overflow viewport
+function setupTooltips() {
+  const tooltips = document.querySelectorAll('.tooltip');
+
+  tooltips.forEach(tooltip => {
+    const tooltipText = tooltip.querySelector('.tooltip-text');
+    if (!tooltipText) return;
+
+    // Pre-position tooltips on load to prevent scrollbar flicker
+    positionTooltip(tooltip, tooltipText);
+
+    // Also position on hover to handle dynamic layout changes
+    tooltip.addEventListener('mouseenter', () => {
+      positionTooltip(tooltip, tooltipText);
+    });
+
+    // And reposition on window resize
+    window.addEventListener('resize', () => {
+      if (tooltip.matches(':hover')) {
+        positionTooltip(tooltip, tooltipText);
+      }
+    });
+  });
+}
+
+function repositionAllTooltips() {
+  const tooltips = document.querySelectorAll('.tooltip');
+
+  tooltips.forEach(tooltip => {
+    const tooltipText = tooltip.querySelector('.tooltip-text');
+    if (tooltipText) {
+      positionTooltip(tooltip, tooltipText);
+    }
+  });
+}
+
+// Position a tooltip based on its position in the viewport
+function positionTooltip(tooltip, tooltipText) {
+  // Reset any previously set position classes
+  tooltipText.classList.remove('position-left', 'position-right');
+
+  // Calculate tooltip position relative to viewport
+  const tooltipRect = tooltip.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+
+  // Calculate which third of the screen the tooltip is in
+  const positionRatio = tooltipRect.left / viewportWidth;
+
+  if (positionRatio > 0.7) {
+    // Tooltip is in the right third of the screen
+    tooltipText.classList.add('position-right');
+  } else if (positionRatio < 0.3) {
+    // Tooltip is in the left third of the screen
+    tooltipText.classList.add('position-left');
+  }
+  // If tooltip is in the middle third, use the default centered position
+}
+
 function setupEventListeners() {
   DOM.selectionInterface.addEventListener('click', (e) => {
     if (e.target.id === 'startButton') {
@@ -153,6 +214,22 @@ function setupEventListeners() {
     }
   });
 
+  DOM.sortingInterface.addEventListener('change', (e) => {
+    const target = e.target;
+
+    switch (target.id) {
+      case 'cleanPrefsToggle':
+        state.cleanPrefs = target.checked;
+        break;
+      case 'shuffleToggle':
+        state.shouldShuffle = target.checked;
+        break;
+      case 'mergeTypeToggle':
+        state.shouldMergeInsert = target.checked;
+        break;
+    }
+  });
+
   DOM.resultsInterface.addEventListener('click', (e) => {
     const target = e.target;
 
@@ -174,6 +251,8 @@ function showInterface(type) {
   DOM.selectionInterface.hidden = type !== "selection";
   DOM.sortingInterface.hidden = type !== "sorting";
   DOM.resultsInterface.hidden = type !== "results";
+
+  requestAnimationFrame(repositionAllTooltips);
 }
 
 function startSortingProcess() {

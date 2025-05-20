@@ -51,7 +51,7 @@ const ClipboardManager = (function () {
         const headerText = isPartial ? `Partial ${listName} Decision History` : `${listName} Decision History`;
 
         // I don't know if we always want to return the transitive reduction of the history
-        const hist = isPartial ? topologicalSortPreferences(computeTransitiveReduction(getDecisionHistory())) : getDecisionHistory();
+        const hist = state.cleanPrefs ? topologicalSortPreferences(computeTransitiveReduction(getDecisionHistory())) : getDecisionHistory();
         //const hist = getDecisionHistory();
 
         // Build the decision text based on the decisionHistory array
@@ -187,21 +187,27 @@ const ClipboardManager = (function () {
     let skippedCount = 0;
     let conflictCount = 0;
 
-    // First, get transitive closure of the decision history
-    const transitiveClosure = computeTransitiveClosure(decisions);
-    console.log(transitiveClosure.length, "decisions in transitive closure");
+    let importArray = decisions;
+    let cleanedCount = 0;
+    if (state.cleanPrefs) {
+      // First, get transitive closure of the decision history
+      const transitiveClosure = computeTransitiveClosure(decisions);
+      console.log(transitiveClosure.length, "decisions in transitive closure");
 
-    // Filter out any decisions that are out of scope
-    const filteredTransitiveClosure = transitiveClosure.filter(decision => currentSongList.songs.includes(decision.chosen) && currentSongList.songs.includes(decision.rejected));
-    console.log(filteredTransitiveClosure.length, "decisions in filtered transitive closure");
+      // Filter out any decisions that are out of scope
+      const filteredTransitiveClosure = transitiveClosure.filter(decision => currentSongList.songs.includes(decision.chosen) && currentSongList.songs.includes(decision.rejected));
+      console.log(filteredTransitiveClosure.length, "decisions in filtered transitive closure");
 
-    // Compute the transitive reduction of the filtered history
-    const transitiveReduction = computeTransitiveReduction(filteredTransitiveClosure, true);
-    console.log(transitiveReduction.length, "decisions in transitive reduction");
+      // Compute the transitive reduction of the filtered history
+      const transitiveReduction = computeTransitiveReduction(filteredTransitiveClosure, true);
+      console.log(transitiveReduction.length, "decisions in transitive reduction");
 
-    let cleanedCount = decisions.length - transitiveReduction.length;
+      importArray = transitiveReduction;
+      cleanedCount = decisions.length - transitiveReduction.length;
+    }
+
     // Process each imported decision
-    for (const decision of transitiveReduction) {
+    for (const decision of importArray) {
       // Check if songs are in the current list. This is not needed but is kept in case we want to disable the transitive reduction functionality
       if (!currentSongList.songs.includes(decision.chosen) || !currentSongList.songs.includes(decision.rejected)) {
         cleanedCount++;
