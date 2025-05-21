@@ -8,10 +8,12 @@
 - elapsed time column in decision history
 
 ##### maybe someday
+- animate inferred decisions so they don't instantly jump up massive numbers
+
 - back/undo button
 	- was not easily possible with previous implementation, idk about now that i use async/await
 - skip button
-	- only within a recusion level? idk how this affects the algorithm
+	- only within a recursion level? idk how this affects the algorithm
 
 - restart button mid sort
 	- lazy implementation to take you to the list selection interface is very simple, but I don't see how it's much better than just refreshing the page

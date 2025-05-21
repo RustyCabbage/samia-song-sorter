@@ -66,12 +66,16 @@ footer {
   right: 2em;
 }
 
+#resultsInterface {
+  margin: 0 auto;
+  max-width: 95%;
+}
+
 #resultsInterface:not([hidden]) ~ footer .source {
   position: relative;
   bottom: auto;
   right: auto;
   margin-bottom: 0;
-  padding-right: 2em;
   text-align: right;
   width: 100%;
 }

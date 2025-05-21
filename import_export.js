@@ -50,17 +50,13 @@ const ClipboardManager = (function () {
         const isPartial = type === 'decisions';
         const headerText = isPartial ? `Partial ${listName} Decision History` : `${listName} Decision History`;
 
-        // I don't know if we always want to return the transitive reduction of the history
         const hist = state.cleanPrefs ? topologicalSortPreferences(computeTransitiveReduction(getDecisionHistory())) : getDecisionHistory();
-        //const hist = getDecisionHistory();
+        const filteredHist = hist.filter(d => d.type !== 'infer');
 
-        // Build the decision text based on the decisionHistory array
-        const decisionsText = hist
-          .filter(d => d.type !== 'infer')
-          .map((d, i) => `${i + 1}. ${d.chosen} > ${d.rejected}`);
+        const decisionsText = filteredHist.map((d, i) => `${i + 1}. ${d.chosen} > ${d.rejected}`);
 
         textToCopy = `My ${headerText}:\n\n${decisionsText.join('\n')}`;
-        successMessage = `${isPartial ? "Preferences" : "History"} copied to clipboard!`;
+        successMessage = `${filteredHist.length} ${isPartial ? `Preferences` : "History entries"} copied to clipboard!`;
         break;
     }
 

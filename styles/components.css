@@ -11,8 +11,8 @@
   opacity: 0;
   position: absolute;
   top: 125%;
-  width: 250px; /* Fixed width */
-  max-width: 80vw; /* Limit to 80% of viewport width */
+  min-width: 250px; /* Fixed width */
+  max-width: 90vw; /* Limit to 80% of viewport width */
   background-color: var(--button-color);
   color: var(--button-text-color);
   line-height: 1.5;
@@ -181,6 +181,7 @@
 .decision-table {
   overflow-x: auto;
   display: block;
+  border-radius: var(--border-radius);
 }
 
 .decision-table table {

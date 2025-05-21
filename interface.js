@@ -30,29 +30,57 @@ const DOM = {
   importTextarea: document.getElementById("importTextarea"),
   closeModal: document.getElementById("closeModal"),
   cancelImport: document.getElementById("cancelImport"),
-  confirmImport: document.getElementById("confirmImport")
+  confirmImport: document.getElementById("confirmImport"),
+
+  // Get all tooltips at once
+  tooltips: document.querySelectorAll('.tooltip')
 };
 
-// State management
-const state = {
-  currentSongList: null, shouldShuffle: DOM.shuffleToggle.checked, shouldMergeInsert: DOM.mergeTypeToggle.checked, cleanPrefs: DOM.cleanPrefsToggle.checked, themeCache: {} // Cache for theme CSS calculations
+// State management with proxy for automatic UI sync
+const createState = () => {
+  const stateData = {
+    currentSongList: null,
+    shouldShuffle: false,
+    shouldMergeInsert: false,
+    cleanPrefs: false,
+    themeCache: {},
+    currentThemeId: null
+  };
+
+  return new Proxy(stateData, {
+    set(target, prop, value) {
+      const oldValue = target[prop];
+      target[prop] = value;
+
+      // Handle UI updates based on state changes
+      if (oldValue !== value) {
+        if (prop === 'cleanPrefs') {
+          DOM.cleanPrefsToggle.checked = value;
+          DOM.resultsCleanPrefsToggle.checked = value;
+        } else if (prop === 'currentSongList') {
+          applySongCount();
+          applyTheme();
+        }
+      }
+
+      return true;
+    }
+  });
 };
+
+const state = createState();
 
 // Initialize the application
 function initializeApp() {
   state.currentSongList = songListRepo.getList("bloodless");
-
-  applyTheme();
-  applySongCount();
+  state.shouldShuffle = DOM.shuffleToggle.checked;
+  state.shouldMergeInsert = DOM.mergeTypeToggle.checked;
+  state.cleanPrefs = DOM.cleanPrefsToggle.checked;
 
   showInterface("selection");
-
   populateListSelector();
-
   setupEventListeners();
-
-  // Initialize tooltips
-  setupTooltips();
+  requestAnimationFrame(() => positionAllTooltips());
 
   if (window.ClipboardManager) {
     ClipboardManager.initialize();
@@ -61,45 +89,36 @@ function initializeApp() {
   }
 }
 
-// Apply theme to the document
 function applyTheme() {
   const themeId = state.currentSongList.id;
+  if (state.currentThemeId === themeId) return;
 
-  // Only calculate and apply theme if it changed
-  if (state.currentThemeId !== themeId) {
-    state.currentThemeId = themeId;
+  state.currentThemeId = themeId;
 
-    if (!state.themeCache[themeId]) {
-      const {
-        backgroundColor, textColor, buttonColor, buttonHoverColor, buttonTextColor
-      } = state.currentSongList._theme;
+  if (!state.themeCache[themeId]) {
+    const {backgroundColor, textColor, buttonColor, buttonHoverColor, buttonTextColor} = state.currentSongList._theme;
 
-      state.themeCache[themeId] = {
-        '--background-color': backgroundColor,
-        '--text-color': textColor,
-        '--button-color': buttonColor,
-        '--button-hover-color': buttonHoverColor,
-        '--button-text-color': buttonTextColor
-      };
-    }
-
-    // Apply cached theme settings
-    const root = document.documentElement.style;
-    const theme = state.themeCache[themeId];
-
-    for (const [property, value] of Object.entries(theme)) {
-      root.setProperty(property, value);
-    }
+    state.themeCache[themeId] = {
+      '--background-color': backgroundColor,
+      '--text-color': textColor,
+      '--button-color': buttonColor,
+      '--button-hover-color': buttonHoverColor,
+      '--button-text-color': buttonTextColor
+    };
   }
+
+  // Apply cached theme settings
+  const root = document.documentElement.style;
+  Object.entries(state.themeCache[themeId]).forEach(([prop, val]) => root.setProperty(prop, val));
 }
 
 function applySongCount() {
+  if (!state.currentSongList) return;
   DOM.songCount.textContent = `${state.currentSongList.songCount} songs`;
 }
 
 function populateListSelector() {
   const lists = songListRepo.getAllLists();
-
   const fragment = document.createDocumentFragment();
 
   lists.forEach(list => {
@@ -112,167 +131,139 @@ function populateListSelector() {
   DOM.listSelector.appendChild(fragment);
 }
 
-// Setup tooltips to ensure they don't overflow viewport
-function setupTooltips() {
-  const tooltips = document.querySelectorAll('.tooltip');
 
-  tooltips.forEach(tooltip => {
-    const tooltipText = tooltip.querySelector('.tooltip-text');
-    if (!tooltipText) return;
-
-    // Pre-position tooltips on load to prevent scrollbar flicker
-    positionTooltip(tooltip, tooltipText);
-
-    // Also position on hover to handle dynamic layout changes
-    tooltip.addEventListener('mouseenter', () => {
-      positionTooltip(tooltip, tooltipText);
-    });
-
-    // And reposition on window resize
-    window.addEventListener('resize', () => {
-      if (tooltip.matches(':hover')) {
-        positionTooltip(tooltip, tooltipText);
-      }
-    });
-  });
-}
-
-function repositionAllTooltips() {
-  const tooltips = document.querySelectorAll('.tooltip');
-
-  tooltips.forEach(tooltip => {
-    const tooltipText = tooltip.querySelector('.tooltip-text');
-    if (tooltipText) {
-      positionTooltip(tooltip, tooltipText);
+function handleWindowResize() {
+  // Throttle resize operations
+  if (state.resizeTimer) clearTimeout(state.resizeTimer);
+  state.resizeTimer = setTimeout(() => {
+    const visibleTooltip = document.querySelector('.tooltip:hover');
+    if (visibleTooltip) {
+      const tooltipText = visibleTooltip.querySelector('.tooltip-text');
+      if (tooltipText) positionTooltip(visibleTooltip, tooltipText);
     }
+  }, 100);
+}
+
+// Position all tooltips
+function positionAllTooltips() {
+  DOM.tooltips.forEach(tooltip => {
+    const tooltipText = tooltip.querySelector('.tooltip-text');
+    if (tooltipText) positionTooltip(tooltip, tooltipText);
   });
 }
 
-// Position a tooltip based on its position in the viewport
+// Simplified tooltip positioning logic
 function positionTooltip(tooltip, tooltipText) {
-  // Reset any previously set position classes
   tooltipText.classList.remove('position-left', 'position-right');
 
-  // Calculate tooltip position relative to viewport
-  const tooltipRect = tooltip.getBoundingClientRect();
-  const viewportWidth = window.innerWidth-50;
+  const rect = tooltip.getBoundingClientRect();
+  const viewportWidth = window.innerWidth - 50;
 
-  // Calculate which third of the screen the tooltip is in
-  const positionRatio = tooltipRect.left / viewportWidth;
-
-  if (positionRatio > 0.7) {
-    // Tooltip is in the right third of the screen
+  // Simpler logic: just check if tooltip is in left or right third of screen
+  if (rect.left > viewportWidth * 0.7) {
     tooltipText.classList.add('position-right');
-  } else if (positionRatio < 0.3) {
-    // Tooltip is in the left third of the screen
+  } else if (rect.left < viewportWidth * 0.3) {
     tooltipText.classList.add('position-left');
   }
-  // If tooltip is in the middle third, use the default centered position
 }
 
+// Consolidated event handlers with event delegation
 function setupEventListeners() {
-  DOM.selectionInterface.addEventListener('click', (e) => {
-    if (e.target.id === 'startButton') {
+  if (window.matchMedia("(hover: hover)").matches) {
+    document.addEventListener('mouseenter', positionAllTooltips, true);
+  }
+  // tooltip event listeners
+  DOM.tooltips.forEach(tooltip => {
+    const tooltipText = tooltip.querySelector('.tooltip-text');
+    tooltip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+    })
+  });
+  window.addEventListener('resize', handleWindowResize);
+  // Event delegation for all interfaces
+  document.addEventListener('click', handleClickEvents);
+  document.addEventListener('change', handleChangeEvents);
+}
+
+function handleClickEvents(e) {
+  const target = e.target;
+  const id = target.id;
+
+  // Selection interface events
+  if (DOM.selectionInterface.contains(target)) {
+    if (id === 'startButton') {
       startSortingProcess();
     }
-  });
+  }
 
-  DOM.selectionInterface.addEventListener('change', (e) => {
-    const target = e.target;
-
-    switch (target.id) {
-      case 'listSelector':
-        state.currentSongList = songListRepo.getList(target.value);
-        applyTheme();
-        applySongCount();
-        break;
-      case 'shuffleToggle':
-        state.shouldShuffle = target.checked;
-        break;
-      case 'mergeTypeToggle':
-        state.shouldMergeInsert = target.checked;
-        break;
+  // Sorting interface events
+  else if (DOM.sortingInterface.contains(target)) {
+    if (id === 'btnA') {
+      handleOption(true);
+      DOM.btnA.blur();
+    } else if (id === 'btnB') {
+      handleOption(false);
+      DOM.btnB.blur();
+    } else if (id === 'copyDecisionsButton') {
+      ClipboardManager.copyToClipboard('decisions', state.currentSongList);
+    } else if (id === 'importDecisionsButton') {
+      ClipboardManager.openImportModal();
     }
-  });
+  }
 
-  DOM.sortingInterface.addEventListener('click', (e) => {
-    const target = e.target;
-
-    switch (target.id) {
-      case 'btnA':
-        handleOption(true);
-        DOM.btnA.blur();
-        break;
-      case 'btnB':
-        handleOption(false);
-        DOM.btnB.blur();
-        break;
-      case 'copyDecisionsButton':
-        ClipboardManager.copyToClipboard('decisions', state.currentSongList);
-        break;
-      case 'importDecisionsButton':
-        ClipboardManager.openImportModal();
-        break;
+  // Results interface events
+  else if (DOM.resultsInterface.contains(target)) {
+    if (id === 'copyButton') {
+      ClipboardManager.copyToClipboard('ranking', state.currentSongList);
+    } else if (id === 'copyHistoryButton') {
+      ClipboardManager.copyToClipboard('history', state.currentSongList);
+    } else if (id === 'restartButton') {
+      resetInterface();
     }
-  });
-
-  DOM.sortingInterface.addEventListener('change', (e) => {
-    const target = e.target;
-
-    switch (target.id) {
-      case 'cleanPrefsToggle':
-        state.cleanPrefs = target.checked;
-        DOM.resultsCleanPrefsToggle.checked = state.cleanPrefs;
-        break;
-      case 'shuffleToggle':
-        state.shouldShuffle = target.checked;
-        break;
-      case 'mergeTypeToggle':
-        state.shouldMergeInsert = target.checked;
-        break;
-    }
-  });
-
-  DOM.resultsInterface.addEventListener('click', (e) => {
-    const target = e.target;
-
-    switch (target.id) {
-      case 'copyButton':
-        ClipboardManager.copyToClipboard('ranking', state.currentSongList);
-        break;
-      case 'copyHistoryButton':
-        ClipboardManager.copyToClipboard('history', state.currentSongList);
-        break;
-      case 'restartButton':
-        resetInterface();
-        break;
-    }
-  });
+  }
 }
 
-DOM.resultsInterface.addEventListener('change', (e) => {
+function handleChangeEvents(e) {
   const target = e.target;
+  const id = target.id;
 
-  switch (target.id) {
-    case 'resultsCleanPrefsToggle':
-      state.cleanPrefs = target.checked;
-      DOM.cleanPrefsToggle.checked = state.cleanPrefs;
-      break;
+  // Selection interface changes
+  if (DOM.selectionInterface.contains(target)) {
+    if (id === 'listSelector') {
+      state.currentSongList = songListRepo.getList(target.value);
+    } else if (id === 'shuffleToggle') {
+      state.shouldShuffle = target.checked;
+    } else if (id === 'mergeTypeToggle') {
+      state.shouldMergeInsert = target.checked;
+    }
   }
-});
+
+  // Sorting interface changes
+  else if (DOM.sortingInterface.contains(target)) {
+    if (id === 'cleanPrefsToggle') {
+      state.cleanPrefs = target.checked;
+    }
+  }
+
+  // Results interface changes
+  else if (DOM.resultsInterface.contains(target)) {
+    if (id === 'resultsCleanPrefsToggle') {
+      state.cleanPrefs = target.checked;
+    }
+  }
+}
 
 function showInterface(type) {
   DOM.selectionInterface.hidden = type !== "selection";
   DOM.sortingInterface.hidden = type !== "sorting";
   DOM.resultsInterface.hidden = type !== "results";
 
-  syncCleanPrefsToggles();
-  requestAnimationFrame(repositionAllTooltips);
+  requestAnimationFrame(positionAllTooltips);
 }
 
 function startSortingProcess() {
   showInterface("sorting");
-
   console.log(`Starting sorting with ${state.shouldMergeInsert ? 'merge-insertion' : 'merge'} algorithm`);
   startSorting(state.currentSongList.songs, state.shouldShuffle, state.shouldMergeInsert);
 }
@@ -280,25 +271,28 @@ function startSortingProcess() {
 function showResult(finalSorted) {
   DOM.listName.textContent = state.currentSongList.name;
 
+  // Clear previous content
   DOM.resultList.innerHTML = '';
   DOM.decisionHistoryBody.innerHTML = '';
 
+  // Create fragments for better performance
   const resultsFragment = document.createDocumentFragment();
   const historyFragment = document.createDocumentFragment();
 
-  finalSorted.forEach((song) => {
+  finalSorted.forEach(song => {
     const li = document.createElement("li");
     li.textContent = song;
     resultsFragment.appendChild(li);
   });
 
-  decisionHistory.forEach((decision) => {
+  decisionHistory.forEach(decision => {
     if (decision.type !== 'infer') {
       const row = createHistoryRow(decision);
       historyFragment.appendChild(row);
     }
   });
 
+  // Append fragments in single operations
   DOM.resultList.appendChild(resultsFragment);
   DOM.decisionHistoryBody.appendChild(historyFragment);
 
@@ -308,18 +302,20 @@ function showResult(finalSorted) {
 function createHistoryRow(decision) {
   const row = document.createElement("tr");
 
-  const comparisonCell = document.createElement("td");
-  comparisonCell.textContent = decision.comparison;
+  // Create cells
+  const cells = [
+    {text: decision.comparison, class: ""},
+    {text: decision.chosen, class: "chosen"},
+    {text: decision.rejected, class: "rejected"}
+  ];
 
-  const chosenCell = document.createElement("td");
-  chosenCell.textContent = decision.chosen;
-  chosenCell.className = "chosen";
-
-  const rejectedCell = document.createElement("td");
-  rejectedCell.textContent = decision.rejected;
-  rejectedCell.className = "rejected";
-
-  row.append(comparisonCell, chosenCell, rejectedCell);
+  // Build and append cells in one loop
+  cells.forEach(cell => {
+    const td = document.createElement("td");
+    td.textContent = cell.text;
+    if (cell.class) td.className = cell.class;
+    row.appendChild(td);
+  });
 
   return row;
 }
@@ -333,8 +329,3 @@ document.addEventListener("DOMContentLoaded", initializeApp);
 window.getDecisionHistory = function () {
   return decisionHistory || [];
 };
-
-function syncCleanPrefsToggles() {
-  DOM.cleanPrefsToggle.checked = state.cleanPrefs;
-  DOM.resultsCleanPrefsToggle.checked = state.cleanPrefs;
-}
