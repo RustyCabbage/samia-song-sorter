@@ -35,7 +35,7 @@ const DOM = {
 
 // State management
 const state = {
-  currentSongList: null, shouldShuffle: true, shouldMergeInsert: true, cleanPrefs: false, themeCache: {} // Cache for theme CSS calculations
+  currentSongList: null, shouldShuffle: DOM.shuffleToggle.checked, shouldMergeInsert: DOM.mergeTypeToggle.checked, cleanPrefs: DOM.cleanPrefsToggle.checked, themeCache: {} // Cache for theme CSS calculations
 };
 
 // Initialize the application

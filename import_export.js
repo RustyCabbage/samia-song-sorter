@@ -73,29 +73,41 @@ const ClipboardManager = (function () {
   }
 
   // Show a notification banner with optimized DOM manipulation
-  function showNotification(message, isSuccess = true, timeoutDuration = 3000) {
+  function showNotification(message, isSuccess = true, timeoutDuration = 3000, isSticky = false) {
+    // Don't interrupt existing sticky notifications
+    if (DOM.copyStatus.classList.contains('sticky') && !isSticky) {
+      return;
+    }
+
+    // Track if notification is already visible to handle animations properly
+    const isCurrentlyVisible = DOM.copyStatus.classList.contains('visible');
+
     // Clear any existing timeout
     if (notificationTimeout) {
       clearTimeout(notificationTimeout);
       notificationTimeout = null;
     }
 
-    // Batch DOM operations for better performance
+    // Update content and styling immediately
     DOM.copyStatus.textContent = message;
-
-    // Use classList.toggle for better performance
     DOM.copyStatus.classList.toggle('success', isSuccess);
     DOM.copyStatus.classList.toggle('error', !isSuccess);
 
-    // Use requestAnimationFrame for smooth animations
-    requestAnimationFrame(() => {
-      DOM.copyStatus.classList.add('visible');
+    // Set sticky flag if requested
+    DOM.copyStatus.classList.toggle('sticky', isSticky);
 
-      // Hide after delay
-      notificationTimeout = setTimeout(() => {
-        DOM.copyStatus.classList.remove('visible');
-      }, timeoutDuration);
-    });
+    // If not already visible, use rAF to show it
+    if (!isCurrentlyVisible) {
+      requestAnimationFrame(() => {
+        DOM.copyStatus.classList.add('visible');
+      });
+    }
+
+    // Set timeout for ALL notifications (including sticky ones)
+    notificationTimeout = setTimeout(() => {
+      DOM.copyStatus.classList.remove('visible');
+      DOM.copyStatus.classList.remove('sticky');
+    }, timeoutDuration);
   }
 
   function processImportedDecisions() {
@@ -239,7 +251,7 @@ const ClipboardManager = (function () {
 
     // Show a notification & log stats to console
     const notificationText = `Imported ${decisions.length} decisions: ${addedCount} added, ${skippedCount} skipped, ${conflictCount} conflicts, ${cleanedCount} cleaned`;
-    showNotification(notificationText, true, 5000)
+    showNotification(notificationText, true, 5000, true);
     console.log(notificationText);
     // Return the stat object directly
     return {
@@ -266,7 +278,7 @@ const ClipboardManager = (function () {
   // Public API
   return {
     initialize: setupEventListeners, // Directly expose setupEventListeners as initialize
-    copyToClipboard, openImportModal
+    copyToClipboard, openImportModal, showNotification
   };
 })();
 

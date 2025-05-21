@@ -10,6 +10,7 @@ const SongSorter = (function () {
   let decisionHistory = [];
   let compareQueue = [];
   let lastDecisionTimestamp = null;
+  let inferCount = 0;
 
   const DOM = {
     progress: document.getElementById("progress"),
@@ -507,19 +508,26 @@ const SongSorter = (function () {
 
     if (pref.selectedLeft === null) {
       // Need user input for this comparison
+      inferCount=0;
       pref = await requestUserComparison(songA, songB);
     } else {
       console.log(`Known comparison: ${(pref.selectedLeft) ? `${songA} > ${songB}` : `${songB} > ${songA}`}`);
+      inferCount++;
     }
 
     // secondary check for checkCurrentComparison() after importing
     if (pref.selectedLeft === null && pref.type === 'import') {
       pref = getKnownPreference(songA, songB);
+      inferCount++;
     }
 
     // Process the user's choice
     const chosen = pref.selectedLeft ? songA : songB;
     const rejected = pref.selectedLeft ? songB : songA;
+
+    if (inferCount > 0) {
+      ClipboardManager.showNotification(`Inferred ${inferCount} comparisons from imported decisions`);
+    }
 
     return {
       selectedLeft: pref.selectedLeft, chosen: chosen, rejected: rejected, type: pref.type
