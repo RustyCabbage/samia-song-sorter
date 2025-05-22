@@ -4,13 +4,21 @@
  */
 
 const SongSorter = (function () {
-  let worstCaseTotalComparisons = 0;
-  let bestCaseTotalComparisons = 0;
-  let completedComparisons = 0;
-  let decisionHistory = [];
-  let compareQueue = [];
-  let lastDecisionTimestamp = null;
-  let inferCount = 0;
+  // Consolidated state
+  let sortState = {
+    comparisons: {completed: 0, worstCase: 0, bestCase: 0},
+    decisionHistory: [],
+    compareQueue: [],
+    lastDecisionTimestamp: null,
+    inferCount: 0
+  };
+
+  // Caching systems
+  const cache = {
+    preferences: new Map(), // "songA|songB" -> {selectedLeft, type}
+    transitiveClosure: null, transitiveClosureVersion: 0, jacobsthalNumbers: [1, 1, 3, 5, 11, 21, 43, 85, 171], // Pre-computed sequence
+    insertionGroups: [2, 2, 6, 10, 22, 42, 86, 170, 342], // Pre-computed sequence
+  };
 
   const DOM = {
     progress: document.getElementById("progress"),
@@ -18,46 +26,6 @@ const SongSorter = (function () {
     btnA: document.getElementById("btnA"),
     btnB: document.getElementById("btnB")
   };
-
-
-  /**
-   * Initialize the sorting process with the selected algorithm
-   */
-  async function startSorting(songs, shuffle = false, useMergeInsertion = false) {
-    // Reset all state variables
-    completedComparisons = 0;
-    decisionHistory = [];
-    compareQueue = [];
-    lastDecisionTimestamp = null;
-
-    // Create a copy of the song array
-    let songsToSort = [...songs];
-
-    // Shuffle if requested
-    if (shuffle) {
-      songsToSort = shuffleArray(songsToSort);
-    }
-
-    let result;
-
-    if (useMergeInsertion) {
-      worstCaseTotalComparisons = getWorstCaseMergeInsertion(songsToSort.length);
-      bestCaseTotalComparisons = getBestCaseMergeInsertion(songsToSort.length);
-      result = await mergeInsertionSort(songsToSort);
-      // The merge insertion algorithm returns the array in reverse order
-      result = result.reverse();
-    } else {
-      // Start with each song as a separate list
-      worstCaseTotalComparisons = songsToSort.length * Math.ceil(Math.log2(songsToSort.length)) - 2 ** Math.ceil(Math.log2(songsToSort.length)) + 1;
-      bestCaseTotalComparisons = getBestCaseMergeSort(songsToSort.length);
-
-      const lists = songsToSort.map(song => [song]);
-      result = await mergeSort(lists);
-    }
-
-    showResult(result);
-    return result;
-  }
 
   /******************************************
    * MERGE SORT IMPLEMENTATION
@@ -146,19 +114,19 @@ const SongSorter = (function () {
       // Selected left item
       if (leftIndexFromRight > rightIndexFromRight) {
         // Selected higher index - increase min estimate
-        bestCaseTotalComparisons++;
+        sortState.comparisons.bestCase++;
       } else if (leftIndexFromRight === 0 && rightIndexFromRight > 0) {
         // Selected 0 index when other is > 0 - decrease max estimate
-        worstCaseTotalComparisons -= rightIndexFromRight;
+        sortState.comparisons.worstCase -= rightIndexFromRight;
       }
     } else {
       // Selected right item
       if (rightIndexFromRight > leftIndexFromRight) {
         // Selected higher index - increase min estimate
-        bestCaseTotalComparisons++;
+        sortState.comparisons.bestCase++;
       } else if (rightIndexFromRight === 0 && leftIndexFromRight > 0) {
         // Selected 0 index when other is > 0 - decrease max estimate
-        worstCaseTotalComparisons -= leftIndexFromRight;
+        sortState.comparisons.worstCase -= leftIndexFromRight;
       }
     }
   }
@@ -310,26 +278,36 @@ const SongSorter = (function () {
   }
 
   /**
-   * Calculate the insertion groups for the Ford-Johnson algorithm
-   * @param {number} numElements - Number of elements to group
-   * @returns {Array} - Array of group sizes
+   * Get or compute Jacobsthal number at index n
+   */
+  function getJacobsthalNumber(n) {
+    // Extend the cache if needed
+    while (cache.jacobsthalNumbers.length <= n) {
+      const len = cache.jacobsthalNumbers.length;
+      const next = cache.jacobsthalNumbers[len - 1] + 2 * cache.jacobsthalNumbers[len - 2];
+      cache.jacobsthalNumbers.push(next);
+      cache.insertionGroups.push(next * 2);
+    }
+    return cache.jacobsthalNumbers[n];
+  }
+
+  /**
+   * Optimized insertion groups calculation using cached Jacobsthal numbers
    */
   function calculateInsertionGroups(numElements) {
     const groups = [];
     let remainingElements = numElements;
+    let insertionGroupIndex = 0;
 
-    // Calculate Jacobsthal numbers for determining group sizes
-    let a = 1, b = 1;
     while (remainingElements > 0) {
-      // Next Jacobsthal number
-      const next = b + 2 * a;
-      a = b;
-      b = next;
+      if (insertionGroupIndex > cache.jacobsthalNumbers.length - 1) {
+        getJacobsthalNumber(insertionGroupIndex);
+      }
 
-      // Group size = difference between consecutive Jacobsthal numbers
-      const groupSize = Math.min(b - a, remainingElements);
+      const groupSize = Math.min(cache.insertionGroups[insertionGroupIndex], remainingElements);
       groups.push(groupSize);
       remainingElements -= groupSize;
+      insertionGroupIndex++;
     }
     return groups;
   }
@@ -411,13 +389,12 @@ const SongSorter = (function () {
 
     // 4 cases:
     // 1. Should go right & not last in group
-    // 2. Should go right & last in group (then it doesn't matter)
+    // 2. Should go right & last in the group (then it doesn't matter)
     // 3. Should go left & right-left is even (then it doesn't matter)
     // 4. Should go left & right-left is odd
     if (!shouldGoLeft && !isLastInGroup) {
       if (selectedLeft) {
-        //console.log(`${indent}Updating estimate: needed to go right, went left`);
-        bestCaseTotalComparisons++;
+        sortState.comparisons.bestCase++;
         keepUpdating = false;
         return keepUpdating;
       }
@@ -425,24 +402,23 @@ const SongSorter = (function () {
       if (!selectedLeft) {
         // if (right - left) is even, your choice didn't matter (probably because it's impossible to generate a power of 2 in these cases but whatever)
         if ((right - left) % 2 !== 0) {
-          // but if (right - left) is odd and you're now inserting into a (power of 2)-1, you dun messed up
+          // but if (right - left) is odd, and you're now inserting into a (power of 2)-1, you dun messed up
           if (Number.isInteger(Math.log2(right - mid + 1))) {
-            //.log(`${indent}Updating estimate: needed to go left, went right`);
-            bestCaseTotalComparisons++;
+            sortState.comparisons.bestCase++;
             keepUpdating = false;
             return keepUpdating;
           }
         }
       }
-      // if not the above case, and we broke the loop then worstCase--
+      // if not the above case, and we broke the loop, then worstCase--
       if (selectedLeft) {
         right = mid - 1;
       } else {
         left = mid + 1;
       }
       if (left >= right) {
-        // greater than or equal to because if they are equal then you have a binary choice that doesn't matter
-        worstCaseTotalComparisons--;
+        // greater than or equal to because if they are equal, then you have a binary choice that doesn't matter
+        sortState.comparisons.worstCase--;
         keepUpdating = false;
       }
     }
@@ -508,25 +484,25 @@ const SongSorter = (function () {
 
     if (pref.selectedLeft === null) {
       // Need user input for this comparison
-      inferCount=0;
+      sortState.inferCount = 0;
       pref = await requestUserComparison(songA, songB);
     } else {
       console.log(`Known comparison: ${(pref.selectedLeft) ? `${songA} > ${songB}` : `${songB} > ${songA}`}`);
-      inferCount++;
+      sortState.inferCount++;
     }
 
     // secondary check for checkCurrentComparison() after importing
     if (pref.selectedLeft === null && pref.type === 'import') {
       pref = getKnownPreference(songA, songB);
-      inferCount++;
+      sortState.inferCount++;
     }
 
     // Process the user's choice
     const chosen = pref.selectedLeft ? songA : songB;
     const rejected = pref.selectedLeft ? songB : songA;
 
-    if (inferCount > 0) {
-      ClipboardManager.showNotification(`Inferred ${inferCount} comparisons from imported decisions`);
+    if (sortState.inferCount > 0) {
+      ClipboardManager.showNotification(`Inferred ${sortState.inferCount} comparisons from imported decisions`);
     }
 
     return {
@@ -544,16 +520,14 @@ const SongSorter = (function () {
     return new Promise(resolve => {
       // Create a comparison object with the resolver included
       const comparison = {
-        songA: songA,
-        songB: songB,
-        resolve: resolve
+        songA: songA, songB: songB, resolve: resolve
       };
 
       // Add to queue
-      compareQueue.push(comparison);
+      sortState.compareQueue.push(comparison);
 
       // If this is the only comparison in the queue, show it
-      if (compareQueue.length === 1) {
+      if (sortState.compareQueue.length === 1) {
         requestAnimationFrame(showComparison);
       }
     });
@@ -563,10 +537,10 @@ const SongSorter = (function () {
    * Display a comparison for the user
    */
   function showComparison() {
-    if (compareQueue.length === 0) return;
+    if (sortState.compareQueue.length === 0) return;
 
     // Shows the first element from compareQueue
-    const comparison = compareQueue[0];
+    const comparison = sortState.compareQueue[0];
 
     // Update the UI
     DOM.btnA.textContent = comparison.songA;
@@ -577,58 +551,45 @@ const SongSorter = (function () {
   }
 
   /**
-   * Handle when the user selects an option
-   * @param {boolean} selectedLeft - Whether the left option was selected
+   * Invalidate relevant caches when new preferences are added
    */
-  function handleOption(selectedLeft) {
-    if (compareQueue.length === 0) return;
-
-    // Get the current comparison with its own resolver
-    const comparison = compareQueue.shift();
-
-    // Resolve the promise with the user's choice
-    comparison.resolve({selectedLeft: selectedLeft, type: 'decision'});
-
-    // Process the next comparison with a slight delay for UI responsiveness
-    if (compareQueue.length > 0) {
-      requestAnimationFrame(showComparison);
-    }
+  function invalidateCaches() {
+    cache.preferences.clear();
+    cache.transitiveClosure = null;
+    cache.transitiveClosureVersion = 0;
   }
 
-  /**
-   * Record a user preference
-   * @param {*} chosen - The chosen option
-   * @param {*} rejected - The rejected option
-   * @param {String} type - type: decision, import, infer,
-   */
   function recordPreference(chosen, rejected, type = 'decision') {
-    completedComparisons++;
+    sortState.comparisons.completed++;
 
     const now = new Date();
-
-    let elapsedTime = null;
     let elapsedTimeFormatted = " N/A  ";
 
-    // Only measure time for user decisions
-    if (type === 'decision' && lastDecisionTimestamp) {
-
-      elapsedTime = now - lastDecisionTimestamp;
+    if (type === 'decision' && sortState.lastDecisionTimestamp) {
+      const elapsedTime = now - sortState.lastDecisionTimestamp;
       const totalSeconds = Math.floor(elapsedTime / 1000);
       const minutes = Math.floor(totalSeconds / 60);
       const seconds = totalSeconds % 60;
       elapsedTimeFormatted = `${minutes}m:${seconds.toString().padStart(2, '0')}s`;
     }
 
-    // Update the last decision timestamp
-    lastDecisionTimestamp = now;
+    sortState.lastDecisionTimestamp = now;
 
-    // Log user decisions to console
-    console.log(`${formatLocalTime(now)} | Time: ${elapsedTimeFormatted} | Comparison #${completedComparisons}: ${chosen} > ${rejected}`);
+    console.log(`${formatLocalTime(now)} | Time: ${elapsedTimeFormatted} | Comparison #${sortState.comparisons.completed}: ${chosen} > ${rejected}`);
 
     // Add to history
-    decisionHistory.push({
-      comparison: completedComparisons, chosen: chosen, rejected: rejected, elapsedTime: elapsedTime, type: type
+    sortState.decisionHistory.push({
+      comparison: sortState.comparisons.completed,
+      chosen: chosen,
+      rejected: rejected,
+      elapsedTime: elapsedTimeFormatted,
+      type: type
     });
+
+    // Invalidate caches when new data is added
+    if (type === 'decision' || type === 'import') {
+      invalidateCaches();
+    }
   }
 
   /**
@@ -636,11 +597,11 @@ const SongSorter = (function () {
    */
   function updateProgressDisplay() {
     // Calculate progress percentage
-    const progressPercentage = Math.round((completedComparisons / bestCaseTotalComparisons) * 100);
+    const progressPercentage = Math.round((sortState.comparisons.completed / sortState.comparisons.bestCase) * 100);
 
     DOM.progress.textContent = `Progress: ${progressPercentage}% sorted`;
 
-    const comparisonText = (bestCaseTotalComparisons === worstCaseTotalComparisons) ? `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons}` : `Comparison #${completedComparisons + 1} of ${bestCaseTotalComparisons} to ${worstCaseTotalComparisons}`;
+    const comparisonText = (sortState.comparisons.bestCase === sortState.comparisons.worstCase) ? `Comparison #${sortState.comparisons.completed + 1} of ${sortState.comparisons.bestCase}` : `Comparison #${sortState.comparisons.completed + 1} of ${sortState.comparisons.bestCase} to ${sortState.comparisons.worstCase}`;
 
     if (DOM.comparison.textContent !== comparisonText) {
       DOM.comparison.textContent = comparisonText;
@@ -648,96 +609,148 @@ const SongSorter = (function () {
   }
 
   /**
-   * Add an imported decision to the decision history
-   * @param {object} decision - The decision to add
+   * Memoized preference lookup with cache key optimization
    */
-  function addImportedDecision(decision) {
-    decisionHistory.push({
-      comparison: "X", chosen: decision.chosen, rejected: decision.rejected, elapsedTime: null, type: 'import'
-    });
-  }
+  function getKnownPreference(songA, songB) {
+    // Create a consistent cache key (smaller song first for normalization)
+    const key = songA < songB ? `${songA}|${songB}` : `${songB}|${songA}`;
+    const isReversed = songA >= songB;
 
-  /**
-   * Check if the current displayed comparison can be automatically decided
-   * This should be called after importing decisions
-   */
-  function checkCurrentComparison() {
-    // If there's no queue or sorter interface, do nothing
-    if (!compareQueue || compareQueue.length === 0) {
-      return;
-    }
-
-    // Get the current comparison
-    const currentComparison = compareQueue[0];
-    const songA = currentComparison.songA;
-    const songB = currentComparison.songB;
-
-    // Check if we now know the preference after importing
-    const pref = getKnownPreference(songA, songB);
-
-    // If we know the preference, automatically select it
-    if (pref.selectedLeft !== null) {
-      console.log(`After import, we now know: ${(pref.selectedLeft) ? `${songA} > ${songB}` : `${songB} > ${songA}`}`);
-
-      // Remove from queue
-      compareQueue.shift();
-
-      // Resolve with the known preference
-      currentComparison.resolve({selectedLeft: null, type: 'import'});
-
-      // Show the next comparison if any
-      if (compareQueue.length > 0) {
-        requestAnimationFrame(showComparison);
-      }
-    }
-  }
-
-  /**
-   * Check if we already know which song is preferred
-   * @param {*} songA - left choice
-   * @param {*} songB - right choice
-   * @param {Array} history - Decision history array to work with
-   * @returns {*} preference - selectedLeft (boolean), type ('infer', 'decision', 'import')
-   */
-  function getKnownPreference(songA, songB, history = decisionHistory) {
-    let selectedLeft = null;
-
-    // Check if this preference is already directly known
-    for (const {chosen, rejected} of history) {
-      if (chosen === songA && rejected === songB) {
-        selectedLeft = true;
-        break;
-      } else if (chosen === songB && rejected === songA) {
-        selectedLeft = false;
-        break;
-      }
-    }
-    if (selectedLeft !== null) {
+    if (cache.preferences.has(key)) {
+      const cached = cache.preferences.get(key);
       return {
-        selectedLeft, type: 'infer'
+        selectedLeft: isReversed ? !cached.selectedLeft : cached.selectedLeft, type: cached.type
       };
     }
 
-    // Else infer transitive preferences in O(N^3) and try again
-    const allPreferences = computeTransitiveClosure(history);
+    // Check direct preferences first (O(1) with Map)
+    const directPrefs = getDirectPreferences();
+    if (directPrefs.has(key)) {
+      const pref = directPrefs.get(key);
+      const result = {
+        selectedLeft: isReversed ? !pref.selectedLeft : pref.selectedLeft, type: 'infer'
+      };
+      cache.preferences.set(key, result);
+      return result;
+    }
 
-    for (const pref of allPreferences) {
-      if (pref.chosen === songA && pref.rejected === songB) {
-        selectedLeft = true;
-        break;
-      } else if (pref.chosen === songB && pref.rejected === songA) {
-        selectedLeft = false;
-        break;
+    // Check transitive preferences if needed
+    const transitivePref = checkTransitivePreference(songA, songB);
+    if (transitivePref.selectedLeft !== null) {
+      cache.preferences.set(key, transitivePref);
+      return transitivePref;
+    }
+
+    // No known preference
+    return {selectedLeft: null, type: null};
+  }
+
+  /**
+   * Get direct preferences as a Map for O(1) lookup
+   */
+  function getDirectPreferences() {
+    const direct = new Map();
+    for (const {chosen, rejected} of sortState.decisionHistory) {
+      const key = chosen < rejected ? `${chosen}|${rejected}` : `${rejected}|${chosen}`;
+      direct.set(key, {
+        selectedLeft: chosen < rejected, type: 'direct'
+      });
+    }
+    return direct;
+  }
+
+  /**
+   * Check transitive preferences using cached closure
+   */
+  function checkTransitivePreference(songA, songB) {
+    // Only compute transitive closure if history changed
+    if (!cache.transitiveClosure || cache.transitiveClosureVersion !== sortState.decisionHistory.length) {
+      cache.transitiveClosure = computeTransitiveClosure(sortState.decisionHistory);
+      cache.transitiveClosureVersion = sortState.decisionHistory.length;
+    }
+
+    // Check in cached closure
+    for (const {chosen, rejected, type} of cache.transitiveClosure) {
+      if (type === 'infer') { // Only check inferred preferences
+        if (chosen === songA && rejected === songB) {
+          return {selectedLeft: true, type: 'infer'};
+        }
+        if (chosen === songB && rejected === songA) {
+          return {selectedLeft: false, type: 'infer'};
+        }
       }
     }
-    return {
-      selectedLeft, type: 'infer'
-    };
+
+    return {selectedLeft: null, type: null};
   }
 
   // Return the public API
+  // Export optimized functions
   return {
-    startSorting, handleOption, getDecisionHistory: () => decisionHistory, addImportedDecision, checkCurrentComparison
+    // Keep the existing API but with optimized internals
+    startSorting: async function (songs, shuffle = false, useMergeInsertion = false) {
+      // Reset state
+      sortState.comparisons.completed = 0;
+      sortState.decisionHistory = [];
+      sortState.compareQueue = [];
+      sortState.lastDecisionTimestamp = null;
+      invalidateCaches();
+
+      let songsToSort = [...songs];
+      if (shuffle) {
+        songsToSort = shuffleArray(songsToSort);
+      }
+
+      let result;
+      if (useMergeInsertion) {
+        sortState.comparisons.worstCase = getWorstCaseMergeInsertion(songsToSort.length);
+        sortState.comparisons.bestCase = getBestCaseMergeInsertion(songsToSort.length);
+        result = await mergeInsertionSort(songsToSort);
+        result = result.reverse();
+      } else {
+        sortState.comparisons.worstCase = songsToSort.length * Math.ceil(Math.log2(songsToSort.length)) - 2 ** Math.ceil(Math.log2(songsToSort.length)) + 1;
+        sortState.comparisons.bestCase = getBestCaseMergeSort(songsToSort.length);
+        const lists = songsToSort.map(song => [song]);
+        result = await mergeSort(lists);
+      }
+
+      showResult(result);
+      return result;
+    },
+
+    handleOption: function (selectedLeft) {
+      if (sortState.compareQueue.length === 0) return;
+      const comparison = sortState.compareQueue.shift();
+      comparison.resolve({selectedLeft: selectedLeft, type: 'decision'});
+      if (sortState.compareQueue.length > 0) {
+        requestAnimationFrame(showComparison);
+      }
+    },
+
+    getDecisionHistory: () => sortState.decisionHistory,
+
+    addImportedDecision: function (decision) {
+      sortState.decisionHistory.push({
+        comparison: "X", chosen: decision.chosen, rejected: decision.rejected, elapsedTime: null, type: 'import'
+      });
+      invalidateCaches();
+    },
+
+    checkCurrentComparison: function () {
+      if (!sortState.compareQueue || sortState.compareQueue.length === 0) return;
+
+      const currentComparison = sortState.compareQueue[0];
+      const pref = getKnownPreference(currentComparison.songA, currentComparison.songB);
+
+      if (pref.selectedLeft !== null) {
+        console.log(`After import, we now know: ${(pref.selectedLeft) ? `${currentComparison.songA} > ${currentComparison.songB}` : `${currentComparison.songB} > ${currentComparison.songA}`}`);
+        sortState.compareQueue.shift();
+        currentComparison.resolve({selectedLeft: null, type: 'import'});
+        if (sortState.compareQueue.length > 0) {
+          requestAnimationFrame(showComparison);
+        }
+      }
+    }
   };
 })();
 
