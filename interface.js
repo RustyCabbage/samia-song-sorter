@@ -42,7 +42,7 @@ const createState = () => {
     currentSongList: null,
     shouldShuffle: false,
     shouldMergeInsert: false,
-    cleanPrefs: false,
+    useCleanPrefs: false,
     themeCache: {},
     currentThemeId: null
   };
@@ -75,7 +75,7 @@ function initializeApp() {
   state.currentSongList = songListRepo.getList("bloodless");
   state.shouldShuffle = DOM.shuffleToggle.checked;
   state.shouldMergeInsert = DOM.mergeTypeToggle.checked;
-  state.cleanPrefs = DOM.cleanPrefsToggle.checked;
+  state.useCleanPrefs = DOM.cleanPrefsToggle.checked;
 
   showInterface("selection");
   populateListSelector();
@@ -241,14 +241,14 @@ function handleChangeEvents(e) {
   // Sorting interface changes
   else if (DOM.sortingInterface.contains(target)) {
     if (id === 'cleanPrefsToggle') {
-      state.cleanPrefs = target.checked;
+      state.useCleanPrefs = target.checked;
     }
   }
 
   // Results interface changes
   else if (DOM.resultsInterface.contains(target)) {
     if (id === 'resultsCleanPrefsToggle') {
-      state.cleanPrefs = target.checked;
+      state.useCleanPrefs = target.checked;
     }
   }
 }
