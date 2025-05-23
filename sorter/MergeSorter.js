@@ -94,7 +94,7 @@ class MergeSorter extends BaseSorter {
   }
 
   /**
-   * Update the best and worst case estimates based on user selection for merge sort
+   * Update the best and the worst case estimates based on user selection for merge sort
    */
   updateMergeSortEstimates(selectedLeft, leftIndexFromRight, rightIndexFromRight) {
     if (leftIndexFromRight === rightIndexFromRight) {

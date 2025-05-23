@@ -61,9 +61,7 @@ class BaseSorter {
     this.sortState.comparisons.worstCase = this.calculateWorstCase(songsToSort.length);
     this.sortState.comparisons.bestCase = this.calculateBestCase(songsToSort.length);
 
-    const result = await this.sort(songsToSort);
-    showResult(result);
-    return result;
+    return await this.sort(songsToSort);
   }
 
   /**

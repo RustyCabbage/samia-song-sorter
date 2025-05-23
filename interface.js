@@ -36,7 +36,7 @@ const DOM = {
   tooltips: document.querySelectorAll('.tooltip')
 };
 
-// State management with proxy for automatic UI sync
+// State management with a proxy for automatic UI sync
 const createState = () => {
   const stateData = {
     currentSongList: null,
@@ -159,7 +159,7 @@ function positionTooltip(tooltip, tooltipText) {
   const rect = tooltip.getBoundingClientRect();
   const viewportWidth = window.innerWidth - 50;
 
-  // Simpler logic: just check if tooltip is in left or right third of screen
+  // Check if tooltip is in left or right third of the screen
   if (rect.left > viewportWidth * 0.7) {
     tooltipText.classList.add('position-right');
   } else if (rect.left < viewportWidth * 0.3) {
@@ -264,7 +264,7 @@ function showInterface(type) {
 function startSortingProcess() {
   showInterface("sorting");
   console.log(`Starting sorting with ${state.shouldMergeInsert ? 'merge-insertion' : 'merge'} algorithm`);
-  songSorterFactory.startSorting(state.currentSongList.songs, state.shouldShuffle, state.shouldMergeInsert);
+  songSorterFactory.startSorting(state.currentSongList.songs, state.shouldShuffle, state.shouldMergeInsert).then(r => showResult(r));
 }
 
 function showResult(finalSorted) {

@@ -89,7 +89,7 @@ const ClipboardManager = (function () {
     DOM.copyStatus.classList.toggle('success', isSuccess);
     DOM.copyStatus.classList.toggle('error', !isSuccess);
 
-    // Set sticky flag if requested
+    // Set the sticky flag if requested
     DOM.copyStatus.classList.toggle('sticky', isSticky);
 
     // If not already visible, use rAF to show it

@@ -38,7 +38,7 @@ function formatLocalTime(date) {
  * Infer preferences based on transitivity (A > B and B > C implies A > C)
  * Uses optimized Floyd-Warshall algorithm with flat matrix representation
  * @param {Array} history - Decision history array to work with
- * @returns {Array} - List of direct decisions + transitive preferences
+ * @returns {Array} - List of direct decisions and transitive preferences
  */
 function computeTransitiveClosure(history = decisionHistory) {
   const allNodes = new Set();

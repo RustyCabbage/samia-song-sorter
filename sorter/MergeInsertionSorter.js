@@ -13,7 +13,7 @@ class MergeInsertionSorter extends BaseSorter {
    */
   async sort(songs) {
     const result = await this.mergeInsertionSort(songs);
-    return result.reverse(); // Return in descending order like original
+    return result.reverse(); // Return in descending order
   }
 
   /**
