@@ -174,7 +174,6 @@ function setupEventListeners() {
   }
   // tooltip event listeners
   DOM.tooltips.forEach(tooltip => {
-    const tooltipText = tooltip.querySelector('.tooltip-text');
     tooltip.addEventListener('click', (e) => {
       e.stopPropagation();
       e.preventDefault();
@@ -200,10 +199,10 @@ function handleClickEvents(e) {
   // Sorting interface events
   else if (DOM.sortingInterface.contains(target)) {
     if (id === 'btnA') {
-      handleOption(true);
+      songSorterFactory.handleOption(true);
       DOM.btnA.blur();
     } else if (id === 'btnB') {
-      handleOption(false);
+      songSorterFactory.handleOption(false);
       DOM.btnB.blur();
     } else if (id === 'copyDecisionsButton') {
       ClipboardManager.copyToClipboard('decisions', state.currentSongList);
@@ -265,7 +264,7 @@ function showInterface(type) {
 function startSortingProcess() {
   showInterface("sorting");
   console.log(`Starting sorting with ${state.shouldMergeInsert ? 'merge-insertion' : 'merge'} algorithm`);
-  startSorting(state.currentSongList.songs, state.shouldShuffle, state.shouldMergeInsert);
+  songSorterFactory.startSorting(state.currentSongList.songs, state.shouldShuffle, state.shouldMergeInsert);
 }
 
 function showResult(finalSorted) {

@@ -127,8 +127,8 @@ const ClipboardManager = (function () {
       importDecisions(parsedDecisions);
 
       // Check if the current comparison can now be decided automatically
-      if (typeof SongSorter.checkCurrentComparison === 'function') {
-        SongSorter.checkCurrentComparison();
+      if (typeof songSorterFactory.checkCurrentComparison === 'function') {
+        songSorterFactory.checkCurrentComparison();
       }
     } catch (error) {
       showNotification("Error parsing decisions: " + error.message, false);
@@ -237,7 +237,7 @@ const ClipboardManager = (function () {
       }
 
       // Add the decision to the history using the SongSorter API
-      SongSorter.addImportedDecision(decision);
+      songSorterFactory.addImportedDecision(decision);
 
       // Mark as added for future checks
       existingDecisions.add(key);
