@@ -80,16 +80,49 @@ create_contrast_matrix <- function(hex_codes) {
 }
 
 # Function to create and plot color legend
-plot_color_legend <- function(position, legend_codes, title) {
+plot_color_legend <- function(position, hex_codes, title) {
   legend(
     position,
-    legend = legend_codes,
-    fill   = legend_codes,
+    legend = hex_codes,
+    fill   = hex_codes,
     border = "white",
     cex    = 0.8,
     title  = title,
     box.lwd = 0
   )
+}
+
+# Function to create consolidated color data frame
+create_color_dataframe <- function(kmeans_result) {
+  # Get cluster information
+  centroids <- kmeans_result$centers
+  cluster_ids <- kmeans_result$cluster
+  cluster_sizes <- table(cluster_ids)
+
+  # Convert centroids to hex codes
+  hex_codes <- apply(centroids, 1, function(rgb) {
+    grDevices::rgb(rgb[1], rgb[2], rgb[3], maxColorValue = 1)
+  })
+
+  # Calculate brightness for each color
+  brightness_vals <- apply(centroids, 1, function(rgb) {
+    0.2126 * rgb[1] + 0.7152 * rgb[2] + 0.0722 * rgb[3]
+  })
+
+  # Create data frame
+  color_df <- data.frame(
+    cluster_id = as.integer(names(cluster_sizes)),
+    hex_code = hex_codes[as.integer(names(cluster_sizes))],
+    size = as.integer(cluster_sizes),
+    brightness = brightness_vals[as.integer(names(cluster_sizes))],
+    stringsAsFactors = FALSE
+  )
+
+  # Add ordering columns
+  color_df$ordered_size <- rank(-color_df$size, ties.method = "first")
+  color_df$ordered_brightness <- rank(color_df$brightness, ties.method = "first")
+
+  return(color_df)
 }
 
 #=============================================
@@ -139,7 +172,10 @@ for (k in 2:max_k) {
   prev_km <- km
 }
 
-# 4. Reconstruct quantized image
+# 4. Create consolidated color data frame
+color_df <- create_color_dataframe(final_km)
+
+# 5. Reconstruct quantized image
 pixel_colors <- final_km$centers[final_km$cluster, ]  # matrix (h*w) × 3
 
 quant_img <- array(NA, dim = c(h, w, 3))
@@ -147,97 +183,88 @@ quant_img[, , 1] <- matrix(pixel_colors[,1], nrow = h, ncol = w, byrow = FALSE)
 quant_img[, , 2] <- matrix(pixel_colors[,2], nrow = h, ncol = w, byrow = FALSE)
 quant_img[, , 3] <- matrix(pixel_colors[,3], nrow = h, ncol = w, byrow = FALSE)
 
-# 5. Compute hex codes for each centroid
-centroids <- final_km$centers
-hex_codes <- apply(centroids, 1, function(rgb) {
-  grDevices::rgb(rgb[1], rgb[2], rgb[3], maxColorValue = 1)
-})
-
-#=============================================
-# COLOR ANALYSIS
-#=============================================
-
-# 1. Size-based ordering
-cluster_ids   <- final_km$cluster
-cluster_sizes <- table(cluster_ids)
-ordered_size  <- as.integer(names(sort(cluster_sizes, decreasing = TRUE)))
-
-centroids_size <- final_km$centers[ordered_size, , drop = FALSE]
-hex_codes_size <- apply(centroids_size, 1, function(rgb) {
-  grDevices::rgb(rgb[1], rgb[2], rgb[3], maxColorValue = 1)
-})
-
-# 2. Brightness-based ordering
-brightness_vals <- apply(final_km$centers, 1, function(rgb) {
-  0.2126 * rgb[1] + 0.7152 * rgb[2] + 0.0722 * rgb[3]
-})
-
-ordered_bright   <- order(brightness_vals)
-centroids_bright <- final_km$centers[ordered_bright, , drop = FALSE]
-hex_codes_bright <- apply(centroids_bright, 1, function(rgb) {
-  grDevices::rgb(rgb[1], rgb[2], rgb[3], maxColorValue = 1)
-})
-
 #=============================================
 # VISUALIZATION
 #=============================================
 
-# 1. Plot the quantized image
-plot(1:2, type = "n", xlab = "", ylab = "", axes = FALSE)
-rasterImage(quant_img, 1, 1, 2, 2, interpolate = FALSE)
+# Function to create color combination grid
+create_color_grid <- function(color_df, text = "baby") {
 
-# 2. Add color legends
-plot_color_legend("topright", hex_codes_size, "Cluster Colors (size)")
-plot_color_legend("topleft", hex_codes_bright, "Cluster Colors (brightness)")
+  n_colors <- nrow(color_df)
+  hex_codes <- (color_df[order(color_df$ordered_brightness, decreasing = FALSE), ])$hex_code
 
-# 3. Generate contrast matrix
-contrast_matrix <- create_contrast_matrix(hex_codes_bright)
+  # Set up plotting area
+  par(mfrow = c(1, 1), mar = c(4, 4, 3, 1))
+  plot(0, 0, type = "n", xlim = c(0, n_colors), ylim = c(0, n_colors),
+       xlab = "Text Color", ylab = "Background Color",
+       main = paste("Color Readability Grid:", text),
+       axes = FALSE)
 
-# 4. Visualize contrast matrix
-df <- melt(contrast_matrix, varnames = c("hex1", "hex2"), value.name = "contrast")
+  # Calculate contrast matrix if enhanced mode
+  contrast_matrix <- create_contrast_matrix(hex_codes)
 
-p <- ggplot(df, aes(x = hex1, y = hex2, fill = contrast)) +
-  geom_tile() +
-  geom_text(aes(label = round(contrast, 1)), color = "black", size = 3) +
-  scale_fill_steps(
-    name = "Contrast Ratio",
-    breaks = c(1.2, 3, 4.5, 7),
-    low = "white",
-    high = "steelblue"
-  ) +
-  theme_minimal(base_size = 12) +
-  theme(
-    axis.text.x = element_text(
-      angle = 45,
-      hjust = 1,
-      colour = setNames(as.character(unique(df$hex1)), unique(df$hex1))[levels(df$hex1)]
-    ),
-    axis.text.y = element_text(
-      colour = setNames(as.character(unique(df$hex2)), unique(df$hex2))[levels(df$hex2)]
-    ),
-    panel.grid = element_blank()
-  ) +
-  labs(x = NULL, y = NULL)
+  # Create grid
+  for (i in 1:n_colors) {
+    for (j in 1:n_colors) {
+      bg_color <- hex_codes[i]
+      text_color <- hex_codes[j]
 
-print(p)
+      # Draw background rectangle
+      rect(j-1, n_colors-i, j, n_colors-i+1,
+           col = bg_color, border = "white", lwd = 0.5)
+
+      if (i==j) next
+
+      contrast_ratio <- contrast_matrix[i, j]
+
+      text(j-0.5, n_colors-i+0.6, text,
+           col = text_color, cex = 0.8, font = 1)
+      text(j-0.5, n_colors-i+0.3, sprintf("%.1f", contrast_ratio),
+           col = color <- as.character(cut(contrast_ratio,
+                              breaks = c(-Inf, 3, 4.5, 7, Inf),
+                              labels = c("red", "orange", "yellow", text_color),
+                              right = FALSE))
+           , cex = 0.8)
+    }
+  }
+
+  # Add axis labels - draw each label individually with its color
+  axis(1, at = seq(0.5, n_colors-0.5), labels = FALSE)
+  for (i in 1:n_colors) {
+    axis(1, at = i-0.5, labels = hex_codes[i], las = 2, cex.axis = 0.6,
+         col.axis = hex_codes[i], tick = FALSE)
+  }
+
+  axis(2, at = seq(0.5, n_colors-0.5), labels = FALSE)
+  for (i in 1:n_colors) {
+    axis(2, at = i-0.5, labels = rev(hex_codes)[i], las = 2, cex.axis = 0.6,
+         col.axis = rev(hex_codes)[i], tick = FALSE)
+  }
+}
 
 #=============================================
 # RESULTS SUMMARY
 #=============================================
 
-# 1. Color clusters by size (largest to smallest)
-sizes_sorted <- cluster_sizes[as.character(ordered_size)]
-names(sizes_sorted) <- hex_codes_size
+# Display the consolidated color data frame
+cat("\nConsolidated Color Analysis:\n")
+print(color_df)
 
-cat("\nCluster sizes (largest → smallest), labeled by hex:\n")
-print(sizes_sorted)
+# 1. Color clusters by size (largest to smallest)
+colors_by_size <- color_df[order(color_df$ordered_size), ]
+cat("\nColors ordered by size (largest → smallest):\n")
+for (i in 1:nrow(colors_by_size)) {
+  cat(sprintf("%d. %s (size: %d pixels)\n",
+              i, colors_by_size$hex_code[i], colors_by_size$size[i]))
+}
 
 # 2. Color clusters by brightness (darkest to brightest)
-bright_sorted <- brightness_vals[ordered_bright]
-names(bright_sorted) <- hex_codes_bright
-
-cat("\nBrightness (darkest → brightest), labeled by hex:\n")
-print(bright_sorted)
+colors_by_brightness <- color_df[order(color_df$ordered_brightness), ]
+cat("\nColors ordered by brightness (darkest → brightest):\n")
+for (i in 1:nrow(colors_by_brightness)) {
+  cat(sprintf("%d. %s (brightness: %.3f)\n",
+              i, colors_by_brightness$hex_code[i], colors_by_brightness$brightness[i]))
+}
 
 # 3. Example color interpolations
 cat("\nExample color interpolations:\n")
@@ -247,3 +274,8 @@ cat("Scout_oj button:", interpolate_hex("#C57916", "#EC8F30", 0.4), "\n")
 cat("Scout button:", interpolate_hex("#C57916", "#EC8F30", 0.7), "\n")
 cat("Scout button hover:", interpolate_hex("#C57916", "#EC8F30", 0.3), "\n")
 cat("Scout button hover alt:", interpolate_hex("#F6AF9E", "#F49862", 0.25), "\n")
+
+plot(1:2,type="n", xlab="", ylab="", axes=FALSE)
+rasterImage(quant_img, 1, 1, 2, 2, interpolate = FALSE)
+
+create_color_grid(color_df, "baby")
