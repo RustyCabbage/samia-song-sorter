@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="styles/buttons.css">
   <link rel="icon" href="images/favicon-32x32.png" type="image/png">
 
-  <link rel="preload" href="songlists.js" as="script">
+  <link rel="modulepreload" href="SongListFactory.js">
   <link rel="preload" href="interface.js" as="script">
 </head>
 <body class="centered-container">
@@ -169,7 +169,7 @@
   <p class="source"><a href="https://github.com/RustyCabbage/samia-song-sorter" target="_blank">source</a></p>
 </footer>
 
-<script src="songlists.js" defer></script>
+<script type="module" src="SongListFactory.js" defer></script>
 <script src="import_export.js" defer></script>
 <script src="interface.js" defer></script>
 <script src="utils.js" defer></script>

@@ -1,0 +1,103 @@
+{
+  "samia": {
+    "songs": {
+      "preBaby": [
+        "Welcome to Eden",
+        "The Night Josh Tillman Listened To My Song",
+        "Someone Tell the Boys",
+        "Django",
+        "21",
+        "Milk",
+        "Lasting Friend",
+        "Paris",
+        "Ode to Artifice",
+        "Never Said",
+        "Gotta Have You"
+      ],
+      "theBaby": [
+        "Pool",
+        "Fit N Full",
+        "Big Wheel",
+        "Limbo Bitch",
+        "Stellate",
+        "Triptych",
+        "Does Not Heal",
+        "Waverly",
+        "Winnebago",
+        "Minnesota",
+        "Is There Something In The Movies?"
+      ],
+      "scout": [
+        "As You Are",
+        "Show Up",
+        "Elephant",
+        "The Promise"
+      ],
+      "honey": [
+        "Kill Her Freak Out",
+        "Charm You",
+        "Pink Balloon",
+        "Mad at Me",
+        "Sea Lions",
+        "To Me It Was",
+        "Breathing Song",
+        "Honey",
+        "Nanana",
+        "Amelia",
+        "Dream Song"
+      ],
+      "bloodless": [
+        "Biscuits Intro",
+        "Bovine Excision",
+        "Hole in a Frame",
+        "Lizard",
+        "Dare",
+        "Fair Game",
+        "Spine Oil",
+        "Craziest Person",
+        "Sacred",
+        "Carousel",
+        "Proof",
+        "North Poles",
+        "Pants"
+      ],
+      "nonAlbumSingles": [
+        "Desperado",
+        "Born on a Train",
+        "Maps",
+        "Country",
+        "Making Breakfast"
+      ]
+    },
+    "themes": {
+      "bloodless": {
+        "backgroundColor": "#292929",
+        "textColor": "#e9e9e9",
+        "buttonColor": "#6F7275",
+        "buttonHoverColor": "#484950",
+        "buttonTextColor": "#e9e9e9"
+      },
+      "honey": {
+        "backgroundColor": "#0B5380",
+        "textColor": "#9ACDE1",
+        "buttonColor": "#9ACDE1",
+        "buttonHoverColor": "#76AFCA",
+        "buttonTextColor": "#0A1D3B"
+      },
+      "theBaby": {
+        "backgroundColor": "#617679",
+        "textColor": "#C6BCBD",
+        "buttonColor": "#2C3534",
+        "buttonHoverColor": "#1B2525",
+        "buttonTextColor": "#C6BCBD"
+      },
+      "scout": {
+        "backgroundColor": "#EC8F30",
+        "textColor": "#102512",
+        "buttonColor": "#F6AF9E",
+        "buttonHoverColor": "#F6A98F",
+        "buttonTextColor": "#102512"
+      }
+    }
+  }
+}
