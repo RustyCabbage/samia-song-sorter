@@ -11,8 +11,8 @@ import { addImportedDecision, checkCurrentComparison, getDecisionHistory } from 
  */
 export class ImportExportManager {
   constructor() {
-    this.LINE_REGEX = /^(?:X|\d)+\.\s+.+\s+>\s+.+$/;
-    this.EXTRACT_REGEX = /^(?:X|\d)+\.\s+(?:"([^"]+)"|([^>]+))\s+>\s+(?:"([^"]+)"|(.+))$/;
+    this.LINE_REGEX = /^(?:I|X|\d)+\.\s+.+\s+>\s+.+$/;
+    this.EXTRACT_REGEX = /^(?:I|X|\d)+\.\s+(?:"([^"]+)"|([^>]+))\s+>\s+(?:"([^"]+)"|(.+))$/;
   }
 
   /**
@@ -112,7 +112,7 @@ export class ImportExportManager {
         const chosen = (match[1] || match[2])?.trim();
         const rejected = (match[3] || match[4])?.trim();
 
-        return chosen && rejected ? {comparison: 'X', chosen, rejected, type: 'import'} : null;
+        return chosen && rejected ? {comparison: "X", chosen, rejected, type: 'import'} : null;
       })
       .filter(Boolean);
   }

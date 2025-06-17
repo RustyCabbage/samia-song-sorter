@@ -55,17 +55,11 @@ export function computeTransitiveClosure(history) {
         const chosen = nodes[i];
         const rejected = nodes[j];
 
-        const isDirect = history.some(pref =>
-          pref.chosen === chosen && pref.rejected === rejected
-        );
+        const isDirect = history.some(pref => pref.chosen === chosen && pref.rejected === rejected);
 
         if (!isDirect) {
           allPreferences.push({
-            comparison: null,
-            chosen: chosen,
-            rejected: rejected,
-            elapsedTime: null,
-            type: 'infer'
+            comparison: null, chosen: chosen, rejected: rejected, elapsedTime: null, type: 'infer'
           });
         }
       }
@@ -329,11 +323,7 @@ export function visualizeGraph(graph) {
 
 // Create a convenient object grouping all graph utilities for easier importing
 export const GraphUtils = {
-  computeTransitiveClosure,
-  computeTransitiveReduction,
-  topologicalSortPreferences,
-  topologicalSortItems,
-  visualizeGraph
+  computeTransitiveClosure, computeTransitiveReduction, topologicalSortPreferences, topologicalSortItems, visualizeGraph
 };
 
 // Default export for the most commonly used utilities

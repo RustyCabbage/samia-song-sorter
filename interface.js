@@ -1,6 +1,6 @@
 // ES6 Module: interface.js
-import { songListRepo } from './SongListFactory.js';
-import { songSorterFactory } from './sorter/SongSorterFactory.js';
+import {songListRepo} from './SongListFactory.js';
+import {songSorterFactory} from './sorter/SongSorterFactory.js';
 import notificationManager from './NotificationManager.js';
 
 // Cache DOM elements with error handling
@@ -70,8 +70,7 @@ const state = (() => {
     useCleanPrefs: (value) => {
       DOM.cleanPrefsToggle.checked = value;
       DOM.resultsCleanPrefsToggle.checked = value;
-    },
-    currentSongList: () => {
+    }, currentSongList: () => {
       applySongCount();
       applyTheme();
     },
@@ -101,7 +100,7 @@ function applyTheme() {
   state.currentThemeId = themeId;
 
   if (!state.themeCache[themeId]) {
-    const { backgroundColor, textColor, buttonColor, buttonHoverColor, buttonTextColor } = state.currentSongList._theme;
+    const {backgroundColor, textColor, buttonColor, buttonHoverColor, buttonTextColor} = state.currentSongList._theme;
     state.themeCache[themeId] = {
       '--background-color': backgroundColor,
       '--text-color': textColor,
@@ -211,7 +210,7 @@ const tooltipManager = (() => {
     }, 100);
   }
 
-  return { positionAllTooltips, handleResize };
+  return {positionAllTooltips, handleResize};
 })();
 
 // Event handlers map for delegation
@@ -273,9 +272,7 @@ function setupEventListeners() {
 
 // Interface management
 const interfaces = {
-  selection: 'selectionInterface',
-  sorting: 'sortingInterface',
-  results: 'resultsInterface'
+  selection: 'selectionInterface', sorting: 'sortingInterface', results: 'resultsInterface'
 };
 
 function showInterface(type) {
@@ -316,12 +313,12 @@ function showResult(finalSorted) {
   for (const decision of decisions) {
     const row = document.createElement("tr");
     const cells = [
-      { text: decision.comparison, className: "" },
+      { text: decision.comparison, className: "number" },
       { text: decision.chosen, className: "chosen" },
       { text: decision.rejected, className: "rejected" }
     ];
 
-    for (const { text, className } of cells) {
+    for (const {text, className} of cells) {
       const td = document.createElement("td");
       td.textContent = text;
       td.className = className;
@@ -366,7 +363,7 @@ function initializeApp() {
   requestAnimationFrame(tooltipManager.positionAllTooltips);
 
   // Initialize ImportExportManager after interface is set up
-  import('./ImportExportManager.js').then(({ importExportManager }) => {
+  import('./ImportExportManager.js').then(({importExportManager}) => {
     importExportManager.initialize();
   });
   notificationManager.initialize(DOM.copyStatus);
@@ -377,9 +374,5 @@ document.addEventListener("DOMContentLoaded", initializeApp);
 
 // Export the main interface functions that might be needed by other modules
 export {
-  DOM,
-  state,
-  initializeApp,
-  showInterface,
-  resetInterface
+  DOM, state, initializeApp, showInterface, resetInterface
 };

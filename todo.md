@@ -26,5 +26,3 @@
 - Use Atkinson Hyperlegible instead of Arial
 	- https://fonts.google.com/specimen/Atkinson+Hyperlegible
 	- I don't like the way it looks ._.
-- Show decision history during sorting 
-	- copy button makes this redundant
