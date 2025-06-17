@@ -87,6 +87,7 @@ function initializeSongLists() {
   const repo = new SongListRepository();
 
   addToRepoSamia(repo);
+  //repo.addList(new SongList("torchiepo", "The Tortured Poets Department", ARTIST_DATA.taylor_swift.songs.torchiepo, ARTIST_DATA.samia.themes.bloodless));
 
   return repo;
 }
