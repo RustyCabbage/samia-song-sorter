@@ -1,3 +1,8 @@
+// ES6 Module: interface.js
+import { songListRepo } from './SongListFactory.js';
+import { songSorterFactory } from './sorter/SongSorterFactory.js';
+import notificationManager from './NotificationManager.js';
+
 // Cache DOM elements with error handling
 const DOM = (() => {
   const elements = {
@@ -173,10 +178,6 @@ const eventHandlers = {
       songSorterFactory.handleOption(false);
       DOM.btnB.blur();
     },
-    copyDecisionsButton: () => ClipboardManager.copyToClipboard('decisions', state.currentSongList),
-    importDecisionsButton: () => ClipboardManager.openImportModal(),
-    copyButton: () => ClipboardManager.copyToClipboard('ranking', state.currentSongList),
-    copyHistoryButton: () => ClipboardManager.copyToClipboard('history', state.currentSongList),
     restartButton: resetInterface
   },
   change: {
@@ -246,7 +247,7 @@ function showResult(finalSorted) {
   }
 
   // Populate history (filter once, iterate once)
-  const decisions = getDecisionHistory().filter(d => d.type !== 'infer');
+  const decisions = songSorterFactory.getDecisionHistory().filter(d => d.type !== 'infer');
   for (const decision of decisions) {
     const row = document.createElement("tr");
     const cells = [
@@ -286,12 +287,21 @@ function initializeApp() {
   setupEventListeners();
   requestAnimationFrame(tooltipManager.positionAllTooltips);
 
-  if (window.ClipboardManager) {
-    ClipboardManager.initialize();
-  } else {
-    console.error("ClipboardManager not loaded");
-  }
+  // Initialize ImportExportManager after interface is set up
+  import('./ImportExportManager.js').then(({ importExportManager }) => {
+    importExportManager.initialize();
+  });
+  notificationManager.initialize(DOM.copyStatus);
 }
 
+// Initialize when DOM is ready
 document.addEventListener("DOMContentLoaded", initializeApp);
-window.getDecisionHistory = () => decisionHistory || [];
+
+// Export the main interface functions that might be needed by other modules
+export {
+  DOM,
+  state,
+  initializeApp,
+  showInterface,
+  resetInterface
+};

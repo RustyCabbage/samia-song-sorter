@@ -1,4 +1,4 @@
-import ARTIST_DATA from './artist_data.json' with { type: "json" };
+import ARTIST_DATA from './artist_data.json' with {type: "json"};
 
 class SongList {
   constructor(id, name, songs, theme) {
@@ -92,6 +92,5 @@ function initializeSongLists() {
 }
 
 // Initialize the repository when the script loads
-const songListRepo = initializeSongLists();
-
-window.songListRepo = songListRepo;
+export const songListRepo = initializeSongLists();
+export default songListRepo;

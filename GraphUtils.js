@@ -1,35 +1,3 @@
-/**
- * Shuffle an array using the Fisher-Yates algorithm
- * @param {Array} array - Array to shuffle
- * @returns {Array} - Shuffled array
- */
-function shuffleArray(array) {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
-
-/**
- * Format the timestamp in local time: YYYY-MM-DD hh:mm:ss AM/PM
- * @param {Date} date - The date to format
- * @returns {string} Formatted date string
- */
-function formatLocalTime(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = date.getHours();
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  const hour12 = hours % 12 || 12; // Convert 0 to 12
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getSeconds()).padStart(2, '0');
-
-  return `${year}-${month}-${day} ${hour12}:${minutes}:${seconds} ${ampm}`;
-}
-
 /******************************************
  * GRAPH UTILITY FUNCTIONS (OPTIMIZED)
  ******************************************/
@@ -40,7 +8,13 @@ function formatLocalTime(date) {
  * @param {Array} history - Decision history array to work with
  * @returns {Array} - List of direct decisions and transitive preferences
  */
-function computeTransitiveClosure(history = decisionHistory) {
+export function computeTransitiveClosure(history) {
+  // Note: This function originally had a default parameter referencing 'decisionHistory'
+  // which appears to be a global variable that should be passed in explicitly
+  if (!history) {
+    throw new Error('History parameter is required');
+  }
+
   const allNodes = new Set();
   for (const {chosen, rejected} of history) {
     allNodes.add(chosen);
@@ -104,10 +78,15 @@ function computeTransitiveClosure(history = decisionHistory) {
 /**
  * Compute the transitive reduction of the comparison graph
  * @param {Array} history - Decision history array to work with
- * @param isTransitiveClosure - Whether the input is a transitive closure (i.e., already computed)
+ * @param {boolean} isTransitiveClosure - Whether the input is a transitive closure (i.e., already computed)
  * @returns {Array} - Minimal set of comparisons that preserve the same ordering
  */
-function computeTransitiveReduction(history = decisionHistory, isTransitiveClosure = false) {
+export function computeTransitiveReduction(history, isTransitiveClosure = false) {
+  // Note: Original had default parameter referencing 'decisionHistory'
+  if (!history) {
+    throw new Error('History parameter is required');
+  }
+
   let transitiveClosure = (isTransitiveClosure) ? history : computeTransitiveClosure(history);
 
   const directGraph = new Map();
@@ -184,7 +163,7 @@ function computeTransitiveReduction(history = decisionHistory, isTransitiveClosu
  * @param {Array} preferences - List of preferences (e.g., from computeTransitiveReduction)
  * @returns {Array} - Topologically sorted list of preferences
  */
-function topologicalSortPreferences(preferences) {
+export function topologicalSortPreferences(preferences) {
   const graph = new Map();
   const inDegree = new Map();
   const allNodes = new Set();
@@ -261,7 +240,7 @@ function topologicalSortPreferences(preferences) {
  * @param {Array} preferences - Array of preference objects (from computeTransitiveReduction)
  * @returns {Array} - Array of items in topological order (best to worst)
  */
-function topologicalSortItems(preferences) {
+export function topologicalSortItems(preferences) {
   const graph = new Map();
   const allNodes = new Set();
 
@@ -330,7 +309,7 @@ function topologicalSortItems(preferences) {
  * @param {Map} graph - Graph represented as adjacency list (Map of node -> Set of nodes)
  * @returns {String} - Text representation of the graph structure
  */
-function visualizeGraph(graph) {
+export function visualizeGraph(graph) {
   let graphVisualization = '';
 
   // Iterate through each node and its outgoing edges
@@ -347,3 +326,17 @@ function visualizeGraph(graph) {
 
   return graphVisualization;
 }
+
+// Create a convenient object grouping all graph utilities for easier importing
+export const GraphUtils = {
+  computeTransitiveClosure,
+  computeTransitiveReduction,
+  topologicalSortPreferences,
+  topologicalSortItems,
+  visualizeGraph
+};
+
+// Default export for the most commonly used utilities
+export default {
+  GraphUtils
+};

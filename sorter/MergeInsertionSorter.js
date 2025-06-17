@@ -1,7 +1,9 @@
+import BaseSorter from './BaseSorter.js';
+
 /**
  * Merge-Insertion Sort (Ford-Johnson algorithm) implementation extending BaseSorter
  */
-class MergeInsertionSorter extends BaseSorter {
+export default class MergeInsertionSorter extends BaseSorter {
   constructor() {
     super();
     this.jacobsthalNumbers = [1, 1, 3, 5, 11, 21, 43, 85, 171];
@@ -115,7 +117,6 @@ class MergeInsertionSorter extends BaseSorter {
         currentGroupCount = 0;
       }
     }
-
     return result;
   }
 
@@ -177,7 +178,7 @@ class MergeInsertionSorter extends BaseSorter {
       } else {
         left = mid + 1;
       }
-      
+
       if (left >= right) {
         this.sortState.comparisons.worstCase--;
         keepUpdating = false;
@@ -263,8 +264,8 @@ class MergeInsertionSorter extends BaseSorter {
       numComparisons += decomposition[i] * (i + 1);
     }
 
-    numComparisons += (decomposition.slice(-2).reduce((a, b) => a + b, 0) === 2 ** decomposition.length) 
-      ? decomposition.length 
+    numComparisons += (decomposition.slice(-2).reduce((a, b) => a + b, 0) === 2 ** decomposition.length)
+      ? decomposition.length
       : (decomposition.length - 1);
 
     return this.G(Math.floor(n / 2)) + numComparisons;

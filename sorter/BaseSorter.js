@@ -1,11 +1,46 @@
+import {computeTransitiveClosure} from '../GraphUtils.js';
+import notificationManager from '../NotificationManager.js';
+
+/**
+ * Shuffle an array using the Fisher-Yates algorithm
+ * @param {Array} array - Array to shuffle
+ * @returns {Array} - Shuffled array
+ */
+function shuffleArray(array) {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+/**
+ * Format the timestamp in local time: YYYY-MM-DD hh:mm:ss AM/PM
+ * @param {Date} date - The date to format
+ * @returns {string} Formatted date string
+ */
+function formatLocalTime(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = date.getHours();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const hour12 = hours % 12 || 12; // Convert 0 to 12
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hour12}:${minutes}:${seconds} ${ampm}`;
+}
+
 /**
  * Abstract base class for sorting algorithms
  * Handles shared functionality like comparisons, state management, and caching
  */
-class BaseSorter {
+export default class BaseSorter {
   constructor() {
     this.sortState = {
-      comparisons: { completed: 0, worstCase: 0, bestCase: 0 },
+      comparisons: {completed: 0, worstCase: 0, bestCase: 0},
       decisionHistory: [],
       compareQueue: [],
       lastDecisionTimestamp: null,
@@ -13,9 +48,7 @@ class BaseSorter {
     };
 
     this.cache = {
-      preferences: new Map(),
-      transitiveClosure: null,
-      transitiveClosureVersion: 0
+      preferences: new Map(), transitiveClosure: null, transitiveClosureVersion: 0
     };
 
     this.DOM = {
@@ -87,14 +120,11 @@ class BaseSorter {
     const rejected = pref.selectedLeft ? songB : songA;
 
     if (this.sortState.inferCount > 0) {
-      ClipboardManager.showNotification(`Inferred ${this.sortState.inferCount} comparisons from imported decisions`);
+      notificationManager.showNotification(`Inferred ${this.sortState.inferCount} comparisons from imported decisions`);
     }
 
     return {
-      selectedLeft: pref.selectedLeft,
-      chosen: chosen,
-      rejected: rejected,
-      type: pref.type
+      selectedLeft: pref.selectedLeft, chosen: chosen, rejected: rejected, type: pref.type
     };
   }
 
@@ -104,9 +134,7 @@ class BaseSorter {
   requestUserComparison(songA, songB) {
     return new Promise(resolve => {
       const comparison = {
-        songA: songA,
-        songB: songB,
-        resolve: resolve
+        songA: songA, songB: songB, resolve: resolve
       };
 
       this.sortState.compareQueue.push(comparison);
@@ -136,7 +164,7 @@ class BaseSorter {
     if (this.sortState.compareQueue.length === 0) return;
 
     const comparison = this.sortState.compareQueue.shift();
-    comparison.resolve({ selectedLeft: selectedLeft, type: 'decision' });
+    comparison.resolve({selectedLeft: selectedLeft, type: 'decision'});
 
     if (this.sortState.compareQueue.length > 0) {
       requestAnimationFrame(() => this.showComparison());
@@ -203,8 +231,7 @@ class BaseSorter {
     if (this.cache.preferences.has(key)) {
       const cached = this.cache.preferences.get(key);
       return {
-        selectedLeft: isReversed ? !cached.selectedLeft : cached.selectedLeft,
-        type: cached.type
+        selectedLeft: isReversed ? !cached.selectedLeft : cached.selectedLeft, type: cached.type
       };
     }
 
@@ -212,8 +239,7 @@ class BaseSorter {
     if (directPrefs.has(key)) {
       const pref = directPrefs.get(key);
       const result = {
-        selectedLeft: isReversed ? !pref.selectedLeft : pref.selectedLeft,
-        type: 'infer'
+        selectedLeft: isReversed ? !pref.selectedLeft : pref.selectedLeft, type: 'infer'
       };
       this.cache.preferences.set(key, result);
       return result;
@@ -225,7 +251,7 @@ class BaseSorter {
       return transitivePref;
     }
 
-    return { selectedLeft: null, type: null };
+    return {selectedLeft: null, type: null};
   }
 
   /**
@@ -233,11 +259,10 @@ class BaseSorter {
    */
   getDirectPreferences() {
     const direct = new Map();
-    for (const { chosen, rejected } of this.sortState.decisionHistory) {
+    for (const {chosen, rejected} of this.sortState.decisionHistory) {
       const key = chosen < rejected ? `${chosen}|${rejected}` : `${rejected}|${chosen}`;
       direct.set(key, {
-        selectedLeft: chosen < rejected,
-        type: 'direct'
+        selectedLeft: chosen < rejected, type: 'direct'
       });
     }
     return direct;
@@ -252,18 +277,18 @@ class BaseSorter {
       this.cache.transitiveClosureVersion = this.sortState.decisionHistory.length;
     }
 
-    for (const { chosen, rejected, type } of this.cache.transitiveClosure) {
+    for (const {chosen, rejected, type} of this.cache.transitiveClosure) {
       if (type === 'infer') {
         if (chosen === songA && rejected === songB) {
-          return { selectedLeft: true, type: 'infer' };
+          return {selectedLeft: true, type: 'infer'};
         }
         if (chosen === songB && rejected === songA) {
-          return { selectedLeft: false, type: 'infer' };
+          return {selectedLeft: false, type: 'infer'};
         }
       }
     }
 
-    return { selectedLeft: null, type: null };
+    return {selectedLeft: null, type: null};
   }
 
   /**
@@ -277,20 +302,21 @@ class BaseSorter {
     this.invalidateCaches();
   }
 
-
+  /**
+   * Invalidate caches
+   */
   invalidateCaches() {
     this.cache.preferences.clear();
     this.cache.transitiveClosure = null;
     this.cache.transitiveClosureVersion = 0;
   }
 
+  /**
+   * Add imported decision
+   */
   addImportedDecision(decision) {
     this.sortState.decisionHistory.push({
-      comparison: "X",
-      chosen: decision.chosen,
-      rejected: decision.rejected,
-      elapsedTime: null,
-      type: 'import'
+      comparison: "X", chosen: decision.chosen, rejected: decision.rejected, elapsedTime: null, type: 'import'
     });
     this.invalidateCaches();
   }
@@ -307,7 +333,7 @@ class BaseSorter {
     if (pref.selectedLeft !== null) {
       console.log(`After import, we now know: ${(pref.selectedLeft) ? `${currentComparison.songA} > ${currentComparison.songB}` : `${currentComparison.songB} > ${currentComparison.songA}`}`);
       this.sortState.compareQueue.shift();
-      currentComparison.resolve({ selectedLeft: null, type: 'import' });
+      currentComparison.resolve({selectedLeft: null, type: 'import'});
       if (this.sortState.compareQueue.length > 0) {
         requestAnimationFrame(() => this.showComparison());
       }

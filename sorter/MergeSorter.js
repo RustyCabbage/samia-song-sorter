@@ -1,7 +1,9 @@
+import BaseSorter from './BaseSorter.js';
+
 /**
  * Merge Sort implementation extending BaseSorter
  */
-class MergeSorter extends BaseSorter {
+export default class MergeSorter extends BaseSorter {
   constructor() {
     super();
   }
