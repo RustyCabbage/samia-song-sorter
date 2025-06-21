@@ -327,7 +327,7 @@
         "Karma (feat. Ice Spice)",
         "You're Losing Me"
       ],
-      "torchiepo": [
+      "ttpd": [
         "Fortnight (feat. Post Malone)",
         "The Tortured Poets Department",
         "My Boy Only Breaks His Favorite Toys",
@@ -411,6 +411,92 @@
         "Beautiful Ghosts",
         "Carolina"
       ]
+    },
+    "themes": {
+      "ttpd": {
+        "backgroundColor": "#312C28",
+        "textColor": "#DBD5D1",
+        "buttonColor": "#8D8882",
+        "buttonHoverColor": "#5C5753",
+        "buttonTextColor": "#DBD5D1"
+      },
+      "midnights": {
+        "backgroundColor": "#0F0F25",
+        "textColor": "#DBD5D1",
+        "buttonColor": "#474555",
+        "buttonHoverColor": "#2E2339",
+        "buttonTextColor": "#DBD5D1"
+      },
+      "evermore": {
+        "backgroundColor": "#40211B",
+        "textColor": "#DBD5D1",
+        "buttonColor": "#AB6F50",
+        "buttonHoverColor": "#5F4A3F",
+        "buttonTextColor": "#DBD5D1"
+      },
+      "folklore": {
+        "backgroundColor": "#464646",
+        "textColor": "#DBD5D1",
+        "buttonColor": "#8C8C8C",
+        "buttonHoverColor": "#6E6E6E",
+        "buttonTextColor": "#DBD5D1"
+      },
+      "lover": {
+        "backgroundColor": "#F7C9D6",
+        "textColor": "#102512",
+        "buttonColor": "#A5BAD8",
+        "buttonHoverColor": "#83B3D7",
+        "buttonTextColor": "#102512"
+      },
+      "reputation": {
+        "backgroundColor": "#0C0C0C",
+        "textColor": "#DBD5D1",
+        "buttonColor": "#525252",
+        "buttonHoverColor": "#2C2C2C",
+        "buttonTextColor": "#DBD5D1"
+      },
+      "album1989_tv": {
+        "backgroundColor": "#648FB0",
+        "textColor": "#102512",
+        "buttonColor": "#AAB9C5",
+        "buttonHoverColor": "#88A6BC",
+        "buttonTextColor": "#102512"
+      },
+      "red_tv": {
+        "backgroundColor": "#6c210a",
+        "textColor": "#DBD5D1",
+        "buttonColor": "#A88B73",
+        "buttonHoverColor": "#8C705B",
+        "buttonTextColor": "#102512"
+      },
+      "red": {
+        "backgroundColor": "#B11F4A",
+        "textColor": "#102512",
+        "buttonColor": "#A19781",
+        "buttonHoverColor": "#9A6E65",
+        "buttonTextColor": "#102512"
+      },
+      "speakNow_tv": {
+        "backgroundColor": "#391C3F",
+        "textColor": "#DBD5D1",
+        "buttonColor": "#763477",
+        "buttonHoverColor": "#58285B",
+        "buttonTextColor": "#DBD5D1"
+      },
+      "fearless_tv": {
+        "backgroundColor": "#D9B878",
+        "textColor": "#102512",
+        "buttonColor": "#AB864B",
+        "buttonHoverColor": "#95723F",
+        "buttonTextColor": "#102512"
+      },
+      "debut": {
+        "backgroundColor": "#3FAEC5",
+        "textColor": "#102512",
+        "buttonColor": "#D8B18D",
+        "buttonHoverColor": "#BD9270",
+        "buttonTextColor": "#102512"
+      }
     }
   }
 }

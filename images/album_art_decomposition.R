@@ -22,7 +22,7 @@ library(reshape2)
 #=============================================
 # PARAMETERS
 #=============================================
-image_path      <- "Samia - Scout.jpg"  # Path to album cover image
+image_path      <- paste0("Taylor Swift - Taylor Swift",".jpg")  # Path to album cover image
 distance_thresh <- 0.16                 # Euclidean distance threshold for stopping
 max_k           <- 10                   # Maximum k to try
 
@@ -135,12 +135,50 @@ dimensions <- dim(img)
 h <- dimensions[1]
 w <- dimensions[2]
 
-# 2. Convert image to data frame of RGB values
-px_df <- data.frame(
-  R = as.vector(img[,,1]),
-  G = as.vector(img[,,2]),
-  B = as.vector(img[,,3])
-)
+# 2. Handle different image formats
+if (length(dimensions) == 2) {
+  # Grayscale image (2D array)
+  h <- dimensions[1]
+  w <- dimensions[2]
+
+  # Convert grayscale to RGB by replicating the single channel
+  px_df <- data.frame(
+    R = as.vector(img),
+    G = as.vector(img),
+    B = as.vector(img)
+  )
+
+  cat("Detected 8-bit grayscale image\n")
+
+} else if (length(dimensions) == 3) {
+  # Color image (3D array)
+  h <- dimensions[1]
+  w <- dimensions[2]
+
+  if (dimensions[3] == 1) {
+    # Single channel color image (unusual but possible)
+    px_df <- data.frame(
+      R = as.vector(img[,,1]),
+      G = as.vector(img[,,1]),
+      B = as.vector(img[,,1])
+    )
+    cat("Detected single-channel image\n")
+
+  } else if (dimensions[3] >= 3) {
+    # Standard RGB or RGBA image
+    px_df <- data.frame(
+      R = as.vector(img[,,1]),
+      G = as.vector(img[,,2]),
+      B = as.vector(img[,,3])
+    )
+    cat("Detected color image with", dimensions[3], "channels\n")
+
+  } else {
+    stop("Unexpected image format: ", paste(dimensions, collapse = "x"))
+  }
+} else {
+  stop("Cannot handle image with dimensions: ", paste(dimensions, collapse = "x"))
+}
 
 # 3. Iterative K-means clustering
 prev_km <- NULL
@@ -266,6 +304,13 @@ for (i in 1:nrow(colors_by_brightness)) {
               i, colors_by_brightness$hex_code[i], colors_by_brightness$brightness[i]))
 }
 
+create_color_grid(color_df, "baby")
+
+plot(1:2,type="n", xlab="", ylab="", axes=FALSE)
+rasterImage(quant_img, 1, 1, 2, 2, interpolate = FALSE)
+plot_color_legend("topleft", colors_by_brightness$hex_code, "Colors by brightness")
+plot_color_legend("topright", colors_by_size$hex_code, "Colors by size")
+
 # 3. Example color interpolations
 cat("\nExample color interpolations:\n")
 cat("Baby button color:", interpolate_hex("#1B2525", "#3C4543", 0.5), "\n")
@@ -274,8 +319,9 @@ cat("Scout_oj button:", interpolate_hex("#C57916", "#EC8F30", 0.4), "\n")
 cat("Scout button:", interpolate_hex("#C57916", "#EC8F30", 0.7), "\n")
 cat("Scout button hover:", interpolate_hex("#C57916", "#EC8F30", 0.3), "\n")
 cat("Scout button hover alt:", interpolate_hex("#F6AF9E", "#F49862", 0.25), "\n")
-
-plot(1:2,type="n", xlab="", ylab="", axes=FALSE)
-rasterImage(quant_img, 1, 1, 2, 2, interpolate = FALSE)
-
-create_color_grid(color_df, "baby")
+cat("Lover button:", interpolate_hex("#C8C1D9","#83B3D7", 0.5), "\n")
+cat("Red button hover:", interpolate_hex("#8B334B","#644D4B", 0.75), "\n")
+cat("Speak Now button hover:", interpolate_hex("#763477","#391C3F", 0.5), "\n")
+cat("Fearless button hover:", interpolate_hex("#AB864B","#805D32", 0.5), "\n")
+#cat("Debut button:", interpolate_hex("#3FAEC5","#BD9270", 0.75), "\n")
+#cat("Debut button hover:", interpolate_hex("#3FAEC5","#BD9270", 0.6), "\n")

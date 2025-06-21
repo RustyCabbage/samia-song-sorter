@@ -111,6 +111,7 @@ function addToRepoSamia(repository, artist = "Samia") {
 function addToRepoTaylor(repository, artist = "Taylor Swift") {
   const taylor = ARTIST_DATA.taylor_swift;
   const songs = taylor.songs;
+  const themes = taylor.themes;
 
   const discographyList = [
     ...songs.debut,
@@ -133,22 +134,22 @@ function addToRepoTaylor(repository, artist = "Taylor Swift") {
     ...songs.evermore,
     "Carolina",
     ...songs.midnights,
-    ...songs.torchiepo,
+    ...songs.ttpd,
   ];
 
   [
-    new SongList("torchiepo", artist, "The Tortured Poets Department", songs.torchiepo, ARTIST_DATA.samia.themes.bloodless),
-    new SongList("midnights", artist, "Midnights", songs.midnights, ARTIST_DATA.samia.themes.bloodless),
-    new SongList("evermore", artist, "Evermore", songs.evermore, ARTIST_DATA.samia.themes.bloodless),
-    new SongList("folklore", artist, "Folklore", songs.folklore, ARTIST_DATA.samia.themes.bloodless),
-    new SongList("lover", artist, "Lover", songs.lover, ARTIST_DATA.samia.themes.bloodless),
-    new SongList("reputation", artist, "Reputation", songs.reputation, ARTIST_DATA.samia.themes.bloodless),
-    new SongList("album1989", artist, "1989", songs.album1989, ARTIST_DATA.samia.themes.bloodless),
-    new SongList("red", artist, "Red", songs.red, ARTIST_DATA.samia.themes.bloodless),
-    new SongList("speakNow", artist, "Speak Now", songs.speakNow, ARTIST_DATA.samia.themes.bloodless),
-    new SongList("fearless", artist, "Fearless", songs.fearless, ARTIST_DATA.samia.themes.bloodless),
-    new SongList("debut", artist, "Debut", songs.debut, ARTIST_DATA.samia.themes.bloodless),
-    new SongList("taylor_discography", artist, "Taylor Discography", discographyList, ARTIST_DATA.samia.themes.bloodless),
+    new SongList("ttpd", artist, "The Tortured Poets Department", songs.ttpd, themes.ttpd),
+    new SongList("midnights", artist, "Midnights", songs.midnights, themes.midnights),
+    new SongList("evermore", artist, "Evermore", songs.evermore, themes.evermore),
+    new SongList("folklore", artist, "Folklore", songs.folklore, themes.folklore),
+    new SongList("lover", artist, "Lover", songs.lover, themes.lover),
+    new SongList("reputation", artist, "Reputation", songs.reputation, themes.reputation),
+    new SongList("album1989", artist, "1989", songs.album1989, themes.album1989_tv),
+    new SongList("red", artist, "Red", songs.red, themes.red_tv),
+    new SongList("speakNow", artist, "Speak Now", songs.speakNow, themes.speakNow_tv),
+    new SongList("fearless", artist, "Fearless", songs.fearless, themes.fearless_tv),
+    new SongList("debut", artist, "Debut", songs.debut, themes.debut),
+    new SongList("taylor_discography", artist, "Taylor Discography", discographyList, themes.red),
   ].forEach(list => repository.addList(list));
 }
 
