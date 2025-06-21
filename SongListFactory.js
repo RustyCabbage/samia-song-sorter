@@ -1,8 +1,9 @@
 import ARTIST_DATA from './artist_data.json' with {type: "json"};
 
 class SongList {
-  constructor(id, name, songs, theme) {
+  constructor(id, artist, name, songs, theme) {
     this._id = id;
+    this._artist = artist;
     this._name = name;
     this._songs = [...songs]; // Create a copy to avoid direct reference
     this._theme = theme; // Store theme references directly
@@ -14,13 +15,18 @@ class SongList {
     return this._id;
   }
 
+  get artist() {
+    return this._artist;
+  }
+
   get name() {
     return this._name;
   }
 
   get songs() {
     return [...this._songs];
-  } // Return a copy to prevent direct modification
+  }
+
   get theme() {
     return this._theme;
   }
@@ -32,8 +38,9 @@ class SongList {
 
 class SongListRepository {
   constructor() {
-    this._lists = new Map(); // Use Map instead of Object for better performance with key-value pairs
+    this._lists = new Map();
     this._listCache = null;
+    this._artistCache = null;
   }
 
   addList(songList) {
@@ -43,10 +50,17 @@ class SongListRepository {
 
     this._lists.set(songList.id, songList);
     this._listCache = null;
+    this._artistCache = null;
   }
 
   getList(id) {
     return this._lists.get(id) || null;
+  }
+
+  getListsByArtist(artist) {
+    return Array.from(this._lists.values())
+      .filter(list => list.artist === artist)
+      .map(list => ({id: list.id, name: list.name}));
   }
 
   getAllLists() {
@@ -59,6 +73,15 @@ class SongListRepository {
     }));
 
     return this._listCache;
+  }
+
+  getAllArtists() {
+    if (this._artistCache) {
+      return this._artistCache;
+    }
+
+    this._artistCache = [...new Set(Array.from(this._lists.values()).map(list => list.artist))];
+    return this._artistCache;
   }
 }
 
@@ -94,4 +117,3 @@ function initializeSongLists() {
 
 // Initialize the repository when the script loads
 export const songListRepo = initializeSongLists();
-export default songListRepo;

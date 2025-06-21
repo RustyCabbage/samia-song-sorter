@@ -6,6 +6,7 @@ import notificationManager from './NotificationManager.js';
 // Cache DOM elements with error handling
 const DOM = (() => {
   const elements = {
+    artistSelector: "artistSelector",
     // Selection interface
     selectionInterface: "selectionInterface",
     listSelector: "listSelector",
@@ -56,6 +57,7 @@ const DOM = (() => {
 const state = (() => {
   const stateData = {
     currentSongList: null,
+    currentArtist: null,
     shouldShuffle: false,
     shouldMergeInsert: false,
     useCleanPrefs: false,
@@ -72,6 +74,11 @@ const state = (() => {
     currentSongList: () => {
       applySongCount();
       applyTheme();
+    },
+    currentArtist: (artist) => {
+      if (artist) {
+        populateSongListSelectorByArtist(artist);
+      }
     }
   };
 
@@ -113,10 +120,51 @@ function applyTheme() {
 function applySongCount() {
   if (state.currentSongList) {
     DOM.songCount.textContent = `${state.currentSongList.songCount} songs`;
+  } else {
+    DOM.songCount.textContent = '';
   }
 }
 
-function populateListSelector() {
+function populateArtistListSelector() {
+  const fragment = document.createDocumentFragment();
+  for (const artist of songListRepo.getAllArtists()) {
+    const option = document.createElement("option");
+    option.value = artist;
+    option.textContent = artist;
+    fragment.appendChild(option);
+  }
+  DOM.artistSelector.appendChild(fragment);
+}
+
+function populateSongListSelectorByArtist(artist) {
+  // Clear existing options completely
+  DOM.listSelector.innerHTML = '';
+
+  const fragment = document.createDocumentFragment();
+
+  // Add default option
+  /*
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.textContent = "Select a song list...";
+  fragment.appendChild(defaultOption);
+  */
+
+  // Add artist-specific lists
+  for (const list of songListRepo.getListsByArtist(artist)) {
+    const option = document.createElement("option");
+    option.value = list.id;
+    option.textContent = list.name;
+    fragment.appendChild(option);
+  }
+
+  DOM.listSelector.appendChild(fragment);
+
+  // Clear current song list when artist changes
+  state.currentSongList = null;
+}
+
+function populateSongListSelector() {
   const fragment = document.createDocumentFragment();
   for (const list of songListRepo.getAllLists()) {
     const option = document.createElement("option");
@@ -181,7 +229,19 @@ const eventHandlers = {
     restartButton: resetInterface
   },
   change: {
-    listSelector: (e) => state.currentSongList = songListRepo.getList(e.target.value),
+    artistSelector: (e) => {
+      const selectedArtist = e.target.value;
+      state.currentArtist = selectedArtist;
+      state.currentSongList = songListRepo.getList(songListRepo.getListsByArtist(selectedArtist)[0].id);
+    },
+    listSelector: (e) => {
+      const selectedListId = e.target.value;
+      if (selectedListId) {
+        state.currentSongList = songListRepo.getList(selectedListId);
+      } else {
+        state.currentSongList = null;
+      }
+    },
     shuffleToggle: (e) => state.shouldShuffle = e.target.checked,
     mergeTypeToggle: (e) => state.shouldMergeInsert = e.target.checked,
     cleanPrefsToggle: (e) => state.useCleanPrefs = e.target.checked,
@@ -226,6 +286,11 @@ function showInterface(type) {
 }
 
 function startSortingProcess() {
+  if (!state.currentSongList) {
+    alert('Please select an artist and song list first.');
+    return;
+  }
+
   showInterface("sorting");
   console.log(`Starting sorting with ${state.shouldMergeInsert ? 'merge-insertion' : 'merge'} algorithm`);
   songSorterFactory.startSorting(state.currentSongList.songs, state.shouldShuffle, state.shouldMergeInsert)
@@ -277,13 +342,26 @@ function resetInterface() {
 
 // Initialize application
 function initializeApp() {
-  state.currentSongList = songListRepo.getList("bloodless");
   state.shouldShuffle = DOM.shuffleToggle.checked;
   state.shouldMergeInsert = DOM.mergeTypeToggle.checked;
   state.useCleanPrefs = DOM.cleanPrefsToggle.checked;
 
   showInterface("selection");
-  populateListSelector();
+  populateArtistListSelector();
+
+  // Set default to first artist
+  const firstArtist = songListRepo.getAllArtists()[0];
+  if (firstArtist) {
+    DOM.artistSelector.value = firstArtist;
+    state.currentArtist = firstArtist;
+    // Set default song list to first available for the artist
+    const firstList = songListRepo.getListsByArtist(firstArtist)[0];
+    if (firstList) {
+      DOM.listSelector.value = firstList.id;
+      state.currentSongList = songListRepo.getList(firstList.id);
+    }
+  }
+
   setupEventListeners();
   requestAnimationFrame(tooltipManager.positionAllTooltips);
 

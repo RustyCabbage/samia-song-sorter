@@ -29,7 +29,14 @@
 
 <!-- Selection Interface -->
 <section id="selectionInterface" aria-live="polite">
-  <h2 class="section-title">Choose a Song List to Rank</h2>
+  <b>Choose an Artist to Rank:</b>
+  <div class="select-container">
+    <select id="artistSelector" class="button song-list-select" name="artistList" aria-label="Artist selection">
+      <!-- Options will be populated by JavaScript -->
+    </select>
+  </div>
+
+  <b>Choose a Song List to Rank:</b>
   <div class="select-container">
     <select id="listSelector" class="button song-list-select" name="songList" aria-label="Song list selection">
       <!-- Options will be populated by JavaScript -->
@@ -38,7 +45,7 @@
   </div>
   <p class="instructions">
     This tool will help you rank songs by presenting you with pairs to choose between.
-    Select a list and click "Start Ranking" when you're ready.
+    Select an artist and song list, then click "Start Ranking" when you're ready.
   </p>
   <button id="startButton" class="button action-button scale-hover">Start Ranking</button>
 
