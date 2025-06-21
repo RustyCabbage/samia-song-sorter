@@ -85,24 +85,70 @@ class SongListRepository {
   }
 }
 
-function addToRepoSamia(repository) {
+function addToRepoSamia(repository, artist = "Samia") {
   const samia = ARTIST_DATA.samia;
+  const songs = samia.songs;
+  const themes = samia.themes
 
   const discographyList = [
-    ...samia.songs.preBaby,
-    ...samia.songs.theBaby,
-    ...samia.songs.scout,
+    ...songs.preBaby,
+    ...songs.theBaby,
+    ...songs.scout,
     "Desperado", "Born on a Train",
-    ...samia.songs.honey,
+    ...songs.honey,
     "Maps", "Country", "Making Breakfast",
-    ...samia.songs.bloodless
+    ...songs.bloodless
   ];
 
   [
-    new SongList("bloodless", "Bloodless", samia.songs.bloodless, samia.themes.bloodless),
-    new SongList("honey", "Honey", samia.songs.honey, samia.themes.honey),
-    new SongList("theBaby", "The Baby", samia.songs.theBaby, samia.themes.theBaby),
-    new SongList("discography", "Samia Discography", discographyList, samia.themes.scout)
+    new SongList("bloodless", artist, "Bloodless", songs.bloodless, themes.bloodless),
+    new SongList("honey", artist, "Honey", songs.honey, themes.honey),
+    new SongList("theBaby", artist, "The Baby", songs.theBaby, themes.theBaby),
+    new SongList("samia_discography", artist, "Samia Discography", discographyList, themes.scout)
+  ].forEach(list => repository.addList(list));
+}
+
+function addToRepoTaylor(repository, artist = "Taylor Swift") {
+  const taylor = ARTIST_DATA.taylor_swift;
+  const songs = taylor.songs;
+
+  const discographyList = [
+    ...songs.debut,
+    ...songs.fearless,
+    "Crazier",
+    ...songs.speakNow,
+    "Safe & Sound",
+    "Eyes Open",
+    ...songs.red,
+    "Sweeter Than Fiction",
+    ...songs.album1989,
+    ...songs.reputation,
+    ...songs.lover,
+    "All Of The Girls You Loved Before",
+    "Christmas Tree Farm",
+    "Macavity",
+    "Beautiful Ghosts",
+    "Only The Young",
+    ...songs.folklore,
+    ...songs.evermore,
+    "Carolina",
+    ...songs.midnights,
+    ...songs.torchiepo,
+  ];
+
+  [
+    new SongList("torchiepo", artist, "The Tortured Poets Department", songs.torchiepo, ARTIST_DATA.samia.themes.bloodless),
+    new SongList("midnights", artist, "Midnights", songs.midnights, ARTIST_DATA.samia.themes.bloodless),
+    new SongList("evermore", artist, "Evermore", songs.evermore, ARTIST_DATA.samia.themes.bloodless),
+    new SongList("folklore", artist, "Folklore", songs.folklore, ARTIST_DATA.samia.themes.bloodless),
+    new SongList("lover", artist, "Lover", songs.lover, ARTIST_DATA.samia.themes.bloodless),
+    new SongList("reputation", artist, "Reputation", songs.reputation, ARTIST_DATA.samia.themes.bloodless),
+    new SongList("album1989", artist, "1989", songs.album1989, ARTIST_DATA.samia.themes.bloodless),
+    new SongList("red", artist, "Red", songs.red, ARTIST_DATA.samia.themes.bloodless),
+    new SongList("speakNow", artist, "Speak Now", songs.speakNow, ARTIST_DATA.samia.themes.bloodless),
+    new SongList("fearless", artist, "Fearless", songs.fearless, ARTIST_DATA.samia.themes.bloodless),
+    new SongList("debut", artist, "Debut", songs.debut, ARTIST_DATA.samia.themes.bloodless),
+    new SongList("taylor_discography", artist, "Taylor Discography", discographyList, ARTIST_DATA.samia.themes.bloodless),
   ].forEach(list => repository.addList(list));
 }
 
@@ -110,7 +156,7 @@ function initializeSongLists() {
   const repo = new SongListRepository();
 
   addToRepoSamia(repo);
-  //repo.addList(new SongList("torchiepo", "The Tortured Poets Department", ARTIST_DATA.taylor_swift.songs.torchiepo, ARTIST_DATA.samia.themes.bloodless));
+  addToRepoTaylor(repo);
 
   return repo;
 }
