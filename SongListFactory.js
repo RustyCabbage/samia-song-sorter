@@ -85,6 +85,11 @@ class SongListRepository {
   }
 }
 
+function addToRepoTest(repository, n) {
+  const testList = new SongList("test", "Test", `Test: ${n}`, [...Array(n).keys()].map(x => x + 1), ARTIST_DATA.samia.themes.bloodless);
+  repository.addList(testList);
+}
+
 function addToRepoSamia(repository, artist = "Samia") {
   const samia = ARTIST_DATA.samia;
   const songs = samia.songs;
@@ -153,11 +158,23 @@ function addToRepoTaylor(repository, artist = "Taylor Swift") {
   ].forEach(list => repository.addList(list));
 }
 
+function addToRepoLorde(repository, artist = "Lorde") {
+  const lorde = ARTIST_DATA.lorde;
+  const songs = lorde.songs;
+  const themes = lorde.themes;
+
+  [
+    new SongList("virgin", artist, "Virgin", songs.virgin, themes.virgin)
+  ].forEach(list => repository.addList(list));
+}
+
 function initializeSongLists() {
   const repo = new SongListRepository();
 
+  //addToRepoTest(repo, 5);
   addToRepoSamia(repo);
   addToRepoTaylor(repo);
+  addToRepoLorde(repo)
 
   return repo;
 }

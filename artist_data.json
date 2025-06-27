@@ -498,5 +498,31 @@
         "buttonTextColor": "#102512"
       }
     }
+  },
+  "lorde": {
+    "songs": {
+      "virgin": [
+        "Hammer",
+        "What Was That",
+        "Shapeshifter",
+        "Man Of The Year",
+        "Favourite Daughter",
+        "Current Affairs",
+        "Clearblue",
+        "GRWM",
+        "Broken Glass",
+        "If She Could See Me Now",
+        "David"
+      ]
+    },
+    "themes": {
+      "virgin": {
+        "backgroundColor": "#0588C0",
+        "textColor": "#B1D2EB",
+        "buttonColor": "#B1D2EB",
+        "buttonHoverColor": "#83BBE0",
+        "buttonTextColor": "#054566"
+      }
+    }
   }
 }

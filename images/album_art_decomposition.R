@@ -16,6 +16,7 @@ for (pkg in required_pkgs) {
 }
 
 library(jpeg)
+library(png)
 library(ggplot2)
 library(reshape2)
 

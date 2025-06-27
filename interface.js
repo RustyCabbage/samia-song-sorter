@@ -94,14 +94,15 @@ const state = (() => {
 
 // Theme management with caching
 function applyTheme() {
-  const themeId = state.currentSongList?.id;
-  if (!themeId || state.currentThemeId === themeId) return;
+  let songListId = state.currentSongList?.id;
+  if (state.currentThemeId === songListId) return;
+  if (!songListId) songListId = "bloodless";
 
-  state.currentThemeId = themeId;
+  state.currentThemeId = songListId;
 
-  if (!state.themeCache[themeId]) {
+  if (!state.themeCache[songListId]) {
     const {backgroundColor, textColor, buttonColor, buttonHoverColor, buttonTextColor} = state.currentSongList._theme;
-    state.themeCache[themeId] = {
+    state.themeCache[songListId] = {
       '--background-color': backgroundColor,
       '--text-color': textColor,
       '--button-color': buttonColor,
@@ -111,7 +112,7 @@ function applyTheme() {
   }
 
   const root = document.documentElement.style;
-  for (const [prop, val] of Object.entries(state.themeCache[themeId])) {
+  for (const [prop, val] of Object.entries(state.themeCache[songListId])) {
     root.setProperty(prop, val);
   }
 }
