@@ -47,6 +47,76 @@ export class ImportExportManager {
     });
   }
 
+  /**
+   * Check if adding a decision would create a cycle in the graph
+   * @param {Array} existingDecisions - Current decision history
+   * @param {Object} newDecision - Decision to test: {chosen, rejected}
+   * @returns {boolean} - True if adding this decision would create a cycle
+   */
+  wouldCreateCycle(existingDecisions, newDecision) {
+    // Build adjacency list from existing decisions
+    const graph = new Map();
+    const allNodes = new Set();
+
+    // Add existing decisions to graph
+    existingDecisions.forEach(({chosen, rejected}) => {
+      allNodes.add(chosen);
+      allNodes.add(rejected);
+
+      if (!graph.has(chosen)) {
+        graph.set(chosen, new Set());
+      }
+      graph.get(chosen).add(rejected);
+    });
+
+    // Add the new decision temporarily
+    const {chosen, rejected} = newDecision;
+    allNodes.add(chosen);
+    allNodes.add(rejected);
+
+    if (!graph.has(chosen)) {
+      graph.set(chosen, new Set());
+    }
+    graph.get(chosen).add(rejected);
+
+    // Check if there's now a path from rejected back to chosen (which would be a cycle)
+    return this.hasPath(graph, rejected, chosen);
+  }
+
+  /**
+   * Check if there's a path from source to target in the graph using DFS
+   * @param {Map} graph - Adjacency list representation
+   * @param {string} source - Starting node
+   * @param {string} target - Target node
+   * @returns {boolean} - True if path exists
+   */
+  hasPath(graph, source, target) {
+    if (source === target) return true;
+    if (!graph.has(source)) return false;
+
+    const visited = new Set();
+    const stack = [source];
+
+    while (stack.length > 0) {
+      const current = stack.pop();
+
+      if (visited.has(current)) continue;
+      visited.add(current);
+
+      if (current === target) return true;
+
+      if (graph.has(current)) {
+        for (const neighbor of graph.get(current)) {
+          if (!visited.has(neighbor)) {
+            stack.push(neighbor);
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
   copyToClipboard(type, currentSongList) {
     const copyTypes = {
       ranking: () => {
@@ -121,16 +191,14 @@ export class ImportExportManager {
     const currentHistory = getDecisionHistory();
     const currentSongList = state.currentSongList;
 
-    // Use Maps for O(1) lookups instead of Sets with string concatenation
+    // Use Maps for O(1) lookups for direct duplicates
     const existingDecisions = new Map();
-    const conflictingDecisions = new Map();
 
     currentHistory.forEach(decision => {
       existingDecisions.set(`${decision.chosen}|${decision.rejected}`, true);
-      conflictingDecisions.set(`${decision.rejected}|${decision.chosen}`, true);
     });
 
-    let stats = {addedCount: 0, skippedCount: 0, conflictCount: 0, cleanedCount: 0};
+    let stats = {addedCount: 0, skippedCount: 0, conflictCount: 0, cleanedCount: 0, cycleCount: 0};
     let importArray = decisions;
 
     if (state.useCleanPrefs) {
@@ -141,6 +209,9 @@ export class ImportExportManager {
       console.log(`Transitive processing: ${transitiveClosure.length} → ${filteredClosure.length} → ${importArray.length}`);
     }
 
+    // Keep track of decisions as we add them for cycle detection
+    const workingHistory = [...currentHistory];
+
     for (const decision of importArray) {
       if (!currentSongList.songs.includes(decision.chosen) || !currentSongList.songs.includes(decision.rejected)) {
         stats.cleanedCount++;
@@ -149,25 +220,35 @@ export class ImportExportManager {
 
       const key = `${decision.chosen}|${decision.rejected}`;
 
+      // Check for exact duplicate
       if (existingDecisions.has(key)) {
         stats.skippedCount++;
         continue;
       }
 
-      if (conflictingDecisions.has(key)) {
-        stats.conflictCount++;
+      // Check if this would create a cycle
+      if (this.wouldCreateCycle(workingHistory, decision)) {
+        stats.cycleCount++;
+        console.log(`Cycle detected: Adding "${decision.chosen} > ${decision.rejected}" would create a cycle`);
         continue;
       }
 
+      // Decision is valid - add it
       addImportedDecision(decision);
       existingDecisions.set(key, true);
-      conflictingDecisions.set(`${decision.rejected}|${decision.chosen}`, true);
+      workingHistory.push(decision);
       stats.addedCount++;
     }
 
-    const message = `Imported ${decisions.length} decisions: ${stats.addedCount} added, ${stats.skippedCount} skipped, ${stats.conflictCount} conflicts, ${stats.cleanedCount} cleaned`;
+    const totalConflicts = stats.conflictCount + stats.cycleCount;
+    const conflictMessage = totalConflicts > 0 ? `, ${totalConflicts} conflicts` : '';
+    const message = `Imported ${decisions.length} decisions: ${stats.addedCount} added, ${stats.skippedCount} skipped, ${stats.cleanedCount} cleaned${conflictMessage}`;
     notificationManager.showNotification(message, true, 5000, true);
-    console.log(message);
+
+    // Detailed console logging
+    const cycleMessage = stats.cycleCount > 0 ? `, ${stats.cycleCount} cycles` : '';
+    const detailedMessage = `Imported ${decisions.length} decisions: ${stats.addedCount} added, ${stats.skippedCount} skipped, ${stats.cleanedCount} cleaned${cycleMessage}`;
+    console.log(detailedMessage);
 
     return stats;
   }

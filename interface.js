@@ -6,6 +6,7 @@ import notificationManager from './NotificationManager.js';
 // Cache DOM elements with error handling
 const DOM = (() => {
   const elements = {
+    appTitle: "appTitle",
     artistSelector: "artistSelector",
     // Selection interface
     selectionInterface: "selectionInterface",
@@ -122,6 +123,21 @@ function applySongCount() {
     DOM.songCount.textContent = `${state.currentSongList.songCount} songs`;
   } else {
     DOM.songCount.textContent = '';
+  }
+}
+
+function updateTitles(interfaceType) {
+  const defaultTitle = "Yet Another Song Sorter";
+
+  if (interfaceType === "selection") {
+    // Reset to default titles for selection interface
+    document.title = defaultTitle;
+    DOM.appTitle.textContent = defaultTitle;
+  } else if ((interfaceType === "sorting" || interfaceType === "results") && state.currentArtist) {
+    // Update titles with artist name for sorting and results interfaces
+    const artistTitle = `${state.currentArtist} Song Sorter`;
+    document.title = artistTitle;
+    DOM.appTitle.textContent = artistTitle;
   }
 }
 
@@ -280,6 +296,10 @@ function showInterface(type) {
   for (const [name, elementKey] of Object.entries(interfaces)) {
     DOM[elementKey].hidden = name !== type;
   }
+
+  // Update titles based on interface type
+  updateTitles(type);
+
   requestAnimationFrame(tooltipManager.positionAllTooltips);
 }
 
