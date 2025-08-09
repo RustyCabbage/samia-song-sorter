@@ -102,7 +102,8 @@ function addToRepoSamia(repository, artist = "Samia") {
     "Desperado", "Born on a Train",
     ...songs.honey,
     "Maps", "Country", "Making Breakfast",
-    ...songs.bloodless
+    ...songs.bloodless,
+    "Pool - Stripped"
   ];
 
   [

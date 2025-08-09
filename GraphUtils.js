@@ -9,6 +9,8 @@
  * @returns {Array} - List of direct decisions and transitive preferences
  */
 export function computeTransitiveClosure(history) {
+  // Precompute direct edge set for O(1) lookups
+  const directEdgeSet = new Set(history.map(pref => `${pref.chosen}||${pref.rejected}`));
   // Note: This function originally had a default parameter referencing 'decisionHistory'
   // which appears to be a global variable that should be passed in explicitly
   if (!history) {
@@ -55,7 +57,7 @@ export function computeTransitiveClosure(history) {
         const chosen = nodes[i];
         const rejected = nodes[j];
 
-        const isDirect = history.some(pref => pref.chosen === chosen && pref.rejected === rejected);
+        const isDirect = directEdgeSet.has(`${chosen}||${rejected}`);
 
         if (!isDirect) {
           allPreferences.push({
@@ -76,7 +78,6 @@ export function computeTransitiveClosure(history) {
  * @returns {Array} - Minimal set of comparisons that preserve the same ordering
  */
 export function computeTransitiveReduction(history, isTransitiveClosure = false) {
-  // Note: Original had default parameter referencing 'decisionHistory'
   if (!history) {
     throw new Error('History parameter is required');
   }
@@ -146,7 +147,9 @@ export function computeTransitiveReduction(history, isTransitiveClosure = false)
   for (const [chosen, rejectedSet] of reductionGraph.entries()) {
     for (const rejected of rejectedSet) {
       const originalComparison = history.find(pref => pref.chosen === chosen && pref.rejected === rejected);
-      reducedPreferences.push(originalComparison);
+      if (originalComparison) {
+        reducedPreferences.push(originalComparison);
+      }
     }
   }
   return reducedPreferences;
