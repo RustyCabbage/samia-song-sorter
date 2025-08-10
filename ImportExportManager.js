@@ -25,9 +25,9 @@ export class DecisionExporter {
     });
   }
 
-  async copyToClipboard(text, successMessage) {
+  copyToClipboard(text, successMessage) {
     try {
-      await navigator.clipboard.writeText(text);
+      navigator.clipboard.writeText(text);
       notificationManager.showNotification(successMessage, true);
     } catch (err) {
       console.error('Failed to copy text:', err);
@@ -42,14 +42,13 @@ export class DecisionExporter {
   }
 
   exportDecisions(currentSongList, isPartial) {
-    const headerText = `${isPartial ? 'Partial ' : ''}${currentSongList.name} Decision History`;
     const hist = state.useCleanPrefs ?
       topologicalSortPreferences(computeTransitiveReduction(getDecisionHistory())) :
       getDecisionHistory();
 
     const filteredHist = hist.filter(d => d.type !== 'infer');
     const decisionsText = filteredHist.map((d, i) => `${i + 1}. ${d.chosen} > ${d.rejected}`);
-    const textToCopy = `My ${headerText}:\n\n${decisionsText.join('\n')}`;
+    const textToCopy = `My ${isPartial ? 'Partial ' : ''}${currentSongList.name} Decision History (${filteredHist.length}):\n\n${decisionsText.join('\n')}`;
 
     const successMessage = `${filteredHist.length} ${isPartial ? 'Preferences' : 'History entries'} copied to clipboard!`;
     this.copyToClipboard(textToCopy, successMessage);
@@ -309,21 +308,6 @@ export class ImportExportManager {
   initialize() {
     this.exporter.initialize();
     this.importer.initialize();
-  }
-
-  // Delegate methods for backward compatibility
-  copyToClipboard(type, currentSongList) {
-    switch(type) {
-      case 'ranking':
-        this.exporter.exportRanking(currentSongList);
-        break;
-      case 'decisions':
-        this.exporter.exportDecisions(currentSongList, true);
-        break;
-      case 'history':
-        this.exporter.exportDecisions(currentSongList, false);
-        break;
-    }
   }
 }
 

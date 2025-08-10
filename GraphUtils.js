@@ -19,11 +19,14 @@ export function computeTransitiveClosure(history) {
   for (const {chosen, rejected} of history) {
     allNodes.add(chosen);
     allNodes.add(rejected);
-    directEdgeSet.add(`${chosen}||${rejected}`);
+    directEdgeSet.add(`${chosen}|${rejected}`);
   }
 
   const nodes = Array.from(allNodes);
   const nodeCount = nodes.length;
+
+  //console.log(`Transitive Closure Nodes (${nodeCount}): ` + [...allNodes].map((value, index) => `${index+1}: ${value}`).join(", "));
+  //console.log(`Direct Edges: ` + [...directEdgeSet].map((value, index) => `${index+1}: ${value}`).join(", "));
 
   if (nodeCount <= 1) return [...history];
 
@@ -64,7 +67,7 @@ export function computeTransitiveClosure(history) {
     for (let j = 0; j < nodeCount; j++) {
       if (matrix[iOffset + j]) {
         const rejected = nodes[j];
-        const edgeKey = `${chosen}||${rejected}`;
+        const edgeKey = `${chosen}|${rejected}`;
 
         if (!directEdgeSet.has(edgeKey)) {
           allPreferences.push({
@@ -78,7 +81,7 @@ export function computeTransitiveClosure(history) {
       }
     }
   }
-
+  console.log(`Transitive Closure size: ${allPreferences.length}`);
   return allPreferences;
 }
 
@@ -109,6 +112,8 @@ export function computeTransitiveReduction(history, isTransitiveClosure = false)
     }
     directGraph.get(chosen).add(rejected);
   }
+  console.log(`Num Nodes (Songs) in History:  ${allNodes.size}`);
+  console.log(`Transitive Closure size ${isTransitiveClosure ? '(Precomputed)' : ''}: ${transitiveClosure.length}`)
 
   // Build transitive closure graph
   for (const {chosen, rejected} of transitiveClosure) {
@@ -161,7 +166,10 @@ export function computeTransitiveReduction(history, isTransitiveClosure = false)
   }
 
   const reducedPreferences = [];
+  const reductionNodes = new Set();
   for (const [chosen, rejectedSet] of reductionGraph.entries()) {
+    reductionNodes.add(chosen);
+    reductionNodes.add(rejectedSet);
     for (const rejected of rejectedSet) {
       // Find original comparison (could be optimized with a Map if needed frequently)
       const originalComparison = history.find(pref =>
@@ -172,7 +180,7 @@ export function computeTransitiveReduction(history, isTransitiveClosure = false)
       }
     }
   }
-
+  console.log(`Transitive Reduction size: ${reducedPreferences.length}`);
   return reducedPreferences;
 }
 

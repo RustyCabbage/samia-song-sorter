@@ -225,14 +225,18 @@ export default class BaseSorter {
    * Get known preference between two songs
    */
   getKnownPreference(songA, songB) {
+    //console.log(`Comparing left: ${songA} vs right: ${songB}`);
     const key = songA < songB ? `${songA}|${songB}` : `${songB}|${songA}`;
     const isReversed = songA >= songB;
 
     if (this.cache.preferences.has(key)) {
       const cached = this.cache.preferences.get(key);
-      return {
-        selectedLeft: isReversed ? !cached.selectedLeft : cached.selectedLeft, type: cached.type
-      };
+      // NOTE: CACHED PREFERENCES ARE NEVER REVERSED
+      const result = {
+        selectedLeft: cached.selectedLeft, type: cached.type
+      }
+      //console.log("cached preferences", result);
+      return result;
     }
 
     const directPrefs = this.getDirectPreferences();
@@ -242,12 +246,14 @@ export default class BaseSorter {
         selectedLeft: isReversed ? !pref.selectedLeft : pref.selectedLeft, type: 'infer'
       };
       this.cache.preferences.set(key, result);
+      //console.log("directPrefs passed:", result);
       return result;
     }
 
     const transitivePref = this.checkTransitivePreference(songA, songB);
     if (transitivePref.selectedLeft !== null) {
       this.cache.preferences.set(key, transitivePref);
+      //console.log("transitivePref passed:", transitivePref);
       return transitivePref;
     }
 
