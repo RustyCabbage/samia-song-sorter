@@ -1,5 +1,5 @@
 /******************************************
- * GRAPH UTILITY FUNCTIONS (OPTIMIZED)
+ * GRAPH UTILITY FUNCTIONS
  ******************************************/
 
 /**
@@ -9,40 +9,45 @@
  * @returns {Array} - List of direct decisions and transitive preferences
  */
 export function computeTransitiveClosure(history) {
-  // Precompute direct edge set for O(1) lookups
-  const directEdgeSet = new Set(history.map(pref => `${pref.chosen}||${pref.rejected}`));
-  // Note: This function originally had a default parameter referencing 'decisionHistory'
-  // which appears to be a global variable that should be passed in explicitly
-  if (!history) {
-    throw new Error('History parameter is required');
+  if (!history?.length) {
+    return history || [];
   }
 
   const allNodes = new Set();
+  const directEdgeSet = new Set();
+
   for (const {chosen, rejected} of history) {
     allNodes.add(chosen);
     allNodes.add(rejected);
+    directEdgeSet.add(`${chosen}||${rejected}`);
   }
 
   const nodes = Array.from(allNodes);
   const nodeCount = nodes.length;
+
+  if (nodeCount <= 1) return [...history];
+
   const nodeToIndex = new Map();
   nodes.forEach((node, i) => nodeToIndex.set(node, i));
 
   const matrix = new Uint8Array(nodeCount * nodeCount);
 
+  // Initialize matrix with direct edges
   for (const {chosen, rejected} of history) {
     const i = nodeToIndex.get(chosen);
     const j = nodeToIndex.get(rejected);
     matrix[i * nodeCount + j] = 1;
   }
 
-  // Floyd-Warshall for transitive closure
+  // Floyd-Warshall for transitive closure with early termination optimization
   for (let k = 0; k < nodeCount; k++) {
+    const kOffset = k * nodeCount;
     for (let i = 0; i < nodeCount; i++) {
-      if (matrix[i * nodeCount + k]) {
+      const iOffset = i * nodeCount;
+      if (matrix[iOffset + k]) {
         for (let j = 0; j < nodeCount; j++) {
-          if (matrix[k * nodeCount + j]) {
-            matrix[i * nodeCount + j] = 1;
+          if (matrix[kOffset + j]) {
+            matrix[iOffset + j] = 1;
           }
         }
       }
@@ -51,17 +56,23 @@ export function computeTransitiveClosure(history) {
 
   const allPreferences = [...history];
 
+  // Extract transitive preferences
   for (let i = 0; i < nodeCount; i++) {
+    const iOffset = i * nodeCount;
+    const chosen = nodes[i];
+
     for (let j = 0; j < nodeCount; j++) {
-      if (matrix[i * nodeCount + j]) {
-        const chosen = nodes[i];
+      if (matrix[iOffset + j]) {
         const rejected = nodes[j];
+        const edgeKey = `${chosen}||${rejected}`;
 
-        const isDirect = directEdgeSet.has(`${chosen}||${rejected}`);
-
-        if (!isDirect) {
+        if (!directEdgeSet.has(edgeKey)) {
           allPreferences.push({
-            comparison: null, chosen: chosen, rejected: rejected, elapsedTime: null, type: 'infer'
+            comparison: null,
+            chosen,
+            rejected,
+            elapsedTime: null,
+            type: 'infer'
           });
         }
       }
@@ -71,20 +82,22 @@ export function computeTransitiveClosure(history) {
   return allPreferences;
 }
 
+
 /**
  * Compute the transitive reduction of the comparison graph
  * @param {Array} history - Decision history array to work with
- * @param {boolean} isTransitiveClosure - Whether the input is a transitive closure (i.e., already computed)
+ * @param {boolean} isTransitiveClosure - Whether the input is a transitive closure
  * @returns {Array} - Minimal set of comparisons that preserve the same ordering
  */
 export function computeTransitiveReduction(history, isTransitiveClosure = false) {
-  if (!history) {
-    throw new Error('History parameter is required');
+  if (!history?.length) {
+    return history || [];
   }
 
-  let transitiveClosure = (isTransitiveClosure) ? history : computeTransitiveClosure(history);
+  const transitiveClosure = isTransitiveClosure ? history : computeTransitiveClosure(history);
 
   const directGraph = new Map();
+  const transitiveClosureGraph = new Map();
   const allNodes = new Set();
 
   for (const {chosen, rejected} of history) {
@@ -97,14 +110,7 @@ export function computeTransitiveReduction(history, isTransitiveClosure = false)
     directGraph.get(chosen).add(rejected);
   }
 
-  for (const node of allNodes) {
-    if (!directGraph.has(node)) {
-      directGraph.set(node, new Set());
-    }
-  }
-
-  const transitiveClosureGraph = new Map();
-
+  // Build transitive closure graph
   for (const {chosen, rejected} of transitiveClosure) {
     if (!transitiveClosureGraph.has(chosen)) {
       transitiveClosureGraph.set(chosen, new Set());
@@ -114,57 +120,75 @@ export function computeTransitiveReduction(history, isTransitiveClosure = false)
 
   const nodes = Array.from(allNodes);
   for (const node of nodes) {
+    if (!directGraph.has(node)) {
+      directGraph.set(node, new Set());
+    }
     if (!transitiveClosureGraph.has(node)) {
       transitiveClosureGraph.set(node, new Set());
     }
   }
 
+  // Create reduction graph by removing redundant edges
   const reductionGraph = new Map();
-
   for (const node of nodes) {
-    reductionGraph.set(node, new Set([...directGraph.get(node)]));
+    reductionGraph.set(node, new Set(directGraph.get(node)));
   }
 
+  // Remove edges that can be inferred transitively
   for (const i of nodes) {
-    for (const j of Array.from(reductionGraph.get(i))) {
+
+    const transitiveSet = transitiveClosureGraph.get(i);
+    const reductionSet = reductionGraph.get(i);
+    const directEdges = Array.from(reductionSet);
+
+    for (const j of directEdges) {
+      // Check if there's an indirect path i -> k -> j
       let hasIndirectPath = false;
 
       for (const k of nodes) {
-        if (k !== i && k !== j && transitiveClosureGraph.get(i).has(k) && transitiveClosureGraph.get(k).has(j)) {
+        if (k !== i && k !== j &&
+          transitiveSet.has(k) &&
+          transitiveClosureGraph.get(k).has(j)) {
           hasIndirectPath = true;
           break;
         }
       }
 
       if (hasIndirectPath) {
-        reductionGraph.get(i).delete(j);
+        reductionSet.delete(j);
       }
     }
   }
 
   const reducedPreferences = [];
-
   for (const [chosen, rejectedSet] of reductionGraph.entries()) {
     for (const rejected of rejectedSet) {
-      const originalComparison = history.find(pref => pref.chosen === chosen && pref.rejected === rejected);
+      // Find original comparison (could be optimized with a Map if needed frequently)
+      const originalComparison = history.find(pref =>
+        pref.chosen === chosen && pref.rejected === rejected
+      );
       if (originalComparison) {
         reducedPreferences.push(originalComparison);
       }
     }
   }
+
   return reducedPreferences;
 }
 
 /**
  * Topologically sort the preferences returned by the transitive reduction
- * @param {Array} preferences - List of preferences (e.g., from computeTransitiveReduction)
+ * @param {Array} preferences - List of preferences
  * @returns {Array} - Topologically sorted list of preferences
  */
 export function topologicalSortPreferences(preferences) {
+  if (!preferences?.length) return preferences || [];
+
   const graph = new Map();
   const inDegree = new Map();
   const allNodes = new Set();
 
+  // Single pass initialization
   for (const pref of preferences) {
     const {chosen, rejected} = pref;
     allNodes.add(chosen);
@@ -175,36 +199,32 @@ export function topologicalSortPreferences(preferences) {
     }
     graph.get(chosen).add(rejected);
 
-    if (!inDegree.has(chosen)) {
-      inDegree.set(chosen, 0);
-    }
-    if (!inDegree.has(rejected)) {
-      inDegree.set(rejected, 0);
-    }
+    // Initialize in-degrees
+    if (!inDegree.has(chosen)) inDegree.set(chosen, 0);
+    if (!inDegree.has(rejected)) inDegree.set(rejected, 0);
   }
 
-  for (const [node, edges] of graph.entries()) {
+  // Calculate in-degrees
+  for (const edges of graph.values()) {
     for (const target of edges) {
       inDegree.set(target, inDegree.get(target) + 1);
     }
   }
 
-  const queue = [];
-  for (const node of allNodes) {
-    if (inDegree.get(node) === 0) {
-      queue.push(node);
-    }
-  }
-
+  // Collect zero in-degree nodes
+  const queue = Array.from(allNodes).filter(node => inDegree.get(node) === 0);
   const sortedItems = [];
+
   while (queue.length > 0) {
     const node = queue.shift();
     sortedItems.push(node);
 
-    if (graph.has(node)) {
-      for (const neighbor of graph.get(node)) {
-        inDegree.set(neighbor, inDegree.get(neighbor) - 1);
-        if (inDegree.get(neighbor) === 0) {
+    const edges = graph.get(node);
+    if (edges) {
+      for (const neighbor of edges) {
+        const newDegree = inDegree.get(neighbor) - 1;
+        inDegree.set(neighbor, newDegree);
+        if (newDegree === 0) {
           queue.push(neighbor);
         }
       }
@@ -215,18 +235,21 @@ export function topologicalSortPreferences(preferences) {
     console.warn("Warning: Preference graph contains cycles!");
   }
 
+  // Create position lookup for efficient sorting
+  const positionMap = new Map();
+  sortedItems.forEach((item, index) => positionMap.set(item, index));
+
+  // Sort preferences using position map
   const sortedPreferences = [...preferences];
   sortedPreferences.sort((a, b) => {
-    const posA_chosen = sortedItems.indexOf(a.chosen);
-    const posB_chosen = sortedItems.indexOf(b.chosen);
+    const posA_chosen = positionMap.get(a.chosen);
+    const posB_chosen = positionMap.get(b.chosen);
 
     if (posA_chosen !== posB_chosen) {
       return posA_chosen - posB_chosen;
     }
 
-    const posA_rejected = sortedItems.indexOf(a.rejected);
-    const posB_rejected = sortedItems.indexOf(b.rejected);
-    return posA_rejected - posB_rejected;
+    return positionMap.get(a.rejected) - positionMap.get(b.rejected);
   });
 
   return sortedPreferences;
@@ -234,11 +257,14 @@ export function topologicalSortPreferences(preferences) {
 
 /**
  * Topologically sort the items based on the reduced comparison graph
- * @param {Array} preferences - Array of preference objects (from computeTransitiveReduction)
+ * @param {Array} preferences - Array of preference objects
  * @returns {Array} - Array of items in topological order (best to worst)
  */
 export function topologicalSortItems(preferences) {
+  if (!preferences?.length) return [];
+
   const graph = new Map();
+  const inDegree = new Map();
   const allNodes = new Set();
 
   for (const {chosen, rejected} of preferences) {
@@ -255,25 +281,20 @@ export function topologicalSortItems(preferences) {
     if (!graph.has(node)) {
       graph.set(node, new Set());
     }
-  }
-
-  const inDegree = new Map();
-  for (const node of allNodes) {
     inDegree.set(node, 0);
   }
 
-  for (const [node, edges] of graph.entries()) {
+  // Calculate in-degrees
+  for (const edges of graph.values()) {
     for (const target of edges) {
       inDegree.set(target, inDegree.get(target) + 1);
     }
   }
 
-  const queue = [];
-  for (const [node, degree] of inDegree.entries()) {
-    if (degree === 0) {
-      queue.push(node);
-    }
-  }
+  // Initialize queue with zero in-degree nodes
+  const queue = Array.from(inDegree.entries())
+    .filter(([, degree]) => degree === 0)
+    .map(([node]) => node);
 
   const result = [];
 
@@ -282,8 +303,9 @@ export function topologicalSortItems(preferences) {
     result.push(node);
 
     for (const neighbor of graph.get(node)) {
-      inDegree.set(neighbor, inDegree.get(neighbor) - 1);
-      if (inDegree.get(neighbor) === 0) {
+      const newDegree = inDegree.get(neighbor) - 1;
+      inDegree.set(neighbor, newDegree);
+      if (newDegree === 0) {
         queue.push(neighbor);
       }
     }
@@ -292,44 +314,35 @@ export function topologicalSortItems(preferences) {
   if (result.length !== allNodes.size) {
     console.warn("Graph contains a cycle, topological sort is incomplete");
   }
+
   return result;
 }
 
 /**
- * Helper function to visualize the graph structure (useful for debugging)
- * This creates a human-readable representation of the relationship graph.
- *
- * OUTPUT FORMAT:
- * Each line shows: "ItemName -> list, of, items, it, beats"
- * Empty lines indicate items that don't beat anything.
- *
- * @param {Map} graph - Graph represented as adjacency list (Map of node -> Set of nodes)
+ * Helper function to visualize the graph structure
+ * @param {Map} graph - Graph represented as adjacency list
  * @returns {String} - Text representation of the graph structure
  */
 export function visualizeGraph(graph) {
-  let graphVisualization = '';
+  if (!graph?.size) return '';
 
-  // Iterate through each node and its outgoing edges
+  const lines = [];
+
   for (const [sourceNode, targetNodes] of graph.entries()) {
-    const targetList = Array.from(targetNodes).join(', ');
-
-    // Show the node and what it connects to
-    if (targetList.length > 0) {
-      graphVisualization += `${sourceNode} -> ${targetList}\n`;
-    } else {
-      graphVisualization += `${sourceNode} -> (beats nothing)\n`;
-    }
+    const targets = Array.from(targetNodes);
+    const targetList = targets.length > 0 ? targets.join(', ') : '(beats nothing)';
+    lines.push(`${sourceNode} -> ${targetList}`);
   }
 
-  return graphVisualization;
+  return lines.join('\n');
 }
 
-// Create a convenient object grouping all graph utilities for easier importing
 export const GraphUtils = {
-  computeTransitiveClosure, computeTransitiveReduction, topologicalSortPreferences, topologicalSortItems, visualizeGraph
+  computeTransitiveClosure,
+  computeTransitiveReduction,
+  topologicalSortPreferences,
+  topologicalSortItems,
+  visualizeGraph
 };
 
-// Default export for the most commonly used utilities
-export default {
-  GraphUtils
-};
+export default GraphUtils;

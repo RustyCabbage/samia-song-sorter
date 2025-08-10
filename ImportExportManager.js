@@ -184,16 +184,17 @@ export class DecisionImporter {
   }
 
   processTransitiveDecisions(decisions, currentSongList, stats) {
+    // We compute the transitive closure first because out of scope comparisons may still contain useful information
     const transitiveClosure = computeTransitiveClosure(decisions);
-    const filteredClosure = transitiveClosure.filter(d =>
+    const inScopeClosure = transitiveClosure.filter(d =>
       currentSongList.songs.includes(d.chosen) &&
       currentSongList.songs.includes(d.rejected)
     );
 
-    const reduced = computeTransitiveReduction(filteredClosure, true);
+    const reduced = computeTransitiveReduction(inScopeClosure, true);
     stats.cleanedCount = decisions.length - reduced.length;
 
-    console.log(`Transitive processing: closure (${transitiveClosure.length}) → filtered (${filteredClosure.length}) → reduced (${reduced.length})`);
+    console.log(`Transitive processing: closure (${transitiveClosure.length}) → in scope (${inScopeClosure.length}) → reduced (${reduced.length})`);
     console.log('Songs being filtered out:',
       transitiveClosure.filter(d =>
         !currentSongList.songs.includes(d.chosen) ||
