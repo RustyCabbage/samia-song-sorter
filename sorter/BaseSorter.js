@@ -111,6 +111,7 @@ export default class BaseSorter {
       this.sortState.inferCount++;
     }
 
+    // This specifically handles the current comparison after importing
     if (pref.selectedLeft === null && pref.type === 'import') {
       pref = this.getKnownPreference(songA, songB);
       this.sortState.inferCount++;

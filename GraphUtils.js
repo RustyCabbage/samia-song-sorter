@@ -81,7 +81,7 @@ export function computeTransitiveClosure(history) {
       }
     }
   }
-  console.log(`Transitive Closure size: ${allPreferences.length}`);
+  //console.log(`Transitive Closure size: ${allPreferences.length}`);
   return allPreferences;
 }
 
