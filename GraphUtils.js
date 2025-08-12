@@ -262,92 +262,10 @@ export function topologicalSortPreferences(preferences) {
   return sortedPreferences;
 }
 
-/**
- * Topologically sort the items based on the reduced comparison graph
- * @param {Array} preferences - Array of preference objects
- * @returns {Array} - Array of items in topological order (best to worst)
- */
-export function topologicalSortItems(preferences) {
-  if (!preferences?.length) return [];
-
-  const graph = new Map();
-  const inDegree = new Map();
-  const allNodes = new Set();
-
-  // Single pass initialization
-  for (const {chosen, rejected} of preferences) {
-    allNodes.add(chosen);
-    allNodes.add(rejected);
-
-    if (!graph.has(chosen)) {
-      graph.set(chosen, new Set());
-    }
-    graph.get(chosen).add(rejected);
-
-    // Initialize in-degrees
-    if (!inDegree.has(chosen)) inDegree.set(chosen, 0);
-    if (!inDegree.has(rejected)) inDegree.set(rejected, 0);
-  }
-
-  // Calculate in-degrees
-  for (const edges of graph.values()) {
-    for (const target of edges) {
-      inDegree.set(target, inDegree.get(target) + 1);
-    }
-  }
-
-  // Collect zero in-degree nodes
-  const queue = Array.from(allNodes).filter(node => inDegree.get(node) === 0);
-  const result = [];
-
-  while (queue.length > 0) {
-    const node = queue.shift();
-    result.push(node);
-
-    const edges = graph.get(node);
-    if (edges) {
-      for (const neighbor of edges) {
-        const newDegree = inDegree.get(neighbor) - 1;
-        inDegree.set(neighbor, newDegree);
-        if (newDegree === 0) {
-          queue.push(neighbor);
-        }
-      }
-    }
-  }
-
-  if (result.length !== allNodes.size) {
-    console.warn("Warning: Item graph contains cycles!");
-  }
-
-  return result;
-}
-
-/**
- * Helper function to visualize the graph structure
- * @param {Map} graph - Graph represented as adjacency list
- * @returns {String} - Text representation of the graph structure
- */
-export function visualizeGraph(graph) {
-  if (!graph?.size) return '';
-
-  const lines = [];
-
-  for (const [sourceNode, targetNodes] of graph.entries()) {
-    const targets = Array.from(targetNodes);
-    const targetList = targets.length > 0 ? targets.join(', ') : '(beats nothing)';
-    lines.push(`${sourceNode} -> ${targetList}`);
-  }
-
-  return lines.join('\n');
-}
-
 export const GraphUtils = {
   computeTransitiveClosure,
   computeTransitiveReduction,
   topologicalSortPreferences,
-  topologicalSortItems,
-  visualizeGraph
 };
 
 export default GraphUtils;
