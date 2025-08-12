@@ -197,8 +197,7 @@ export function topologicalSortPreferences(preferences) {
   const allNodes = new Set();
 
   // Single pass initialization
-  for (const pref of preferences) {
-    const {chosen, rejected} = pref;
+  for (const {chosen, rejected} of preferences) {
     allNodes.add(chosen);
     allNodes.add(rejected);
 
@@ -275,6 +274,7 @@ export function topologicalSortItems(preferences) {
   const inDegree = new Map();
   const allNodes = new Set();
 
+  // Single pass initialization
   for (const {chosen, rejected} of preferences) {
     allNodes.add(chosen);
     allNodes.add(rejected);
@@ -283,13 +283,10 @@ export function topologicalSortItems(preferences) {
       graph.set(chosen, new Set());
     }
     graph.get(chosen).add(rejected);
-  }
 
-  for (const node of allNodes) {
-    if (!graph.has(node)) {
-      graph.set(node, new Set());
-    }
-    inDegree.set(node, 0);
+    // Initialize in-degrees
+    if (!inDegree.has(chosen)) inDegree.set(chosen, 0);
+    if (!inDegree.has(rejected)) inDegree.set(rejected, 0);
   }
 
   // Calculate in-degrees
@@ -299,28 +296,28 @@ export function topologicalSortItems(preferences) {
     }
   }
 
-  // Initialize queue with zero in-degree nodes
-  const queue = Array.from(inDegree.entries())
-    .filter(([, degree]) => degree === 0)
-    .map(([node]) => node);
-
+  // Collect zero in-degree nodes
+  const queue = Array.from(allNodes).filter(node => inDegree.get(node) === 0);
   const result = [];
 
   while (queue.length > 0) {
     const node = queue.shift();
     result.push(node);
 
-    for (const neighbor of graph.get(node)) {
-      const newDegree = inDegree.get(neighbor) - 1;
-      inDegree.set(neighbor, newDegree);
-      if (newDegree === 0) {
-        queue.push(neighbor);
+    const edges = graph.get(node);
+    if (edges) {
+      for (const neighbor of edges) {
+        const newDegree = inDegree.get(neighbor) - 1;
+        inDegree.set(neighbor, newDegree);
+        if (newDegree === 0) {
+          queue.push(neighbor);
+        }
       }
     }
   }
 
   if (result.length !== allNodes.size) {
-    console.warn("Graph contains a cycle, topological sort is incomplete");
+    console.warn("Warning: Item graph contains cycles!");
   }
 
   return result;

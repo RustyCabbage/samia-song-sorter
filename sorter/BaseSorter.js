@@ -107,7 +107,8 @@ export default class BaseSorter {
       this.sortState.inferCount = 0;
       pref = await this.requestUserComparison(songA, songB);
     } else {
-      console.log(`Known comparison: ${(pref.selectedLeft) ? `${songA} > ${songB}` : `${songB} > ${songA}`}`);
+      const [winner, loser] = pref.selectedLeft ? [songA, songB] : [songB, songA];
+      console.log(`Known comparison: ${winner} > ${loser}`);
       this.sortState.inferCount++;
     }
 
@@ -338,7 +339,8 @@ export default class BaseSorter {
     const pref = this.getKnownPreference(currentComparison.songA, currentComparison.songB);
 
     if (pref.selectedLeft !== null) {
-      console.log(`After import, we now know: ${(pref.selectedLeft) ? `${currentComparison.songA} > ${currentComparison.songB}` : `${currentComparison.songB} > ${currentComparison.songA}`}`);
+      const [winner, loser] = pref.selectedLeft ? [currentComparison.songA, currentComparison.songB] : [currentComparison.songB, currentComparison.songA];
+      console.log(`After import, we now know: ${winner} > ${loser}`);
       this.sortState.compareQueue.shift();
       currentComparison.resolve({selectedLeft: null, type: 'import'});
       if (this.sortState.compareQueue.length > 0) {

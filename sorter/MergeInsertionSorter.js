@@ -126,7 +126,7 @@ export default class MergeInsertionSorter extends BaseSorter {
   async getInsertionIndex(arr, elem, isLastInGroup) {
     let left = 0;
     let right = arr.length - 1;
-    let keepUpdating = true;
+    let keepUpdatingEstimates = true;
 
     while (left <= right) {
       const mid = Math.floor((left + right) / 2);
@@ -134,8 +134,8 @@ export default class MergeInsertionSorter extends BaseSorter {
 
       this.recordPreference(pref.chosen, pref.rejected, pref.type);
 
-      if (keepUpdating) {
-        keepUpdating = this.updateMergeInsertionEstimates(
+      if (keepUpdatingEstimates) {
+        keepUpdatingEstimates = this.updateMergeInsertionEstimates(
           pref.selectedLeft, arr.length, left, mid, right, isLastInGroup
         );
       }
@@ -151,40 +151,34 @@ export default class MergeInsertionSorter extends BaseSorter {
 
   /**
    * Update estimates for merge-insertion sort
+   *
    */
   updateMergeInsertionEstimates(selectedLeft, insertionLength, left, mid, right, isLastInGroup) {
-    let keepUpdating = true;
     const shouldGoLeft = !Number.isInteger(Math.log2(insertionLength + 1));
 
-    if (!shouldGoLeft && !isLastInGroup) {
-      if (selectedLeft) {
+    // Handle right direction case
+    if (!shouldGoLeft && selectedLeft && !isLastInGroup) {
+      this.sortState.comparisons.bestCase++;
+      return false;
+    }
+    // Handle left direction case
+    if (shouldGoLeft) {
+      // Check for best case increment condition
+      if (!selectedLeft && (right - left) % 2 !== 0 && Number.isInteger(Math.log2(right - mid + 1))) {
         this.sortState.comparisons.bestCase++;
-        keepUpdating = false;
-        return keepUpdating;
+        return false;
       }
-    } else if (shouldGoLeft) {
-      if (!selectedLeft) {
-        if ((right - left) % 2 !== 0) {
-          if (Number.isInteger(Math.log2(right - mid + 1))) {
-            this.sortState.comparisons.bestCase++;
-            keepUpdating = false;
-            return keepUpdating;
-          }
-        }
-      }
-
       if (selectedLeft) {
         right = mid - 1;
       } else {
         left = mid + 1;
       }
-
       if (left >= right) {
         this.sortState.comparisons.worstCase--;
-        keepUpdating = false;
+        return false;
       }
     }
-    return keepUpdating;
+    return true;
   }
 
   /**

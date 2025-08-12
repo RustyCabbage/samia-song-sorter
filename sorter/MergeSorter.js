@@ -109,12 +109,10 @@ export default class MergeSorter extends BaseSorter {
       } else if (leftIndexFromRight === 0 && rightIndexFromRight > 0) {
         this.sortState.comparisons.worstCase -= rightIndexFromRight;
       }
-    } else {
-      if (rightIndexFromRight > leftIndexFromRight) {
+    } else if (rightIndexFromRight > leftIndexFromRight) {
         this.sortState.comparisons.bestCase++;
-      } else if (rightIndexFromRight === 0 && leftIndexFromRight > 0) {
-        this.sortState.comparisons.worstCase -= leftIndexFromRight;
-      }
+    } else if (rightIndexFromRight === 0 && leftIndexFromRight > 0) {
+        this.sortState.comparisons.worstCase -= leftIndexFromRight
     }
   }
 }

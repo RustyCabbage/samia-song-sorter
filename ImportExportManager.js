@@ -48,7 +48,10 @@ export class DecisionExporter {
 
     const filteredHist = hist.filter(d => d.type !== 'infer');
     const decisionsText = filteredHist.map((d, i) => `${i + 1}. ${d.chosen} > ${d.rejected}`);
-    const textToCopy = `My ${isPartial ? 'Partial ' : ''}${currentSongList.name} Decision History (${filteredHist.length}):\n\n${decisionsText.join('\n')}`;
+    const historyTitle = isPartial
+      ? `My Partial ${currentSongList.name} Decision History (${filteredHist.length})`
+      : `My ${currentSongList.name} Decision History`;
+    const textToCopy = `${historyTitle}:\n\n${decisionsText.join('\n')}`;
 
     const successMessage = `${filteredHist.length} ${isPartial ? 'Preferences' : 'History entries'} copied to clipboard!`;
     this.copyToClipboard(textToCopy, successMessage);
