@@ -85,97 +85,163 @@ class SongListRepository {
   }
 }
 
-function addToRepoTest(repository, n) {
-  const testList = new SongList("test", "Test", `Test: ${n}`, [...Array(n).keys()].map(x => x + 1), ARTIST_DATA.samia.themes.bloodless);
-  repository.addList(testList);
+// Generic method to add any artist from ARTIST_DATA
+function addArtistToRepo(repository, artistKey, config = {}) {
+  const artistData = ARTIST_DATA[artistKey];
+  if (!artistData) {
+    throw new Error(`Artist "${artistKey}" not found in ARTIST_DATA`);
+  }
+
+  const {
+    displayName = null,
+    includeAlbums = null, // Array of album keys to include, or null for all
+    excludeAlbums = [], // Array of album keys to exclude
+    discography = null // Discography configuration
+  } = config;
+
+  const artist = displayName || formatArtistName(artistKey);
+  const songs = artistData.songs;
+  const themes = artistData.themes;
+
+  // Determine which albums to include
+  let albumsToInclude = Object.keys(songs);
+
+  if (includeAlbums) {
+    albumsToInclude = includeAlbums;
+  }
+
+  albumsToInclude = albumsToInclude.filter(albumKey => !excludeAlbums.includes(albumKey)).reverse();
+
+  // Create individual album/collection lists
+  albumsToInclude.forEach(albumKey => {
+    const albumSongs = songs[albumKey];
+    if (Array.isArray(albumSongs) && albumSongs.length > 0) {
+      const theme = themes[albumKey] || themes[Object.keys(themes)[0]]; // Fallback to first theme
+      const albumName = formatAlbumName(albumKey);
+
+      repository.addList(
+        new SongList(albumKey, artist, albumName, albumSongs, theme)
+      );
+    }
+  });
+
+  // Create discography list if configuration is provided
+  if (discography) {
+    const { songs: discographySongs, theme: discographyTheme } = discography;
+    repository.addList(
+      new SongList(
+        `${artistKey}_discography`,
+        artist,
+        `${artist} Discography`,
+        discographySongs,
+        discographyTheme
+      )
+    );
+  }
 }
 
-function addToRepoSamia(repository, artist = "Samia") {
-  const samia = ARTIST_DATA.samia;
-  const songs = samia.songs;
-  const themes = samia.themes
-
-  const discographyList = [
-    ...songs.preBaby,
-    ...songs.theBaby,
-    ...songs.scout,
-    "Desperado", "Born on a Train",
-    ...songs.honey,
-    "Maps", "Country", "Making Breakfast",
-    ...songs.bloodless,
-    "Pool - Stripped"
-  ];
-
-  [
-    new SongList("bloodless", artist, "Bloodless", songs.bloodless, themes.bloodless),
-    new SongList("honey", artist, "Honey", songs.honey, themes.honey),
-    new SongList("theBaby", artist, "The Baby", songs.theBaby, themes.theBaby),
-    new SongList("samia_discography", artist, "Samia Discography", discographyList, themes.scout)
-  ].forEach(list => repository.addList(list));
+// Helper function to format artist names
+function formatArtistName(artistKey) {
+  const nameMap = {
+    'samia': 'Samia',
+    'taylor_swift': 'Taylor Swift',
+    'lorde': 'Lorde',
+    'conan': 'Conan Gray'
+  };
+  return nameMap[artistKey] || artistKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
-function addToRepoTaylor(repository, artist = "Taylor Swift") {
-  const taylor = ARTIST_DATA.taylor_swift;
-  const songs = taylor.songs;
-  const themes = taylor.themes;
-
-  const discographyList = [
-    ...songs.debut,
-    ...songs.fearless,
-    "Crazier",
-    ...songs.speakNow,
-    "Safe & Sound",
-    "Eyes Open",
-    ...songs.red,
-    "Sweeter Than Fiction",
-    ...songs.album1989,
-    ...songs.reputation,
-    ...songs.lover,
-    "All Of The Girls You Loved Before",
-    "Christmas Tree Farm",
-    "Macavity",
-    "Beautiful Ghosts",
-    "Only The Young",
-    ...songs.folklore,
-    ...songs.evermore,
-    "Carolina",
-    ...songs.midnights,
-    ...songs.ttpd,
-  ];
-
-  [
-    new SongList("ttpd", artist, "The Tortured Poets Department", songs.ttpd, themes.ttpd),
-    new SongList("midnights", artist, "Midnights", songs.midnights, themes.midnights),
-    new SongList("evermore", artist, "Evermore", songs.evermore, themes.evermore),
-    new SongList("folklore", artist, "Folklore", songs.folklore, themes.folklore),
-    new SongList("lover", artist, "Lover", songs.lover, themes.lover),
-    new SongList("reputation", artist, "Reputation", songs.reputation, themes.reputation),
-    new SongList("album1989", artist, "1989", songs.album1989, themes.album1989_tv),
-    new SongList("red", artist, "Red", songs.red, themes.red_tv),
-    new SongList("speakNow", artist, "Speak Now", songs.speakNow, themes.speakNow_tv),
-    new SongList("fearless", artist, "Fearless", songs.fearless, themes.fearless_tv),
-    new SongList("debut", artist, "Debut", songs.debut, themes.debut),
-    new SongList("taylor_discography", artist, "Taylor Discography", discographyList, themes.red),
-  ].forEach(list => repository.addList(list));
-}
-
-function addToRepoLorde(repository, artist = "Lorde") {
-  const lorde = ARTIST_DATA.lorde;
-  const songs = lorde.songs;
-  const themes = lorde.themes;
-
-  [
-    new SongList("virgin", artist, "Virgin", songs.virgin, themes.virgin)
-  ].forEach(list => repository.addList(list));
+// Helper function to format album names
+function formatAlbumName(albumKey) {
+  const albumMap = {
+    'preBaby': 'Pre-Baby',
+    'theBaby': 'The Baby',
+    'scout': 'Scout',
+    'honey': 'Honey',
+    'bloodless': 'Bloodless',
+    'debut': 'Debut',
+    'fearless': 'Fearless',
+    'speakNow': 'Speak Now',
+    'red': 'Red',
+    'album1989': '1989',
+    'reputation': 'Reputation',
+    'lover': 'Lover',
+    'folklore': 'Folklore',
+    'evermore': 'Evermore',
+    'midnights': 'Midnights',
+    'ttpd': 'The Tortured Poets Department',
+    'virgin': 'Virgin',
+    'wishbone': 'Wishbone',
+    'nonAlbumSingles': 'Non-Album Singles',
+    'altVersions': 'Alternative Versions',
+    'covers': 'Covers',
+    'features': 'Features',
+    'soundtrack': 'Soundtrack'
+  };
+  return albumMap[albumKey] || albumKey.replace(/([A-Z])/g, ' $1').trim().replace(/\b\w/g, l => l.toUpperCase());
 }
 
 function initializeSongLists() {
   const repo = new SongListRepository();
 
-  //addToRepoTest(repo, 5);
-  addToRepoSamia(repo);
-  addToRepoTaylor(repo);
-  addToRepoLorde(repo)
+  // Samia - exclude preBaby, include specific albums
+  const samia = ARTIST_DATA.samia;
+  const samiaDiscography = [
+    ...samia.songs.preBaby,
+    ...samia.songs.theBaby,
+    ...samia.songs.scout,
+    "Desperado", "Born on a Train",
+    ...samia.songs.honey,
+    "Maps", "Country", "Making Breakfast",
+    ...samia.songs.bloodless,
+    "Pool - Stripped"
+  ];
+  addArtistToRepo(repo, 'samia', {
+    displayName: 'Samia',
+    excludeAlbums: ['preBaby', 'nonAlbumSingles'], // Don't create individual lists for these
+    discography: {
+      songs: samiaDiscography,
+      theme: samia.themes.scout
+    }
+  });
+
+  // Taylor Swift - exclude covers, features, soundtracks, altVersions, nonAlbumSingles
+  const taylor = ARTIST_DATA.taylor_swift;
+  const taylorDiscography = [
+    ...taylor.songs.debut,
+    ...taylor.songs.fearless,
+    "Crazier",
+    ...taylor.songs.speakNow,
+    "Safe & Sound",
+    "Eyes Open",
+    ...taylor.songs.red,
+    "Sweeter Than Fiction",
+    ...taylor.songs.album1989,
+    ...taylor.songs.reputation,
+    ...taylor.songs.lover,
+    "All Of The Girls You Loved Before",
+    "Christmas Tree Farm",
+    "Macavity",
+    "Beautiful Ghosts",
+    "Only The Young",
+    ...taylor.songs.folklore,
+    ...taylor.songs.evermore,
+    "Carolina",
+    ...taylor.songs.midnights,
+    ...taylor.songs.ttpd,
+  ];
+  addArtistToRepo(repo, 'taylor_swift', {
+    displayName: 'Taylor Swift',
+    excludeAlbums: ['covers', 'features', 'soundtrack', 'altVersions', 'nonAlbumSingles'],
+    discography: {
+      songs: taylorDiscography,
+      theme: taylor.themes.red
+    }
+  });
+
+  // Lorde and Conan - include all albums (simpler cases)
+  addArtistToRepo(repo, 'lorde', { displayName: 'Lorde' });
+  addArtistToRepo(repo, 'conan', { displayName: 'Conan Gray' });
 
   return repo;
 }

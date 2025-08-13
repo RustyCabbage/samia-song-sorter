@@ -525,5 +525,32 @@
         "buttonTextColor": "#054566"
       }
     }
+  },
+  "conan": {
+    "songs": {
+      "wishbone": [
+        "Actor",
+        "This Song",
+        "Vodka Cranberry",
+        "Romeo",
+        "My World",
+        "Class Clown",
+        "Nauseous",
+        "Caramel",
+        "Connell",
+        "Sunset Tower",
+        "Elevent Eleven",
+        "Care"
+      ]
+    },
+    "themes": {
+      "wishbone": {
+        "backgroundColor": "#3E637A",
+        "textColor": "#C3C3C5",
+        "buttonColor": "#214659",
+        "buttonHoverColor": "#0E2630",
+        "buttonTextColor": "#C3C3C5"
+      }
+    }
   }
 }

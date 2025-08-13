@@ -112,7 +112,7 @@ export function computeTransitiveReduction(history, isTransitiveClosure = false)
     }
     directGraph.get(chosen).add(rejected);
   }
-  console.log(`Num Nodes (Songs) in History:  ${allNodes.size}`);
+  console.log(`Num songs in History:  ${allNodes.size}`);
   console.log(`Transitive Closure size ${isTransitiveClosure ? '(Precomputed)' : ''}: ${transitiveClosure.length}`)
 
   // Build transitive closure graph
@@ -166,12 +166,8 @@ export function computeTransitiveReduction(history, isTransitiveClosure = false)
   }
 
   const reducedPreferences = [];
-  const reductionNodes = new Set();
   for (const [chosen, rejectedSet] of reductionGraph.entries()) {
-    reductionNodes.add(chosen);
-    reductionNodes.add(rejectedSet);
     for (const rejected of rejectedSet) {
-      // Find original comparison (could be optimized with a Map if needed frequently)
       const originalComparison = history.find(pref =>
         pref.chosen === chosen && pref.rejected === rejected
       );
