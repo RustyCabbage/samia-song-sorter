@@ -22,7 +22,7 @@
 
 /* Typography */
 .app-title {
-  font-size: 2em;
+  font-size: 1.8em;
 }
 
 .section-title {
@@ -32,7 +32,7 @@
 }
 
 .section-subtitle {
-  font-size: 1.25em;
+  font-size: 1.2em;
 }
 
 .song-count {
@@ -50,7 +50,7 @@
 .progress-indicator,
 .comparison-text {
   font-weight: bold;
-  margin-bottom: 1em;
+  margin-bottom: 0.5em;
 }
 
 .warning {
