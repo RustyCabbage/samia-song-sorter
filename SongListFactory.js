@@ -96,7 +96,8 @@ function addArtistToRepo(repository, artistKey, config = {}) {
     displayName = null,
     includeAlbums = null, // Array of album keys to include, or null for all
     excludeAlbums = [], // Array of album keys to exclude
-    discography = null // Discography configuration
+    discography = null, // Discography configuration
+    themeMapping = {} // Map album keys to different theme keys
   } = config;
 
   const artist = displayName || formatArtistName(artistKey);
@@ -116,7 +117,9 @@ function addArtistToRepo(repository, artistKey, config = {}) {
   albumsToInclude.forEach(albumKey => {
     const albumSongs = songs[albumKey];
     if (Array.isArray(albumSongs) && albumSongs.length > 0) {
-      const theme = themes[albumKey] || themes[Object.keys(themes)[0]]; // Fallback to first theme
+      // Use theme mapping if provided, otherwise use album key
+      const themeKey = themeMapping[albumKey] || albumKey;
+      const theme = themes[themeKey] || themes[Object.keys(themes)[0]]; // Fallback to first theme
       const albumName = formatAlbumName(albumKey);
 
       repository.addList(
@@ -159,7 +162,7 @@ function formatAlbumName(albumKey) {
     'scout': 'Scout',
     'honey': 'Honey',
     'bloodless': 'Bloodless',
-    'debut': 'Debut',
+    'debut': 'Debut (Taylor Swift)',
     'fearless': 'Fearless',
     'speakNow': 'Speak Now',
     'red': 'Red',
@@ -170,6 +173,7 @@ function formatAlbumName(albumKey) {
     'evermore': 'Evermore',
     'midnights': 'Midnights',
     'ttpd': 'The Tortured Poets Department',
+    'showgirl': 'The Life of a Showgirl',
     'virgin': 'Virgin',
     'wishbone': 'Wishbone',
     'nonAlbumSingles': 'Non-Album Singles',
@@ -198,7 +202,7 @@ function initializeSongLists() {
   ];
   addArtistToRepo(repo, 'samia', {
     displayName: 'Samia',
-    excludeAlbums: ['preBaby', 'nonAlbumSingles'], // Don't create individual lists for these
+    excludeAlbums: ['preBaby', 'nonAlbumSingles', 'Scout'], // Don't create individual lists for these
     discography: {
       songs: samiaDiscography,
       theme: samia.themes.scout
@@ -229,10 +233,17 @@ function initializeSongLists() {
     "Carolina",
     ...taylor.songs.midnights,
     ...taylor.songs.ttpd,
+    //...taylor.songs.showgirl
   ];
   addArtistToRepo(repo, 'taylor_swift', {
     displayName: 'Taylor Swift',
     excludeAlbums: ['covers', 'features', 'soundtrack', 'altVersions', 'nonAlbumSingles'],
+    themeMapping: {
+      'album1989': 'album1989_tv',
+      'red': 'red_tv',
+      'speakNow': 'speakNow_tv',
+      'fearless': 'fearless_tv'
+    },
     discography: {
       songs: taylorDiscography,
       theme: taylor.themes.red

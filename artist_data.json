@@ -361,6 +361,20 @@
         "Robin",
         "The Manuscript"
       ],
+      "showgirl": [
+        "The Fate of Ophelia",
+        "Elizabeth Taylor",
+        "Opalite",
+        "Father Figure",
+        "Eldest Daughter",
+        "Ruin The Friendship",
+        "Actually Romantic",
+        "Wi$h Li$t",
+        "Wood",
+        "CANCELLED!",
+        "Honey",
+        "The Life of a Showgirl (feat. Sabrina Carpenter)"
+      ],
       "altVersions": [
         "Teardrops on My Guitar - Pop Version",
         "Everything Has Changed - Remix",
@@ -414,6 +428,13 @@
       ]
     },
     "themes": {
+      "showgirl": {
+        "backgroundColor": "#3E5C35",
+        "textColor": "#BDD6BA",
+        "buttonColor": "#D76938",
+        "buttonHoverColor": "#B83F27",
+        "buttonTextColor": "#232F1E"
+      },
       "ttpd": {
         "backgroundColor": "#312C28",
         "textColor": "#DBD5D1",

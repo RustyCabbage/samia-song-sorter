@@ -27,6 +27,12 @@
 
 .section-title {
   font-size: 1.5em;
+  font-style: italic;
+  color: var(--button-color);
+}
+
+.section-subtitle {
+  font-size: 1.25em;
 }
 
 .song-count {

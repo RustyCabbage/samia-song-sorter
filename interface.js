@@ -18,6 +18,7 @@ const DOM = (() => {
 
     // Sorting interface
     sortingInterface: "sortingInterface",
+    albumTitle: "albumTitle",
     progress: "progress",
     comparison: "comparison",
     btnA: "btnA",
@@ -136,8 +137,10 @@ function updateTitles(interfaceType) {
   } else if ((interfaceType === "sorting" || interfaceType === "results") && state.currentArtist) {
     // Update titles with artist name for sorting and results interfaces
     const artistTitle = `${state.currentArtist} Song Sorter`;
+    const albumTitle = `${state.currentSongList.name}`;
     document.title = artistTitle;
     DOM.appTitle.textContent = artistTitle;
+    DOM.albumTitle.textContent = albumTitle;
   }
 }
 
