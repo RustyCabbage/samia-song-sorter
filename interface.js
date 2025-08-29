@@ -18,7 +18,6 @@ const DOM = (() => {
 
     // Sorting interface
     sortingInterface: "sortingInterface",
-    albumTitle: "albumTitle",
     progress: "progress",
     comparison: "comparison",
     btnA: "btnA",
@@ -31,7 +30,6 @@ const DOM = (() => {
     resultsInterface: "resultsInterface",
     resultList: "resultList",
     decisionHistoryBody: "decisionHistoryBody",
-    listName: "listName",
     copyButton: "copyButton",
     copyHistoryButton: "copyHistoryButton",
     copyStatus: "copyStatus",
@@ -72,7 +70,8 @@ const state = (() => {
     useCleanPrefs: (value) => {
       DOM.cleanPrefsToggle.checked = value;
       DOM.resultsCleanPrefsToggle.checked = value;
-    }, currentSongList: () => {
+    },
+    currentSongList: () => {
       applySongCount();
       applyTheme();
     },
@@ -127,6 +126,12 @@ function applySongCount() {
   }
 }
 
+function updateListName(name) {
+  document.querySelectorAll('.list-name').forEach(el => {
+    el.textContent = name;
+  });
+}
+
 function updateTitles(interfaceType) {
   const defaultTitle = "Yet Another Song Sorter";
 
@@ -137,10 +142,9 @@ function updateTitles(interfaceType) {
   } else if ((interfaceType === "sorting" || interfaceType === "results") && state.currentArtist) {
     // Update titles with artist name for sorting and results interfaces
     const artistTitle = `${state.currentArtist} Song Sorter`;
-    const albumTitle = `${state.currentSongList.name}`;
     document.title = artistTitle;
     DOM.appTitle.textContent = artistTitle;
-    DOM.albumTitle.textContent = albumTitle;
+    updateListName(state.currentSongList.name);
   }
 }
 
@@ -160,14 +164,6 @@ function populateSongListSelectorByArtist(artist) {
   DOM.listSelector.innerHTML = '';
 
   const fragment = document.createDocumentFragment();
-
-  // Add default option
-  /*
-  const defaultOption = document.createElement("option");
-  defaultOption.value = "";
-  defaultOption.textContent = "Select a song list...";
-  fragment.appendChild(defaultOption);
-  */
 
   // Add artist-specific lists
   for (const list of songListRepo.getListsByArtist(artist)) {
@@ -319,8 +315,6 @@ function startSortingProcess() {
 }
 
 function showResult(finalSorted) {
-  DOM.listName.textContent = state.currentSongList.name;
-
   // Create fragments for batch DOM updates
   const resultsFragment = document.createDocumentFragment();
   const historyFragment = document.createDocumentFragment();

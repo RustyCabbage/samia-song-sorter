@@ -65,7 +65,7 @@
 
 <!-- Sorting Interface -->
 <section id="sortingInterface" aria-live="polite" hidden>
-  <h2 class="section-title" id="albumTitle">Album Title</h2>
+  <h2 class="section-title list-name">List Name</h2>
   <h3 class="section-subtitle">Which song do you prefer?</h3>
   <div id="progress" class="progress-indicator" aria-live="polite"></div>
   <div id="comparison" class="comparison-text" aria-live="polite"></div>
@@ -103,14 +103,14 @@
 <!-- Results Interface -->
 <section id="resultsInterface" aria-live="polite" hidden>
   <div class="results-container">
-    <h2 id="resultTitle">Your <i id="listName"></i> Ranking:</h2>
+    <h2 id="resultTitle">Your <i class="list-name"></i> Ranking:</h2>
     <ol id="resultList">
       <!-- Song rankings will be populated here by JavaScript -->
     </ol>
     <p id="copyButton" class="copy-text">Copy ranking to clipboard</p>
   </div>
   <div class="history-container">
-    <h2 class="section-title">Your Decision History:</h2>
+    <h2>Your Decision History:</h2>
     <div class="decision-table">
       <table aria-label="Decision history">
         <thead>
