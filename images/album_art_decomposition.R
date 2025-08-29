@@ -23,7 +23,7 @@ library(reshape2)
 #=============================================
 # PARAMETERS
 #=============================================
-image_path      <- paste0("Taylor Swift - The Life of a Showgirl",".jpg")  # Path to album cover image
+image_path      <- paste0("Taylor Swift - The Life of a Showgirl",".png")  # Path to album cover image
 distance_thresh <- 0.16                 # Euclidean distance threshold for stopping
 max_k           <- 10                   # Maximum k to try
 

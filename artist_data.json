@@ -547,7 +547,7 @@
       }
     }
   },
-  "conan": {
+  "conan_gray": {
     "songs": {
       "wishbone": [
         "Actor",
@@ -571,6 +571,33 @@
         "buttonColor": "#214659",
         "buttonHoverColor": "#0E2630",
         "buttonTextColor": "#C3C3C5"
+      }
+    }
+  },
+  "sabrina_carpenter": {
+    "songs": {
+      "mans_best_friend": [
+        "Manchild",
+        "Tears",
+        "My Man on Willpower",
+        "Sugar Talking",
+        "We Almost Broke Up Again Last Night",
+        "Nobody's Son",
+        "Never Getting Laid",
+        "When Did You Get Hot?",
+        "Go Go Juice",
+        "Don't Worry I'll Make You Worry",
+        "House Tour",
+        "Goodbye"
+      ]
+    },
+    "themes": {
+      "mans_best_friend": {
+        "backgroundColor": "#DFD4DA",
+        "textColor": "#341D1C",
+        "buttonColor": "#D18F8D",
+        "buttonHoverColor": "#AF6662",
+        "buttonTextColor": "#341D1C"
       }
     }
   }

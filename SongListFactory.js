@@ -149,7 +149,8 @@ function formatArtistName(artistKey) {
     'samia': 'Samia',
     'taylor_swift': 'Taylor Swift',
     'lorde': 'Lorde',
-    'conan': 'Conan Gray'
+    'conan_gray': 'Conan Gray',
+    'sabrina_carpenter': 'Sabrina Carpenter',
   };
   return nameMap[artistKey] || artistKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
@@ -176,6 +177,7 @@ function formatAlbumName(albumKey) {
     'showgirl': 'The Life of a Showgirl',
     'virgin': 'Virgin',
     'wishbone': 'Wishbone',
+    'mans_best_friend': "Man's Best Friend",
     'nonAlbumSingles': 'Non-Album Singles',
     'altVersions': 'Alternative Versions',
     'covers': 'Covers',
@@ -251,8 +253,9 @@ function initializeSongLists() {
   });
 
   // Lorde and Conan - include all albums (simpler cases)
+  addArtistToRepo(repo, 'conan_gray', { displayName: 'Conan Gray' });
   addArtistToRepo(repo, 'lorde', { displayName: 'Lorde' });
-  addArtistToRepo(repo, 'conan', { displayName: 'Conan Gray' });
+  addArtistToRepo(repo, 'sabrina_carpenter', { displayName: 'Sabrina Carpenter' });
 
   return repo;
 }
