@@ -200,7 +200,8 @@ function initializeSongLists() {
     ...samia.songs.honey,
     "Maps", "Country", "Making Breakfast",
     ...samia.songs.bloodless,
-    "Pool - Stripped"
+    "Pool - Stripped",
+    "Cinder Block"
   ];
   addArtistToRepo(repo, 'samia', {
     displayName: 'Samia',
