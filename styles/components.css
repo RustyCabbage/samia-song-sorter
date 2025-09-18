@@ -175,7 +175,7 @@
 }
 
 .results-container li {
-  margin: 0.5em 0;
+  margin: 0.3em 0;
 }
 
 .decision-table {
@@ -204,7 +204,7 @@
 }
 
 .decision-table td {
-  padding: 0.5em;
+  padding: 0.5em 0.3em;
   border-bottom: 1px solid var(--button-hover-color);
 }
 
