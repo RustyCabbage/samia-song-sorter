@@ -236,7 +236,7 @@ function initializeSongLists() {
     "Carolina",
     ...taylor.songs.midnights,
     ...taylor.songs.ttpd,
-    //...taylor.songs.showgirl
+    ...taylor.songs.showgirl
   ];
   addArtistToRepo(repo, 'taylor_swift', {
     displayName: 'Taylor Swift',
