@@ -525,6 +525,52 @@
   },
   "lorde": {
     "songs": {
+      "pure_heroine": [
+        "Tennis Court",
+        "400 Lux",
+        "Royals",
+        "Ribs",
+        "Buzzcut Season",
+        "Team",
+        "Glory And Gore",
+        "Still Sane",
+        "White Teeth Teens",
+        "A World Alone",
+        "Bravado",
+        "Million Dollar Bills",
+        "The Love Club",
+        "Biting Down",
+        "Swingin Party"
+      ],
+      "melodrama": [
+        "Green Light",
+        "Sober",
+        "Homemade Dynamite",
+        "The Louvre",
+        "Liability",
+        "Hard Feelings/Loveless",
+        "Sober II (Melodrama)",
+        "Writer In The Dark",
+        "Supercut",
+        "Liability (Reprise)",
+        "Perfect Places"
+      ],
+      "solar_power": [
+        "The Path",
+        "Solar Power",
+        "California",
+        "Stoned at the Nail Salon",
+        "Fallen Fruit",
+        "Secrets from a Girl (Who's Seen it All)",
+        "The Man with the Axe",
+        "Dominoes",
+        "Big Star",
+        "Leader of a New Regime",
+        "Mood Ring",
+        "Oceanic Feeling",
+        "Helen of Troy",
+        "Hold No Grudge"
+      ],
       "virgin": [
         "Hammer",
         "What Was That",
@@ -540,6 +586,27 @@
       ]
     },
     "themes": {
+      "pure_heroine": {
+        "backgroundColor": "#1B1B1B",
+        "textColor": "#E5E4E3",
+        "buttonColor": "#7B7B7B",
+        "buttonHoverColor": "#5C5C5C",
+        "buttonTextColor": "#E5E4E3"
+      },
+      "melodrama": {
+        "backgroundColor": "#0548AE",
+        "textColor": "#E5E4E3",
+        "buttonColor": "#B74852",
+        "buttonHoverColor": "#4D1E39",
+        "buttonTextColor": "#E5E4E3"
+      },
+      "solar_power": {
+        "backgroundColor": "#77ADDB",
+        "textColor": "#301A07",
+        "buttonColor": "#E4E520",
+        "buttonHoverColor": "#D6C51D",
+        "buttonTextColor": "#301A07"
+      },
       "virgin": {
         "backgroundColor": "#026A99",
         "textColor": "#B1D2EB",
@@ -551,6 +618,49 @@
   },
   "conan_gray": {
     "songs": {
+      "kid_krow": [
+        "Comfort Crowd",
+        "Wish You Were Sober",
+        "Maniac",
+        "(Online Love)",
+        "Checkmate",
+        "The Cut That Always Bleeds",
+        "Fight or Flight",
+        "Affluenza",
+        "(Can We Be Friends?)",
+        "Heather",
+        "Little League",
+        "The Story"
+      ],
+      "superache": [
+        "Movies",
+        "People Watching",
+        "Disaster",
+        "Best Friend",
+        "Astronomy",
+        "Yours",
+        "Jigsaw",
+        "Family Line",
+        "Summer Child",
+        "Footnote",
+        "Memories",
+        "The Exit"
+      ],
+      "found_heaven": [
+        "Found Heaven",
+        "Never Ending Song",
+        "Fainted Love",
+        "Lonely Dancers",
+        "Alley Rose",
+        "The Final Fight",
+        "Miss You",
+        "Bourgeoisieses",
+        "Forever With Me",
+        "Eye Of The Night",
+        "Boys & Girls",
+        "Killing Me",
+        "Winner"
+      ],
       "wishbone": [
         "Actor",
         "This Song",
@@ -567,6 +677,27 @@
       ]
     },
     "themes": {
+      "kid_krow": {
+        "backgroundColor": "#EBEAE6",
+        "textColor": "#1E1A11",
+        "buttonColor": "#D7C4B2",
+        "buttonHoverColor": "#929792",
+        "buttonTextColor": "#1E1A11"
+      },
+      "superache": {
+        "backgroundColor": "#070604",
+        "textColor": "#e9e9e9",
+        "buttonColor": "#821D18",
+        "buttonHoverColor": "#5F1611",
+        "buttonTextColor": "#e9e9e9"
+      },
+      "found_heaven": {
+        "backgroundColor": "#D0BC33",
+        "textColor": "#110C0A",
+        "buttonColor": "#C39135",
+        "buttonHoverColor": "#BD7F36",
+        "buttonTextColor": "#110C0A"
+      },
       "wishbone": {
         "backgroundColor": "#3E637A",
         "textColor": "#C3C3C5",
@@ -578,6 +709,44 @@
   },
   "sabrina_carpenter": {
     "songs": {
+      "emails": [
+        "emails i can't send",
+        "Vicious",
+        "Read your Mind",
+        "Tornado Warnings",
+        "because i liked a boy",
+        "Already Over",
+        "how many things",
+        "bet u wanna",
+        "Nonsense",
+        "Fast Times",
+        "skinny dipping",
+        "Bad for Business",
+        "decode",
+        "opposite",
+        "Feather",
+        "Lonesome",
+        "things i wish you said"
+      ],
+      "sns": [
+        "Taste",
+        "Please Please Please",
+        "Good Graces",
+        "Sharpest Tool",
+        "Coincidence",
+        "Bed Chem",
+        "Espresso",
+        "Dumb & Poetic",
+        "Slim Pickins",
+        "Juno",
+        "Lie To Girls",
+        "Don't Smile",
+        "15 Minutes",
+        "Please Please Please (feat. Dolly Parton)",
+        "Couldn't Make It Any Harder",
+        "Busy Woman",
+        "Bad Reviews"
+      ],
       "mans_best_friend": [
         "Manchild",
         "Tears",
@@ -594,6 +763,20 @@
       ]
     },
     "themes": {
+      "emails": {
+        "backgroundColor": "#E4C09D",
+        "textColor": "#1A1B18",
+        "buttonColor": "#518F94",
+        "buttonHoverColor": "#526E69",
+        "buttonTextColor": "#1A1B18"
+      },
+      "sns": {
+        "backgroundColor": "#2A5197",
+        "textColor": "#E1A373",
+        "buttonColor": "#69A7BA",
+        "buttonHoverColor": "#477D8D",
+        "buttonTextColor": "#21130F"
+      },
       "mans_best_friend": {
         "backgroundColor": "#DFD4DA",
         "textColor": "#341D1C",
