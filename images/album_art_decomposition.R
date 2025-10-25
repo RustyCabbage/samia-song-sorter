@@ -225,7 +225,7 @@ analyze_album_colors <- function(image_path,
 
   # Plotting
   if (plot_grid) {
-    create_color_grid(color_df, grid_text)
+    plot_color_grid(color_df, grid_text)
   }
 
   if (plot_reconstruction) {
@@ -253,4 +253,4 @@ analyze_album_colors <- function(image_path,
 # Example usage:
 # interpolate_hex("#E4E520", "#D6C51D", 0.3)
 
-result <- analyze_album_colors(sprintf("%s.%s","Sabrina Carpenter - Short n' Sweet (Deluxe)", "jpg"), distance_thresh=0.16)
+result <- analyze_album_colors(sprintf("%s.%s","Olivia Rodrigo - GUTS (spilled)", "jpg"), distance_thresh=0.16)

@@ -186,6 +186,8 @@ function formatAlbumName(albumKey) {
     'emails': 'emails i can\'t send',
     'sns': 'Short n\' Sweet',
     'mans_best_friend': "Man's Best Friend",
+    'sour': 'Sour',
+    'guts': 'Guts',
     'nonAlbumSingles': 'Non-Album Singles',
     'altVersions': 'Alternative Versions',
     'covers': 'Covers',
@@ -265,6 +267,7 @@ function initializeSongLists() {
   addArtistToRepo(repo, 'conan_gray', { displayName: 'Conan Gray' });
   addArtistToRepo(repo, 'lorde', { displayName: 'Lorde' });
   addArtistToRepo(repo, 'sabrina_carpenter', { displayName: 'Sabrina Carpenter' });
+  addArtistToRepo(repo, 'olivia_rodrigo', { displayName: 'Olivia Rodrigo' });
 
   return repo;
 }

@@ -785,5 +785,57 @@
         "buttonTextColor": "#341D1C"
       }
     }
+  },
+  "olivia_rodrigo": {
+    "songs": {
+      "sour": [
+        "brutal",
+        "traitor",
+        "drivers license",
+        "1 step forward, 3 steps back",
+        "deja vu",
+        "good 4 u",
+        "enough for you",
+        "happier",
+        "jealousy, jealousy",
+        "favorite crime",
+        "hope ur ok"
+      ],
+      "guts": [
+        "all-american bitch",
+        "bad idea right?",
+        "vampire",
+        "lacy",
+        "ballad of a homeschooled girl",
+        "making the bed",
+        "logical",
+        "get him back!",
+        "love is embarrassing",
+        "the grudge",
+        "pretty isn't pretty",
+        "teenage dream",
+        "obsessed",
+        "girl i've always been",
+        "scared of my guitar",
+        "stranger",
+        "so american"
+      ]
+    },
+    "themes": {
+      "sour": {
+        "backgroundColor": "#8780C3",
+        "textColor": "#090909",
+        "buttonColor": "#E6C9BC",
+        "buttonHoverColor": "#BF957A",
+        "buttonTextColor": "#090909"
+      },
+      "guts": {
+        "backgroundColor": "#3E2F58",
+        "textColor": "#D6C9C6",
+        "buttonColor": "#5A4878",
+        "buttonHoverColor": "#4C3C68",
+        "buttonTextColor": "#D6C9C6"
+      }
+    }
   }
 }
