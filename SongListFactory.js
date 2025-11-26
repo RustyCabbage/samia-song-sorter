@@ -215,10 +215,10 @@ function initializeSongLists() {
   ];
   addArtistToRepo(repo, 'samia', {
     displayName: 'Samia',
-    excludeAlbums: ['preBaby', 'nonAlbumSingles', 'Scout'], // Don't create individual lists for these
+    excludeAlbums: ['preBaby', 'nonAlbumSingles', 'scout'], // Don't create individual lists for these
     discography: {
       songs: samiaDiscography,
-      theme: samia.themes.scout
+      theme: samia.themes.bloodless_live
     }
   });
 

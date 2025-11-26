@@ -47,7 +47,6 @@
         "Dream Song"
       ],
       "bloodless": [
-        "Biscuits Intro",
         "Bovine Excision",
         "Hole in a Frame",
         "Lizard",
@@ -98,6 +97,13 @@
         "textColor": "#102512",
         "buttonColor": "#F6AF9E",
         "buttonHoverColor": "#F6A98F",
+        "buttonTextColor": "#102512"
+      },
+      "bloodless_live": {
+        "backgroundColor": "#6E6B7E",
+        "textColor": "#102512",
+        "buttonColor": "#E6BB54",
+        "buttonHoverColor": "#F7BC86",
         "buttonTextColor": "#102512"
       }
     }
@@ -766,8 +772,8 @@
       "emails": {
         "backgroundColor": "#E4C09D",
         "textColor": "#1A1B18",
-        "buttonColor": "#518F94",
-        "buttonHoverColor": "#526E69",
+        "buttonColor": "#7D9E97",
+        "buttonHoverColor": "#518F94",
         "buttonTextColor": "#1A1B18"
       },
       "sns": {
