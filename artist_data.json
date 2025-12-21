@@ -778,7 +778,7 @@
       },
       "sns": {
         "backgroundColor": "#2A5197",
-        "textColor": "#E1A373",
+        "textColor": "#EADED9",
         "buttonColor": "#69A7BA",
         "buttonHoverColor": "#477D8D",
         "buttonTextColor": "#21130F"

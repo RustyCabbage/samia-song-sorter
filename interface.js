@@ -2,6 +2,7 @@
 import {songListRepo} from './SongListFactory.js';
 import {songSorterFactory} from './sorter/SongSorterFactory.js';
 import notificationManager from './NotificationManager.js';
+import {faviconManager} from './FaviconManager.js';
 
 // Cache DOM elements with error handling
 const DOM = (() => {
@@ -116,6 +117,7 @@ function applyTheme() {
   for (const [prop, val] of Object.entries(state.themeCache[songListId])) {
     root.setProperty(prop, val);
   }
+  faviconManager.setFavicon(state.themeCache[songListId]['--background-color'], state.themeCache[songListId]['--button-color']);
 }
 
 function applySongCount() {
@@ -141,7 +143,7 @@ function updateTitles(interfaceType) {
     DOM.appTitle.textContent = defaultTitle;
   } else if ((interfaceType === "sorting" || interfaceType === "results") && state.currentArtist) {
     // Update titles with artist name for sorting and results interfaces
-    const artistTitle = `${state.currentArtist} Song Sorter`;
+    const artistTitle = `${state.currentArtist} Song Sorter - ${state.currentSongList.name}`;
     document.title = artistTitle;
     DOM.appTitle.textContent = artistTitle;
     updateListName(state.currentSongList.name);
@@ -353,6 +355,7 @@ function showResult(finalSorted) {
 
 function resetInterface() {
   showInterface("selection");
+  faviconManager.reset();
 }
 
 // Initialize application
