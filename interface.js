@@ -143,7 +143,7 @@ function updateTitles(interfaceType) {
     DOM.appTitle.textContent = defaultTitle;
   } else if ((interfaceType === "sorting" || interfaceType === "results") && state.currentArtist) {
     // Update titles with artist name for sorting and results interfaces
-    const artistTitle = `${state.currentArtist} Song Sorter - ${state.currentSongList.name}`;
+    const artistTitle = `${state.currentArtist} Song Sorter`;
     document.title = artistTitle;
     DOM.appTitle.textContent = artistTitle;
     updateListName(state.currentSongList.name);

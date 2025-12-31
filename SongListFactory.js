@@ -97,12 +97,30 @@ function addArtistToRepo(repository, artistKey, config = {}) {
     includeAlbums = null, // Array of album keys to include, or null for all
     excludeAlbums = [], // Array of album keys to exclude
     discography = null, // Discography configuration
-    themeMapping = {} // Map album keys to different theme keys
+    themeMapping = {}, // Map album keys to different theme keys
+    fallbackTheme = null // Theme object to use if artist has no themes
   } = config;
 
   const artist = displayName || formatArtistName(artistKey);
   const songs = artistData.songs;
-  const themes = artistData.themes;
+  const themes = artistData.themes || {};
+
+  // Determine default theme
+  let defaultTheme;
+  if (fallbackTheme) {
+    defaultTheme = fallbackTheme;
+  } else if (Object.keys(themes).length > 0) {
+    defaultTheme = themes[Object.keys(themes)[0]];
+  } else {
+    // Ultimate fallback - a neutral theme
+    defaultTheme = {
+      backgroundColor: "#1a1a1a",
+      textColor: "#e0e0e0",
+      buttonColor: "#4a4a4a",
+      buttonHoverColor: "#2a2a2a",
+      buttonTextColor: "#e0e0e0"
+    };
+  }
 
   // Determine which albums to include
   let albumsToInclude = Object.keys(songs);
@@ -119,7 +137,7 @@ function addArtistToRepo(repository, artistKey, config = {}) {
     if (Array.isArray(albumSongs) && albumSongs.length > 0) {
       // Use theme mapping if provided, otherwise use album key
       const themeKey = themeMapping[albumKey] || albumKey;
-      const theme = themes[themeKey] || themes[Object.keys(themes)[0]]; // Fallback to first theme
+      const theme = themes[themeKey] || defaultTheme;
       const albumName = formatAlbumName(albumKey);
 
       repository.addList(
@@ -145,14 +163,8 @@ function addArtistToRepo(repository, artistKey, config = {}) {
 
 // Helper function to format artist names
 function formatArtistName(artistKey) {
-  const nameMap = {
-    'samia': 'Samia',
-    'taylor_swift': 'Taylor Swift',
-    'lorde': 'Lorde',
-    'conan_gray': 'Conan Gray',
-    'sabrina_carpenter': 'Sabrina Carpenter',
-  };
-  return nameMap[artistKey] || artistKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  // Convert snake_case to Title Case
+  return artistKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
 // Helper function to format album names
@@ -192,7 +204,8 @@ function formatAlbumName(albumKey) {
     'altVersions': 'Alternative Versions',
     'covers': 'Covers',
     'features': 'Features',
-    'soundtrack': 'Soundtrack'
+    'soundtrack': 'Soundtrack',
+    'top2025': 'Top 2025',
   };
   return albumMap[albumKey] || albumKey.replace(/([A-Z])/g, ' $1').trim().replace(/\b\w/g, l => l.toUpperCase());
 }
@@ -214,7 +227,6 @@ function initializeSongLists() {
     "Cinder Block"
   ];
   addArtistToRepo(repo, 'samia', {
-    displayName: 'Samia',
     excludeAlbums: ['preBaby', 'nonAlbumSingles', 'scout'], // Don't create individual lists for these
     discography: {
       songs: samiaDiscography,
@@ -249,7 +261,6 @@ function initializeSongLists() {
     ...taylor.songs.showgirl
   ];
   addArtistToRepo(repo, 'taylor_swift', {
-    displayName: 'Taylor Swift',
     excludeAlbums: ['covers', 'features', 'soundtrack', 'altVersions', 'nonAlbumSingles'],
     themeMapping: {
       'album1989': 'album1989_tv',
@@ -263,11 +274,11 @@ function initializeSongLists() {
     }
   });
 
-  // Lorde and Conan - include all albums (simpler cases)
-  addArtistToRepo(repo, 'conan_gray', { displayName: 'Conan Gray' });
-  addArtistToRepo(repo, 'lorde', { displayName: 'Lorde' });
-  addArtistToRepo(repo, 'sabrina_carpenter', { displayName: 'Sabrina Carpenter' });
-  addArtistToRepo(repo, 'olivia_rodrigo', { displayName: 'Olivia Rodrigo' });
+  addArtistToRepo(repo, 'conan_gray');
+  addArtistToRepo(repo, 'lorde');
+  addArtistToRepo(repo, 'sabrina_carpenter');
+  addArtistToRepo(repo, 'olivia_rodrigo');
+  //addArtistToRepo(repo, 'other', { fallbackTheme: samia.themes.bloodless });
 
   return repo;
 }

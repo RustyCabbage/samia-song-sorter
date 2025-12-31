@@ -843,5 +843,28 @@
         "buttonTextColor": "#D6C9C6"
       }
     }
+  },
+  "other": {
+    "songs": {
+      "top2025": [
+        "Buckle",
+        "North Poles",
+        "Save The Bullets, Baby!",
+        "Ruin The Friendship",
+        "15 Minutes",
+        "Remains",
+        "Lost Time",
+        "David",
+        "twilight zone",
+        "Massachusetts",
+        "Nettles",
+        "The Subway",
+        "Care",
+        "Plastic Box",
+        "Cinder Block",
+        "Castle in Hollywood",
+        "Go Go Juice"
+      ]
+    }
   }
 }

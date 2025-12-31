@@ -157,14 +157,14 @@ export default class MergeInsertionSorter extends BaseSorter {
     const shouldGoLeft = !Number.isInteger(Math.log2(insertionLength + 1));
 
     // Handle right direction case
-    if (!shouldGoLeft && selectedLeft && !isLastInGroup) {
+    if (!shouldGoLeft && !isLastInGroup && selectedLeft) {
       this.sortState.comparisons.bestCase++;
       return false;
     }
     // Handle left direction case
     if (shouldGoLeft) {
       // Check for best case increment condition
-      if (!selectedLeft && (right - left) % 2 !== 0 && Number.isInteger(Math.log2(right - mid + 1))) {
+      if ((right - left) % 2 !== 0 && Number.isInteger(Math.log2(right - mid + 1)) && !selectedLeft) {
         this.sortState.comparisons.bestCase++;
         return false;
       }
