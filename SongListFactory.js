@@ -191,6 +191,7 @@ function formatAlbumName(albumKey) {
     'melodrama': 'Melodrama',
     'solar_power': 'Solar Power',
     'virgin': 'Virgin',
+    'sunset_season': 'Sunset Season',
     'kid_krow': 'Kid Krow',
     'superache': 'Superache',
     'found_heaven': 'Found Heaven',
@@ -274,10 +275,45 @@ function initializeSongLists() {
     }
   });
 
-  addArtistToRepo(repo, 'conan_gray');
+  const conanGray = ARTIST_DATA.conan_gray;
+  const conanDiscography = [
+    "Grow",
+    ...conanGray.songs.sunset_season,
+    "The Other Side",
+    "The King",
+    ...conanGray.songs.kid_krow,
+    "Overdrive",
+    "Telepath",
+    ...conanGray.songs.superache,
+    ...conanGray.songs.found_heaven,
+    "Holidays",
+    ...conanGray.songs.wishbone
+  ];
+  addArtistToRepo(repo, 'conan_gray', {
+    discography: {
+      songs: conanDiscography,
+      theme: conanGray.themes.overdrive
+    }
+  });
+  addArtistToRepo(repo, 'taylor_swift', {
+    excludeAlbums: ['covers', 'features', 'soundtrack', 'altVersions', 'nonAlbumSingles'],
+    themeMapping: {
+      'album1989': 'album1989_tv',
+      'red': 'red_tv',
+      'speakNow': 'speakNow_tv',
+      'fearless': 'fearless_tv'
+    },
+    discography: {
+      songs: taylorDiscography,
+      theme: taylor.themes.red
+    }
+  });
+
+  //addArtistToRepo(repo, 'BTS');
   addArtistToRepo(repo, 'lorde');
-  addArtistToRepo(repo, 'sabrina_carpenter');
   addArtistToRepo(repo, 'olivia_rodrigo');
+  addArtistToRepo(repo, 'sabrina_carpenter');
+
   //addArtistToRepo(repo, 'other', { fallbackTheme: samia.themes.bloodless });
 
   return repo;

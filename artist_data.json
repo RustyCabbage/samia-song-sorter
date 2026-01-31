@@ -624,6 +624,13 @@
   },
   "conan_gray": {
     "songs": {
+      "sunset_season": [
+        "Idle Town",
+        "Generation Why",
+        "Crush Culture",
+        "Greek God",
+        "Lookalike"
+      ],
       "kid_krow": [
         "Comfort Crowd",
         "Wish You Were Sober",
@@ -636,7 +643,8 @@
         "(Can We Be Friends?)",
         "Heather",
         "Little League",
-        "The Story"
+        "The Story",
+        "Bed Rest"
       ],
       "superache": [
         "Movies",
@@ -683,6 +691,13 @@
       ]
     },
     "themes": {
+      "sunset_season": {
+        "backgroundColor": "#563434",
+        "textColor": "#E1C2F2",
+        "buttonColor": "#CA98B9",
+        "buttonHoverColor": "#A2615D",
+        "buttonTextColor": "#1A2329"
+      },
       "kid_krow": {
         "backgroundColor": "#EBEAE6",
         "textColor": "#1E1A11",
@@ -710,6 +725,13 @@
         "buttonColor": "#214659",
         "buttonHoverColor": "#0E2630",
         "buttonTextColor": "#C3C3C5"
+      },
+      "overdrive": {
+        "backgroundColor": "#251C18",
+        "textColor": "#B7A78E",
+        "buttonColor": "#A47648",
+        "buttonHoverColor": "#7A4C30",
+        "buttonTextColor": "#1E1A11"
       }
     }
   },
