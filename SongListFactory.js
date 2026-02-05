@@ -171,44 +171,24 @@ function formatArtistName(artistKey) {
 function formatAlbumName(albumKey) {
   const albumMap = {
     'preBaby': 'Pre-Baby',
-    'theBaby': 'The Baby',
-    'scout': 'Scout',
-    'honey': 'Honey',
-    'bloodless': 'Bloodless',
     'debut': 'Debut (Taylor Swift)',
-    'fearless': 'Fearless',
-    'speakNow': 'Speak Now',
-    'red': 'Red',
     'album1989': '1989',
-    'reputation': 'Reputation',
-    'lover': 'Lover',
-    'folklore': 'Folklore',
-    'evermore': 'Evermore',
-    'midnights': 'Midnights',
     'ttpd': 'The Tortured Poets Department',
     'showgirl': 'The Life of a Showgirl',
-    'pure_heroine': 'Pure Heroine',
-    'melodrama': 'Melodrama',
-    'solar_power': 'Solar Power',
-    'virgin': 'Virgin',
-    'sunset_season': 'Sunset Season',
-    'kid_krow': 'Kid Krow',
-    'superache': 'Superache',
-    'found_heaven': 'Found Heaven',
-    'wishbone': 'Wishbone',
     'emails': 'emails i can\'t send',
     'sns': 'Short n\' Sweet',
     'mans_best_friend': "Man's Best Friend",
-    'sour': 'Sour',
-    'guts': 'Guts',
     'nonAlbumSingles': 'Non-Album Singles',
     'altVersions': 'Alternative Versions',
     'covers': 'Covers',
     'features': 'Features',
     'soundtrack': 'Soundtrack',
-    'top2025': 'Top 2025',
   };
-  return albumMap[albumKey] || albumKey.replace(/([A-Z])/g, ' $1').trim().replace(/\b\w/g, l => l.toUpperCase());
+  return albumMap[albumKey] || albumKey
+    .replace(/_/g, ' ')  // Replace underscores with spaces
+    .replace(/([a-z])([A-Z])/g, '$1 $2')  // Add space before capitals only when preceded by lowercase
+    .trim()  // Remove leading/trailing spaces
+    .replace(/\b\w/g, l => l.toUpperCase());  // Capitalize first letter of each word
 }
 
 function initializeSongLists() {
@@ -218,7 +198,7 @@ function initializeSongLists() {
   const samia = ARTIST_DATA.samia;
   const samiaDiscography = [
     ...samia.songs.preBaby,
-    ...samia.songs.theBaby,
+    ...samia.songs.the_baby,
     ...samia.songs.scout,
     "Desperado", "Born on a Train",
     ...samia.songs.honey,
@@ -275,6 +255,8 @@ function initializeSongLists() {
     }
   });
 
+  addArtistToRepo(repo, 'BTS');
+
   const conanGray = ARTIST_DATA.conan_gray;
   const conanDiscography = [
     "Grow",
@@ -295,24 +277,11 @@ function initializeSongLists() {
       theme: conanGray.themes.overdrive
     }
   });
-  addArtistToRepo(repo, 'taylor_swift', {
-    excludeAlbums: ['covers', 'features', 'soundtrack', 'altVersions', 'nonAlbumSingles'],
-    themeMapping: {
-      'album1989': 'album1989_tv',
-      'red': 'red_tv',
-      'speakNow': 'speakNow_tv',
-      'fearless': 'fearless_tv'
-    },
-    discography: {
-      songs: taylorDiscography,
-      theme: taylor.themes.red
-    }
-  });
 
-  //addArtistToRepo(repo, 'BTS');
   addArtistToRepo(repo, 'lorde');
   addArtistToRepo(repo, 'olivia_rodrigo');
   addArtistToRepo(repo, 'sabrina_carpenter');
+  addArtistToRepo(repo, 'blue_october');
 
   //addArtistToRepo(repo, 'other', { fallbackTheme: samia.themes.bloodless });
 

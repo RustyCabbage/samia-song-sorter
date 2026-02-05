@@ -251,6 +251,6 @@ analyze_album_colors <- function(image_path,
 }
 
 # Example usage:
-# interpolate_hex("#E4E520", "#D6C51D", 0.3)
+ interpolate_hex("#090909", "#CD0506", 0.7)
 
-result <- analyze_album_colors(sprintf("%s.%s","Conan Gray - Overdrive", "jpg"), distance_thresh=0.16)
+result <- analyze_album_colors(sprintf("%s.%s","BTS - O!RUL8,2!", "jpg"), distance_thresh=0.16)

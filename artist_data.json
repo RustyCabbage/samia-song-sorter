@@ -14,7 +14,7 @@
         "Never Said",
         "Gotta Have You"
       ],
-      "theBaby": [
+      "the_baby": [
         "Pool",
         "Fit N Full",
         "Big Wheel",
@@ -85,7 +85,7 @@
         "buttonHoverColor": "#76AFCA",
         "buttonTextColor": "#0A1D3B"
       },
-      "theBaby": {
+      "the_baby": {
         "backgroundColor": "#617679",
         "textColor": "#C6BCBD",
         "buttonColor": "#2C3534",
@@ -732,6 +732,13 @@
         "buttonColor": "#A47648",
         "buttonHoverColor": "#7A4C30",
         "buttonTextColor": "#1E1A11"
+      },
+      "telepath": {
+        "backgroundColor": "#100F05",
+        "textColor": "#D4C99F",
+        "buttonColor": "#C72C12",
+        "buttonHoverColor": "#84140A",
+        "buttonTextColor": "#100F05"
       }
     }
   },
@@ -816,7 +823,7 @@
   },
   "olivia_rodrigo": {
     "songs": {
-      "sour": [
+      "SOUR": [
         "brutal",
         "traitor",
         "drivers license",
@@ -829,7 +836,7 @@
         "favorite crime",
         "hope ur ok"
       ],
-      "guts": [
+      "GUTS": [
         "all-american bitch",
         "bad idea right?",
         "vampire",
@@ -850,14 +857,14 @@
       ]
     },
     "themes": {
-      "sour": {
+      "SOUR": {
         "backgroundColor": "#8780C3",
         "textColor": "#090909",
         "buttonColor": "#E6C9BC",
         "buttonHoverColor": "#BF957A",
         "buttonTextColor": "#090909"
       },
-      "guts": {
+      "GUTS": {
         "backgroundColor": "#3E2F58",
         "textColor": "#D6C9C6",
         "buttonColor": "#5A4878",
@@ -866,9 +873,74 @@
       }
     }
   },
+  "BTS": {
+    "songs": {
+      "2_cool_4_skool": [
+        "Intro: 2 Cool 4 Skool",
+        "We Are Bulletproof Pt.2",
+        "No More Dream",
+        "Like",
+      ],
+      "O!RUL8,2?": [
+        "Intro: O!RUL8,2?",
+        "N.O",
+        "We On",
+        "If I Ruled the World",
+        "Coffee",
+        "BTS Cypher Pt.1",
+        "Attack on Bangtan",
+        "Paldogangsan",
+        "Outro: Luv in Skool"
+      ]
+    },
+    "themes": {
+      "2_cool_4_skool": {
+        "backgroundColor": "#35302C",
+        "textColor": "#e9e9e9",
+        "buttonColor": "#CD0506",
+        "buttonHoverColor": "#9D7D46",
+        "buttonTextColor": "#090909"
+      },
+      "O!RUL8,2?": {
+        "backgroundColor": "#FEFEFE",
+        "textColor": "#090909",
+        "buttonColor": "#CD0506",
+        "buttonHoverColor": "#920607",
+        "buttonTextColor": "#090909"
+      }
+    }
+  },
+  "blue_october": {
+    "songs": {
+      "foiled": [
+        "You Make Me Smile",
+        "She's My Ride Home",
+        "Into The Ocean",
+        "What If We Could",
+        "Hate Me",
+        "Let It Go",
+        "Congratulations",
+        "Overweight",
+        "X-Amount Of Words",
+        "Drilled A Wire Through My Cheek",
+        "Sound Of Pulling Heaven Down",
+        "Everlasting Friend",
+        "18th Floor Balcony"
+      ]
+    },
+    "themes": {
+      "foiled": {
+        "backgroundColor": "#141D21",
+        "textColor": "#D9DCDA",
+        "buttonColor": "#386873",
+        "buttonHoverColor": "#134250",
+        "buttonTextColor": "#292929"
+      }
+    }
+  },
   "other": {
     "songs": {
-      "top2025": [
+      "top_2025": [
         "Buckle",
         "North Poles",
         "Save The Bullets, Baby!",
