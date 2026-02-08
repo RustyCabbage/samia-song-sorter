@@ -891,6 +891,73 @@
         "Attack on Bangtan",
         "Paldogangsan",
         "Outro: Luv in Skool"
+      ],
+      "skool_luv_affair": [
+        "Intro: Skool Luv Affair",
+        "Boy in Luv",
+        "Where You From",
+        "Just One Day",
+        "Tomorrow",
+        "BTS Cypher Pt.2: Triptych",
+        "Spine Breaker",
+        "Jump",
+        "Outro: Propose",
+        "Miss Right"
+      ],
+      "dark_&_wild": [
+        "Intro: What Am I to You",
+        "Danger",
+        "War of Hormone",
+        "Hip Hop Phile",
+        "Let Me Know",
+        "Rain",
+        "BTS Cypher Pt.3: Killer",
+        "Interlude: What Are You Doing Now",
+        "Could You Turn off Your Cell Phone",
+        "Embarrassed",
+        "24/7=Heaven",
+        "Look Here",
+        "So 4 more",
+        "Outro: Do You Think It Makes Sense?"
+      ],
+      "tmbmil_1": [
+        "Intro: The Most Beautiful Moment in Life",
+        "I Need U",
+        "Hold Me Tight",
+        "Dope",
+        "Boyz with Fun",
+        "Converse High",
+        "Moving On",
+        "Outro: Love Is Not Over"
+      ],
+      "tmbmil_2": [
+        "Intro: Never Mind",
+        "Run",
+        "Butterfly",
+        "Whalien 52",
+        "Ma City",
+        "Silver Spoon",
+        "Autumn Leaves",
+        "Outro: House of Cards"
+      ],
+      "tmbmil_young_forever": [
+        "Intro: The Most Beautiful Moment in Life",
+        "I Need U",
+        "Hold Me Tight",
+        "Autumn Leaves",
+        "Run",
+        "Ma City",
+        "Silver Spoon",
+        "Dope",
+        "Burning Up (Fire)",
+        "Save Me",
+        "Epilogue: Young Forever",
+        "Converse High",
+        "Moving On",
+        "Whalien 52",
+        "Butterfly",
+        "House of Cards (Full Length Edition)",
+        "Love Is Not Over (Full Length Edition)"
       ]
     },
     "themes": {
@@ -907,6 +974,41 @@
         "buttonColor": "#CD0506",
         "buttonHoverColor": "#920607",
         "buttonTextColor": "#090909"
+      },
+      "skool_luv_affair": {
+        "backgroundColor": "#35493C",
+        "textColor": "#FEFEFE",
+        "buttonColor": "#E4B7C0",
+        "buttonHoverColor": "#B09698",
+        "buttonTextColor": "#090909"
+      },
+      "dark_&_wild": {
+        "backgroundColor": "#080808",
+        "textColor": "#F6F6F6",
+        "buttonColor": "#BC0F12",
+        "buttonHoverColor": "#920607",
+        "buttonTextColor": "#F6F6F6"
+      },
+      "tmbmil_1": {
+        "backgroundColor": "#FEF6F4",
+        "textColor": "#080808",
+        "buttonColor": "#ECC3BF",
+        "buttonHoverColor": "#C5A6A3",
+        "buttonTextColor": "#080808"
+      },
+      "tmbmil_2": {
+        "backgroundColor": "#7BCDEF",
+        "textColor": "#080808",
+        "buttonColor": "#517485",
+        "buttonHoverColor": "#3B5460",
+        "buttonTextColor": "#F6F6F6"
+      },
+      "tmbmil_young_forever": {
+        "backgroundColor": "#F0F0EF",
+        "textColor": "#206B78",
+        "buttonColor": "#E4C82F",
+        "buttonHoverColor": "#A76818",
+        "buttonTextColor": "#206B78"
       }
     }
   },
